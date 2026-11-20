@@ -130,25 +130,38 @@ def site_form_groups(sites):
     Which one the user means is theirs to say (#2000); this only finds where
     the question has to be asked.
 
-    A URL-prefix site belongs with a listed domain property that covers its
-    host (the domain itself or any subdomain). Without one, prefixes group by
-    host with a leading "www." dropped, so http and https, and www and bare,
-    of one site land together.
+    Keyed on the HOST a question would be about, never on a covering domain
+    (Indigo's review of PR #6): keyed on the domain, an institution's apex
+    property swallowed every subdomain into one "site", and two nested domain
+    properties never met.
+
+    - Every URL-prefix host is a site, with a leading "www." folded in, so
+      http and https, and www and bare, land together. A path prefix
+      (https://example.com/blog/) joins its host too: for the blog it is a
+      different answer, so asking is right.
+    - Every domain property's own host is a site.
+    - Each site also gets every listed domain property covering it (the host
+      itself or a parent), so one domain property can sit in many groups.
     """
-    domains = sorted({_host(s["site_url"]) for s in sites
-                      if property_type(s["site_url"]) == "domain"},
-                     key=len, reverse=True)
+    def fold(host):
+        return host[4:] if host.startswith("www.") else host
+
+    domains = [(s["site_url"], _host(s["site_url"])) for s in sites
+               if property_type(s["site_url"]) == "domain"]
     groups = {}
     for s in sites:
+        host = _host(s["site_url"])
+        if host:
+            groups.setdefault(fold(host), [])
+    for s in sites:
         url, host = s["site_url"], _host(s["site_url"])
-        if not host:
-            continue
-        key = next((d for d in domains
-                    if host == d or host.endswith("." + d)), None)
-        if key is None:
-            key = host[4:] if host.startswith("www.") else host
-        groups.setdefault(key, []).append(url)
-    return {k: v for k, v in groups.items() if len(v) > 1}
+        if host and property_type(url) != "domain":
+            groups[fold(host)].append(url)
+    for key in groups:
+        for url, d in domains:
+            if key == fold(d) or key.endswith("." + fold(d)):
+                groups[key].append(url)
+    return {k: v for k, v in sorted(groups.items()) if len(v) > 1}
 
 
 def impressions_window(days=28, today=None):

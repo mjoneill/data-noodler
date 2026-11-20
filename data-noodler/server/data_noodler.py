@@ -524,6 +524,10 @@ def export_funnel_report(property_id: str, steps: list[dict],
                   overwrite, preview_rows, save_to)
 
 
+# Past this many sites in several forms, one summary line replaces the list.
+AMBIGUOUS_LINES_MAX = 10
+
+
 @_tool("reads_google", description=guidance.GSC_TOOL_DOCS["gsc_list_sites"])
 def gsc_list_sites(enrich: bool = False, contains: str = "") -> str:
     try:
@@ -561,7 +565,19 @@ def gsc_list_sites(enrich: bool = False, contains: str = "") -> str:
         lines.append(line)
     # #2000: several forms of one site are several answers. Saying so here,
     # where the forms are listed, is what stops an agent choosing for them.
-    for name, urls in gsc.site_form_groups(sites).items():
+    groups = gsc.site_form_groups(sites)
+    if len(groups) > AMBIGUOUS_LINES_MAX:
+        # An institution's apex domain covers every subdomain, so a bare
+        # listing of a large account would print one line per subdomain.
+        lines.append("")
+        lines.append(
+            f"AMBIGUOUS -- {len(groups)} sites here are listed in more than "
+            "one form (a domain property and URL prefixes covering the same "
+            "host). Call gsc_list_sites with contains=<the site> to see one "
+            "site's forms, then ask the user which they want, unless they "
+            "already named one. Never choose for them.")
+        groups = {}
+    for name, urls in groups.items():
         lines.append("")
         lines.append(
             f"AMBIGUOUS -- {name} is listed in {len(urls)} forms: "
