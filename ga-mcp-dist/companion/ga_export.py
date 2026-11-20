@@ -335,6 +335,7 @@ def run(property_id, start_date, end_date, metrics, dimensions,
         page_columns, page_rows = rows_from_response(resp)
         if columns is None:
             columns = page_columns
+            n_dim_cols = len(resp.dimension_headers)
         row_count = resp.row_count
         sampled = sampled or was_sampled(resp)
         other_row_loss = other_row_loss or had_other_row_loss(resp)
@@ -342,12 +343,27 @@ def run(property_id, start_date, end_date, metrics, dimensions,
         rows.extend(page_rows)
         units += _combinations(resp, page_rows, len(ranges))
 
+        if not dimensions:
+            # No dimensions means one combination: every range's total, all
+            # on this page. GA4's row_count here counts the ranges, and it
+            # hands the same rows back at any offset, so paging on wrote every
+            # row twice (#1993, measured 2026-11-20).
+            row_count = 1 if page_rows else 0
+            break
+
         goal = min(row_count, limit) if limit else row_count
         # An empty page means the server has nothing further to give, whatever
         # row_count claims. Stopping there is what keeps a misbehaving API from
         # turning this into MAX_PAGES requests.
         if not page_rows or units >= goal:
             break
+
+    # A GA4 report never repeats a full dimension key (dateRange included),
+    # so a repeat means paging went wrong. Counted so the receipt says so
+    # instead of reading all-clear over a doubled file (#1993).
+    duplicate_rows = 0
+    if rows:
+        duplicate_rows = len(rows) - len({tuple(r[:n_dim_cols]) for r in rows})
 
     if units >= row_count:
         incomplete_reason = None
@@ -391,6 +407,7 @@ def run(property_id, start_date, end_date, metrics, dimensions,
         "dimension_combinations_matched": row_count,
         "rows_fetched": len(rows),
         "pages_fetched": pages,
+        "duplicate_rows": duplicate_rows,
         "limit_requested": limit or None,
         "row_limit_hit": units < row_count,
         "incomplete_reason": incomplete_reason,

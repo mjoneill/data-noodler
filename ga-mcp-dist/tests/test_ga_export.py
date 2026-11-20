@@ -784,3 +784,97 @@ class TestComparedExportsPageByCombination(unittest.TestCase):
             _ComparingClient([f"/p{i}" for i in range(25)]), limit=5)
         self.assertEqual(len(rows), 10)
         self.assertEqual(meta["incomplete_reason"], "caller_limit")
+
+
+class _TotalsClient:
+    """Models GA4 for a report with NO dimensions, as measured 2026-11-20.
+
+    With several date ranges GA4 adds a dateRange column, returns one row per
+    range, says row_count = the number of ranges, and hands the same rows
+    back whatever the offset. The old loop counted that as one combination
+    against a goal of two, fetched again, and wrote every row twice (#1993).
+    """
+
+    def __init__(self, ranges=("current", "prior30")):
+        self.ranges = ranges
+        self.requests = []
+
+    def run_report(self, request):
+        self.requests.append((request.offset, request.limit))
+        if len(self.ranges) > 1:
+            resp = _fake_response(["dateRange"], ["sessions"],
+                                  [[r, "485"] for r in self.ranges])
+        else:
+            resp = _fake_response([], ["sessions"], [["485"]])
+        resp.row_count = len(self.ranges)
+        return resp
+
+
+class TestATotalsExportIsOnePageAndNoDuplicates(unittest.TestCase):
+    """#1993: the fleshandsyntax totals file held each range twice."""
+
+    CMP = [{"start_date": "2026-09-20", "end_date": "2026-10-19",
+            "name": "prior30"}]
+
+    def test_two_ranges_write_two_rows_from_one_request(self):
+        client = _TotalsClient()
+        _, rows, meta = ga_export.run(
+            "1", "2026-10-20", "2026-11-18", ["sessions"], [],
+            client=client, compare_date_ranges=self.CMP)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(len(client.requests), 1)
+        self.assertEqual(meta["pages_fetched"], 1)
+        self.assertEqual(meta["rows_matched"], 2)
+        self.assertEqual(meta["dimension_combinations_matched"], 1)
+        self.assertFalse(meta["row_limit_hit"])
+        self.assertIsNone(meta["incomplete_reason"])
+        self.assertEqual(meta["duplicate_rows"], 0)
+
+    def test_one_range_writes_one_row(self):
+        client = _TotalsClient(ranges=("current",))
+        _, rows, meta = ga_export.run(
+            "1", "2026-10-20", "2026-11-18", ["sessions"], [], client=client)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(len(client.requests), 1)
+        self.assertIsNone(meta["incomplete_reason"])
+
+
+class _RepeatingClient(_ComparingClient):
+    """A server that ignores offset: every page repeats the first."""
+
+    def run_report(self, request):
+        request.offset = 0
+        return super().run_report(request)
+
+
+class TestTheReceiptSaysWhenRowsRepeat(unittest.TestCase):
+    """Bubbles, 2026-11-20 on #1993: a file the agent must analyse from must
+    not be able to double itself while the receipt reads all-clear. A GA4
+    report never repeats a full dimension key, so any repeat is counted."""
+
+    def test_repeated_keys_are_counted_in_the_receipt(self):
+        _, rows, meta = ga_export.run(
+            "1", "2026-01-01", "2026-01-31", ["sessions"], ["pagePath"],
+            client=_RepeatingClient([f"/p{i}" for i in range(4)],
+                                    ranges=("current",), page_cap=2))
+        self.assertGreater(meta["duplicate_rows"], 0)
+
+    def test_a_clean_export_counts_zero(self):
+        _, rows, meta = ga_export.run(
+            "1", "2026-01-01", "2026-01-31", ["sessions"], ["pagePath"],
+            client=_ComparingClient([f"/p{i}" for i in range(4)],
+                                    ranges=("current",), page_cap=2))
+        self.assertEqual(meta["duplicate_rows"], 0)
+
+
+class TestTheExportToolTellsTheAgentAboutRepeats(unittest.TestCase):
+    """#1993: the receipt field only helps if the agent reading it knows
+    what a non-zero value means."""
+
+    def test_the_tool_doc_names_duplicate_rows_and_forbids_analysis(self):
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))), "companion"))
+        import guidance
+        doc = " ".join(guidance.GSC_TOOL_DOCS["export_report"].split())
+        self.assertIn("duplicate_rows is above 0", doc)
+        self.assertIn("do not analyse it", doc)

@@ -590,5 +590,7 @@ file: if row_limit_hit is true the file is INCOMPLETE, and incomplete_reason
 says why -- caller_limit (a limit you passed) or server_stopped (GA4 returned
 fewer rows than it said matched). Never present an incomplete file as the
 whole result. If data_loss_from_other_row is true, GA4 folded part of the long
-tail into an "(other)" row, so per-row totals undercount the tail.""",
+tail into an "(other)" row, so per-row totals undercount the tail. If
+duplicate_rows is above 0, the file repeats rows and its sums are inflated:
+do not analyse it; say so and report the bug.""",
 }
