@@ -12,8 +12,11 @@ It is for anyone who looks after websites: an individual, a team, an organizatio
 
 ## Status
 
-Public since 2026-11-20, and shared as-is with no support commitment. To report
-a security problem, see [`SECURITY.md`](SECURITY.md).
+**Early preview.** Public since 2026-11-20. We use it every day on macOS in Claude Code, and it has been installed on Windows. Nobody outside the team has yet set it up from scratch with these instructions, so expect rough edges, especially in the Google Cloud setup.
+
+**Feedback is the point of this preview.** If a step is unclear, fails, or works differently on your machine, please [open an issue](../../issues). Say which app you used (Claude Code, Claude Desktop, Codex, ChatGPT), your operating system, and the step where it went wrong. Never paste a credential, a client secret, or report data into an issue.
+
+It's shared as-is, with no support commitment. To report a security problem privately, see [`SECURITY.md`](SECURITY.md).
 
 ## Start here
 
@@ -31,7 +34,7 @@ Nobody's credentials, report data or identifying details belong in this reposito
   ```
 
   With neither list present it says so on every push and checks nothing.
-- **Commit identities** (`tools/identity_guard.py`, in the same hook and in CI). Every commit publishes its author's and committer's email. Accepted: a seat's plus-address (`<name>+<seat>@<domain>`, the same identity the seats use in manyhands, so each can attribute its own work) or a GitHub noreply address (`…@users.noreply.github.com`). Refused: a bare mailbox with no `+<seat>`, and any machine-default identity (`.local`, `localhost`). Set yours once per clone before committing or rebasing: `git config user.name <Seat>` and `git config user.email <name>+<seat>@<domain>`.
+- **Commit identities** (`tools/identity_guard.py`, in the same hook and in CI). Every commit publishes its author's and committer's email. Accepted: a plus-address of your own (`you+tag@yourdomain.com`) or a GitHub noreply address (`…@users.noreply.github.com`). Refused: a plain mailbox with no `+tag`, and any computer-default identity (`.local`, `localhost`). Set yours once per clone before committing or rebasing: `git config user.name "Your Name"` and `git config user.email you+tag@yourdomain.com`.
 
 "Google Analytics" and "Google Search Console" are trademarks of Google LLC. This project is not affiliated with or endorsed by Google.
 
