@@ -1,5 +1,5 @@
 {
-  "version": "0.7.3",
-  "sha256": "914b8df084ce0a75fdc296ba690945a5e71263939021225aebf95287047c5b9a",
-  "recorded_from": "the repo at release, 2026-11-20 (security refresh and analytics-mcp 1.1.0: list_key_events named in the skill; #1986)"
+  "version": "0.7.4",
+  "sha256": "b2f0d3bf2faa77b220ee00461761e0f7aecf365e9ee173754cc45d6f27b23ac7",
+  "recorded_from": "the repo at release, 2026-11-20 (export the full data and analyse only from the file; #1992)"
 }

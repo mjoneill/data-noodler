@@ -17,11 +17,14 @@ pick has to be in SERVER_INSTRUCTIONS or it arrives too late.
 SERVER_INSTRUCTIONS = """\
 Google Analytics 4 and Search Console helper tools.
 
-Analysts want complete data. Never choose a row limit yourself: use
-export_report or gsc_search_analytics, which write every row to a file. Use
-run_report only for a few rows; if its row_count exceeds the rows returned,
-the result is TRUNCATED -- say so. Cutoffs apply only to what you show: past
-2,500 rows, ask the user how to cut or summarise. The file keeps every row.
+Analysts want complete data. Export the full data to a file (export_report,
+the other export_* tools, gsc_search_analytics) unless the user explicitly
+asks otherwise. Never choose a row limit yourself. Analyse only from the
+exported file, never from rows read into the conversation; run_report is for
+a single figure, not analysis (a row_count above the rows returned means it
+is TRUNCATED). Never analyse truncated data (row_limit_hit, sampled) unless
+the user specifically asks: narrow and re-export. Past 2,500
+rows, ask the user how to cut what you show; the file keeps every row.
 
 With every GA number, state the property ID, exact metric name and exact date
 range -- a bare figure hides choices that can move the answer more than the
@@ -285,8 +288,15 @@ BEHAVIOURAL_CONTRACT = """\
 - **Ask about hostnames when a property serves several.** Enrichment tells you
   how many. Ask whether to break them out, filter to one, or leave them
   combined — before exporting, as part of confirming the property.
-- **Export rather than reading large results into the conversation.** A
-  thousand rows belong in a file. Read the receipt, not the rows.
+- **Export the full data, then analyse only from the file.** Export the full
+  data to a file unless the user explicitly asks otherwise. Analyse only from
+  the exported file, never from rows read into the conversation, however few.
+  In-conversation reports (run_report) are for a single figure, such as one
+  total, never the input to an analysis. Read the receipt first.
+- **Never analyse truncated data unless the user specifically asks for it.**
+  If a receipt says `row_limit_hit` or `sampled`, the file is not the whole
+  answer: say so, then narrow the query (shorter dates, a filter) and export
+  again. A truncated result looks complete and is not.
 - **Export the complete result set — never slice, cap, or "top N" it first.**
   If the user asked for a top ten, the file still gets every row; you report
   the top ten from the receipt's `preview` or from the file itself. The file
@@ -306,10 +316,13 @@ BEHAVIOURAL_CONTRACT = """\
 
 def guide_for(topic):
     """The guidance for one source, or both."""
+    # The working rules (export the full data, analyse only from the file)
+    # ride with every topic: a single-source request must not skip them
+    # (#1992).
     if topic == "ga":
-        return REPORTING_GUIDE
+        return f"{REPORTING_GUIDE}\n\n---\n\n{BEHAVIOURAL_CONTRACT}"
     if topic == "gsc":
-        return GSC_GUIDE
+        return f"{GSC_GUIDE}\n\n---\n\n{BEHAVIOURAL_CONTRACT}"
     return f"{REPORTING_GUIDE}\n\n---\n\n{GSC_GUIDE}\n\n---\n\n{BEHAVIOURAL_CONTRACT}"
 
 

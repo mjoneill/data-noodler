@@ -133,13 +133,18 @@ the web numbers. Google's AI Overviews and AI Mode reports exist only in the
 Search Console web interface -- no API reaches them, so say that rather than
 presenting web numbers as an answer about AI search.
 
-**Large results are exported to files, not read into the conversation.** A
-report with a thousand rows destined for analysis should never pass through
-the model — `export_report`, `gsc_inspect_urls`, and `gsc_search_analytics`
-all write CSV and return a receipt (row count, columns, whether it was
-sampled or truncated) rather than the rows themselves. Call `start_session`
-first so there's a folder to write into, and read the exported file for
-analysis rather than relying on what passed through the conversation.
+**Export the full data, then analyse only from the file.** Export the full
+data to a file unless the user explicitly asks otherwise: `export_report`,
+the other `export_*` tools, `gsc_inspect_urls` and `gsc_search_analytics` all
+write CSV and return a receipt (row count, columns, whether it was sampled or
+truncated) rather than the rows. Call `start_session` first so there's a
+folder to write into. Analyse only from the exported file, never from rows
+read into the conversation, however few: an in-conversation `run_report` is
+for a single figure, such as one total, never the input to an analysis.
+
+**Never analyse truncated data unless the user specifically asks for it.** If
+a receipt says `row_limit_hit` or `sampled`, the file is not the whole answer:
+say so, narrow the query (shorter dates, a filter) and export again.
 
 Exports go only to approved places, chosen with `save_to`: the project
 folder the app is working in (`<project>/_outputs/`, the default in Claude

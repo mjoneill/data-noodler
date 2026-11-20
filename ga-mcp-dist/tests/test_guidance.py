@@ -309,11 +309,17 @@ class TestBehaviouralContract(unittest.TestCase):
 
 
 class TestGuideFor(unittest.TestCase):
-    def test_ga_returns_the_ga_guide(self):
-        self.assertEqual(guidance.guide_for("ga"), guidance.REPORTING_GUIDE)
+    # #1992: each single-source topic also carries the working rules, so
+    # reporting_guide("ga") can't skip "export the full data".
+    def test_ga_returns_the_ga_guide_and_the_working_rules(self):
+        ga = guidance.guide_for("ga")
+        self.assertTrue(ga.startswith(guidance.REPORTING_GUIDE))
+        self.assertIn(guidance.BEHAVIOURAL_CONTRACT, ga)
 
-    def test_gsc_returns_the_gsc_guide(self):
-        self.assertEqual(guidance.guide_for("gsc"), guidance.GSC_GUIDE)
+    def test_gsc_returns_the_gsc_guide_and_the_working_rules(self):
+        gsc = guidance.guide_for("gsc")
+        self.assertTrue(gsc.startswith(guidance.GSC_GUIDE))
+        self.assertIn(guidance.BEHAVIOURAL_CONTRACT, gsc)
 
     def test_both_contains_each_of_them(self):
         both = guidance.guide_for("both")
@@ -385,6 +391,59 @@ class TestNoInventedCutoffs(unittest.TestCase):
     def test_says_ask_above_the_threshold_and_that_the_file_keeps_it_all(self):
         self.assertIn("2,500", self.s)
         self.assertIn("ask", self.s)
+
+
+SKILL_MD = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "marketplace", "plugins", "ga-analytics", "skills", "google-analytics",
+    "SKILL.md")
+
+
+class TestExportFirstAnalyseFromTheFile(unittest.TestCase):
+    """#1992, Michael 2026-11-20: export the full data unless explicitly told
+    not to, and never analyse truncated data unless the user specifically
+    asks. The old text allowed run_report "only for a few rows", and an
+    agent judged 78 rows to be a few and analysed them in the conversation.
+    Each channel fails differently (module docstring), so the rule is
+    asserted in all three."""
+
+    def _texts(self):
+        with open(SKILL_MD, encoding="utf-8") as f:
+            skill = f.read()
+        texts = {"instructions": guidance.SERVER_INSTRUCTIONS,
+                 "reporting_guide('ga')": guidance.guide_for("ga"),
+                 "reporting_guide('gsc')": guidance.guide_for("gsc"),
+                 "reporting_guide('both')": guidance.guide_for("both"),
+                 "skill": skill}
+        # Line wrapping must not decide whether a phrase is present.
+        return {k: " ".join(v.split()) for k, v in texts.items()}
+
+    def test_export_the_full_data_by_default(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("Export the full data", t)
+                self.assertIn("unless the user explicitly asks", t)
+
+    def test_analyse_from_the_exported_file(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("Analyse only from the exported file", t)
+
+    def test_never_analyse_truncated_data(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("Never analyse truncated", t)
+                self.assertIn("unless the user specifically asks", t)
+
+    def test_in_conversation_reports_are_for_single_figures_only(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("single figure", t)
+
+    def test_the_few_rows_permission_is_gone(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertNotIn("only for a few rows", t)
 
 
 class TestFindingASitesPropertyFromThePage(unittest.TestCase):
