@@ -363,6 +363,30 @@ class TestNextStep(unittest.TestCase):
         self.assertEqual(export.CHAT_ROW_THRESHOLD, 2500)
         self.assertIsNone(self._receipt(self._rows(2500))["next_step"])
 
+    # #1993 review (indigo): duplicate_rows must reach the FIRST field, or a
+    # doubled file still reads all-clear to an agent that stops there.
+    def test_repeated_rows_say_do_not_analyse_first(self):
+        step = self._receipt(self._rows(4), duplicate_rows=2)["next_step"]
+        self.assertTrue(step.startswith("REPEATED ROWS"), step)
+        self.assertIn("2", step)
+        self.assertIn("do not analyse", step.lower())
+
+    def test_repeated_rows_outrank_a_cap(self):
+        step = self._receipt(self._rows(100), duplicate_rows=1,
+                             rows_matched=23000,
+                             incomplete_reason="caller_limit",
+                             row_limit_hit=True)["next_step"]
+        self.assertTrue(step.startswith("REPEATED ROWS"), step)
+
+    def test_repeated_rows_outrank_a_large_complete_file(self):
+        n = export.CHAT_ROW_THRESHOLD + 1
+        step = self._receipt(self._rows(n), duplicate_rows=5)["next_step"]
+        self.assertTrue(step.startswith("REPEATED ROWS"), step)
+
+    def test_zero_repeats_change_nothing(self):
+        self.assertIsNone(
+            self._receipt(self._rows(3), duplicate_rows=0)["next_step"])
+
     def test_a_cap_the_caller_chose_says_rerun_without_one(self):
         step = self._receipt(self._rows(100), rows_matched=23000,
                              incomplete_reason="caller_limit",

@@ -109,9 +109,17 @@ def next_step(meta, rows_written):
     at the moment of decision; descriptions can be deferred and instructions
     dropped.
 
-    The rule underneath all four branches: cutoffs never touch the DATA, only
+    The rule underneath the cut-off branches: cutoffs never touch the DATA, only
     what is shown in chat.
     """
+    # Checked first: a file that repeats rows is wrong whatever else is true
+    # of it, and every sum taken from it is inflated (#1993).
+    repeats = meta.get("duplicate_rows") or 0
+    if repeats > 0:
+        return (f"REPEATED ROWS: {repeats:,} of the {rows_written:,} rows in "
+                "this file repeat another row's full key, which a correct "
+                "report never does, so its totals are inflated. Do not analyse "
+                "this file. Tell the user, and report it as a bug.")
     reason = meta.get("incomplete_reason")
     matched = meta.get("rows_matched")
     capped = (reason == "caller_limit"
