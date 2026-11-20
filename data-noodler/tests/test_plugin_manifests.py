@@ -3,12 +3,13 @@
 Shape confirmed by inspecting OpenAI's own bundled plugins on this machine:
 .mcp.json takes env_vars as a pass-through list of NAMES, not values, which is
 why the servers are launched through scripts that set the values themselves.
-The entries run the installed launchers under ~/.config/ga-mcp/bin by
+The entries run the installed launchers under ~/.config/data-noodler/bin by
 absolute path, with no "cwd", so Codex starts them in the project (#165).
 """
 
 import json
 import os
+import tempfile
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -93,8 +94,32 @@ class TestMcpManifest(unittest.TestCase):
         for name, entry in self.mcp["mcpServers"].items():
             with self.subTest(server=name):
                 self.assertEqual(entry["command"], "/bin/sh")
-                self.assertIn("$HOME/.config/ga-mcp}/bin/" + launchers[name],
+                self.assertIn("${DATA_NOODLER_HOME:-$HOME/.config/data-noodler}",
                               entry["args"][1])
+                self.assertIn("/bin/" + launchers[name], entry["args"][1])
+
+    def test_codex_runs_an_install_that_predates_the_rename(self):
+        # #1999: until migrate_home.py moves it, the payload is in the old
+        # home. The plugin's command must find it there, and prefer the new
+        # home once it exists.
+        import subprocess
+        for name, entry in self.mcp["mcpServers"].items():
+            for where in ("ga-" "mcp", "data-noodler"):
+                with self.subTest(server=name, home=where):
+                    h = tempfile.mkdtemp()
+                    b = os.path.join(h, ".config", where, "bin")
+                    os.makedirs(b)
+                    launcher = os.path.join(b, os.path.basename(
+                        entry["args"][1].split("/bin/")[1].split('"')[0]))
+                    with open(launcher, "w") as f:
+                        f.write("#!/bin/sh\necho ran-from-" + where + "\n")
+                    os.chmod(launcher, 0o755)
+                    out = subprocess.run(
+                        ["/bin/sh", "-c", entry["args"][1]],
+                        env={"HOME": h, "PATH": "/usr/bin:/bin"},
+                        capture_output=True, text=True, timeout=30)
+                    self.assertEqual(out.stdout.strip(), "ran-from-" + where,
+                                     out.stderr)
                 self.assertIn("HOME", entry["env_vars"])
 
     def test_env_vars_is_a_list_of_names_not_a_mapping(self):
@@ -115,7 +140,7 @@ class TestTheEntriesActuallyRun(unittest.TestCase):
             entry = json.load(f)["mcpServers"][name]
         project = tempfile.mkdtemp()
         env = {"HOME": tempfile.mkdtemp(), "PATH": "/usr/bin:/bin",
-               "GA_HOME": ga_home}
+               "DATA_NOODLER_HOME": ga_home}
         return subprocess.run([entry["command"], *entry["args"]], cwd=project,
                               env=env, capture_output=True, text=True,
                               timeout=30), project

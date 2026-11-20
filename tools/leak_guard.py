@@ -37,7 +37,7 @@ FIXTURES = "tests/fixtures/"
 # The names the .gitignore lists, plus the property snapshot and a bare
 # config.json, which is what the installer writes per machine.
 SENSITIVE_NAMES = (
-    "*ga-mcp-client*.json", "*-client.json", "*adc*.json", "*client_secret*.json",
+    "*data-noodler-client*.json", "*data-noodler-credential*.json", "*ga-mcp-client*.json", "*-client.json", "*adc*.json", "*client_secret*.json",
     "application_default_credentials.json", "credentials.json", "config.json",
     "*.p12", "*.pem",
 )

@@ -252,7 +252,7 @@ class TestStartSessionUsesTheRootsTheClientDeclares(unittest.TestCase):
                        "venv_python": sys.executable,
                        "properties_csv": "/x",
                        "sessions_root": os.path.join(home, "s")}, f)
-        env = dict(os.environ, GA_MCP_CONFIG=cfg, HOME=home)
+        env = dict(os.environ, DATA_NOODLER_CONFIG=cfg, HOME=home)
 
         async def roots(context):
             return types.ListRootsResult(roots=[types.Root(

@@ -105,7 +105,7 @@ def _sessions_root():
 
 def _cfg():
     """Load config, letting ConfigError surface as the tool's error text."""
-    return config.load(os.environ.get("GA_MCP_CONFIG") or None)
+    return config.load()
 
 
 # The folder the app started this server in. Set by the app, never by the

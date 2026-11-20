@@ -57,7 +57,7 @@ class TestUpgrade(unittest.TestCase):
 
     def setUp(self):
         self.home = os.path.realpath(tempfile.mkdtemp())
-        self.ga_home = os.path.join(self.home, ".config", "ga-mcp")
+        self.ga_home = os.path.join(self.home, ".config", "data-noodler")
         self.venv = os.path.join(self.ga_home, "venv")
         _make_venv(self.venv, "old")
         adc = os.path.join(self.home, ".config", "gcloud", "adc.json")
@@ -82,8 +82,8 @@ class TestUpgrade(unittest.TestCase):
             json.dump({"mcpServers": {"someone-else": {"command": "x"}}}, f)
         os.chmod(self.claude_json, 0o600)
         self.env = dict(os.environ, HOME=self.home)
-        self.env.pop("GA_HOME", None)
-        self.env.pop("GA_MCP_CONFIG", None)
+        self.env.pop("DATA_NOODLER_HOME", None)
+        self.env.pop("DATA_NOODLER_CONFIG", None)
         self.log = []
         self.fail_on = None
 
@@ -158,7 +158,7 @@ class TestUpgrade(unittest.TestCase):
                             for line in self.log))
 
     def test_a_running_app_stops_it_before_anything_changes(self):
-        plan, ok = self._upgrade(running=["python .../ga-mcp/server/x"])
+        plan, ok = self._upgrade(running=["python .../data-noodler/server/x"])
         self.assertFalse(ok)
         self.assertEqual(self._marker(self.venv), "old")
         self.assertFalse(os.path.exists(plan.old_venv))
@@ -464,7 +464,7 @@ class TestUpgrade(unittest.TestCase):
             upgrade.make_plan(repo_root=REPO, ga_home=self.ga_home,
                               config_path=self.config), []))
         ok = upgrade.recover(self.ga_home, log=self.log.append,
-                             running=["python /x/ga-mcp/server/y"])
+                             running=["python /x/data-noodler/server/y"])
         self.assertFalse(ok)
         self.assertIsNotNone(upgrade.load_state(self.ga_home))
 
@@ -544,9 +544,9 @@ class TestUpgrade(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.home, "sessions")))
 
     def test_the_recover_hint_carries_a_custom_ga_home(self):
-        self.assertIn("--ga-home", upgrade._recover_command("/opt/ga"))
+        self.assertIn("--home", upgrade._recover_command("/opt/ga"))
         self.assertNotIn("--ga-home", upgrade._recover_command(
-            os.path.expanduser("~/.config/ga-mcp")))
+            os.path.expanduser("~/.config/data-noodler")))
 
 
 class TestPlan(unittest.TestCase):
@@ -602,7 +602,7 @@ class TestRunningServers(unittest.TestCase):
     """Code review #5 and #8."""
 
     def _hits(self, text, venv="/h/pipx/venvs/analytics-mcp",
-              ga_home="/h/.config/ga-mcp", platform="darwin"):
+              ga_home="/h/.config/data-noodler", platform="darwin"):
         return upgrade.running_servers(venv, ga_home, platform,
                                        run_ps=lambda: text)
 
@@ -619,14 +619,14 @@ class TestRunningServers(unittest.TestCase):
     def test_a_similarly_named_venv_is_not(self):
         hits = self._hits(
             "/h/pipx/venvs/analytics-mcp-dev/bin/python x\n"
-            "/h/.config/ga-mcp/analytics-mcp.old-20261025-1/bin/python y")
+            "/h/.config/data-noodler/analytics-mcp.old-20261025-1/bin/python y")
         self.assertEqual(hits, [])
 
     def test_windows_paths_match_either_separator_and_case(self):
         hits = self._hits(
-            r'"c:\users\a\.config\ga-mcp\VENV\Scripts\python.exe" -m x',
-            venv=r"C:\Users\a\.config\ga-mcp\venv",
-            ga_home=r"C:\Users\a\.config\ga-mcp", platform="win32")
+            r'"c:\users\a\.config\data-noodler\VENV\Scripts\python.exe" -m x',
+            venv=r"C:\Users\a\.config\data-noodler\venv",
+            ga_home=r"C:\Users\a\.config\data-noodler", platform="win32")
         self.assertEqual(len(hits), 1)
 
     def test_a_failed_process_listing_is_unknown_not_empty(self):
@@ -634,7 +634,7 @@ class TestRunningServers(unittest.TestCase):
         with mock.patch.object(upgrade.subprocess, "run",
                                return_value=failed):
             self.assertIsNone(upgrade.running_servers(
-                "/h/pipx/venvs/analytics-mcp", "/h/.config/ga-mcp", "darwin"))
+                "/h/pipx/venvs/analytics-mcp", "/h/.config/data-noodler", "darwin"))
 
 
 class TestVersionNamedInterpreter(unittest.TestCase):

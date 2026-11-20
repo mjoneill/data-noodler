@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
 
 import bootstrap_config
 
-QUOTA = "ga-mcp-123456"
+QUOTA = "data-noodler-123456"
 
 
 def _fake_console_script(directory, interpreter):
@@ -128,12 +128,12 @@ class TestBuildConfig(unittest.TestCase):
         # The path is only meaningful if install.py's payload really puts
         # mint_adc.py there. Assert against the repo's own marketplace tree,
         # which is what install_payload copies verbatim into the same
-        # relative location under ~/.config/ga-mcp.
+        # relative location under ~/.config/data-noodler.
         dist_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        # MINT_SCRIPT_PARTS is home-relative and starts (".config", "ga-mcp"),
+        # MINT_SCRIPT_PARTS is home-relative and starts (".config", "data-noodler"),
         # which is the destination install.py copies "marketplace" into.
         parts = bootstrap_config.MINT_SCRIPT_PARTS
-        self.assertEqual(parts[:3], (".config", "ga-mcp", "marketplace"))
+        self.assertEqual(parts[:3], (".config", "data-noodler", "marketplace"))
         in_repo = os.path.join(dist_root, *parts[2:])
         self.assertTrue(os.path.exists(in_repo),
                         f"payload source missing: {in_repo}")
@@ -462,7 +462,7 @@ class TestInterpreterValidation(unittest.TestCase):
 class TestWindowsVenvIsFound(unittest.TestCase):
     """Round 3, defect 1: the documented Windows install failed at its first step.
 
-    windows.md installs into %USERPROFILE%\\.config\\ga-mcp\\venv. That venv's
+    windows.md installs into %USERPROFILE%\\.config\\data-noodler\\venv. That venv's
     Scripts\\ is neither on PATH nor ~/.local/bin, which were the only two
     places detect_analytics_mcp() looked. So build_config raised "Could not find
     the analytics-mcp program" -- BEFORE --venv-python was ever consulted. The
@@ -478,8 +478,8 @@ class TestWindowsVenvIsFound(unittest.TestCase):
 
     def setUp(self):
         self.home = tempfile.mkdtemp()
-        self.scripts = os.path.join(self.home, ".config", "ga-mcp", "venv",
-                                    "Scripts")
+        self.scripts = os.path.join(self.home, ".config", "data-noodler",
+                                    "venv", "Scripts")
         os.makedirs(self.scripts)
 
     def _put(self, name):
@@ -487,6 +487,16 @@ class TestWindowsVenvIsFound(unittest.TestCase):
         with open(p, "wb") as f:
             f.write(b"MZ\x90\x00")
         return p
+
+    def test_a_venv_in_the_home_from_before_the_rename_is_still_found(self):
+        old = os.path.join(self.home, ".config", "ga-" "mcp", "venv", "Scripts")
+        os.makedirs(old)
+        exe = os.path.join(old, "analytics-mcp.exe")
+        with open(exe, "wb") as f:
+            f.write(b"MZ\x90\x00")
+        got = bootstrap_config.detect_analytics_mcp(
+            home=self.home, platform="win32", which=self.NO_PATH)
+        self.assertEqual(got, exe)
 
     def test_the_documented_windows_venv_is_searched(self):
         exe = self._put("analytics-mcp.exe")
@@ -564,6 +574,6 @@ class TestWindowsVenvIsFound(unittest.TestCase):
              "--venv-python", py, "--skip-import-check"],
             capture_output=True, text=True, timeout=60)
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
-        with open(os.path.join(self.home, ".config", "ga-mcp", "config.json"),
+        with open(os.path.join(self.home, ".config", "data-noodler", "config.json"),
                   encoding="utf-8") as f:
             self.assertEqual(json.load(f)["analytics_mcp_bin"], prog)

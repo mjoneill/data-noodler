@@ -33,11 +33,11 @@ import install
 import sessions
 
 GOOD = {
-    "oauth_client_file": "~/.config/gcloud/ga-mcp-client.json",
-    "adc_file": "~/.config/gcloud/adc-ga-personal.json",
-    "quota_project": "ga-mcp-123456",
+    "oauth_client_file": "~/.config/gcloud/data-noodler-client.json",
+    "adc_file": "~/.config/gcloud/data-noodler-credential.json",
+    "quota_project": "data-noodler-123456",
     "venv_python": "~/Library/Application Support/pipx/venvs/analytics-mcp/bin/python",
-    "properties_csv": "~/.config/ga-mcp/properties.csv",
+    "properties_csv": "~/.config/data-noodler/properties.csv",
 }
 
 
@@ -64,7 +64,7 @@ class TestResolveSessionsRoot(TempConfigMixin, unittest.TestCase):
 
     def test_falls_back_to_default_when_config_is_missing(self):
         root = install.resolve_sessions_root(
-            ROOT, config_path="/nonexistent/ga-mcp/config.json")
+            ROOT, config_path="/nonexistent/data-noodler/config.json")
         self.assertEqual(root, os.path.expanduser(sessions.DEFAULT_SESSIONS_ROOT))
 
     def test_falls_back_to_default_when_config_is_unreadable(self):

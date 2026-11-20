@@ -2,7 +2,7 @@
 
 Step 10 of SKILL.md. Fill this in at the end of every install and every
 upgrade, and save it as
-`~/.config/ga-mcp/install-reports/<YYYY-MM-DD>-<fresh|upgrade>.md`. The user
+`~/.config/data-noodler/install-reports/<YYYY-MM-DD>-<fresh|upgrade>.md`. The user
 sends it to the maintainer named in `deployment.json`.
 
 The template follows the best report received so far (Windows, 2026-10-09).
@@ -19,7 +19,7 @@ Every fix made after that install came out of it. Keep its habits:
 
 ## Privacy: what never goes in
 
-- The contents of `ga-mcp-client.json` or of the credential file. No tokens,
+- The contents of `data-noodler-client.json` or of the credential file. No tokens,
   no client secret. File paths and `client_id` are fine.
 - Any Google Analytics or Search Console data, including the answers to the
   test question. Say that a query worked, and give its row count if useful.

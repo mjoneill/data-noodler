@@ -6,7 +6,7 @@
 # Cannot test the consent flow (that needs a browser and a human) or the real
 # apps (they read the real HOME). What it does prove:
 #   - the payload (server/, bin/, marketplace/) installs into a bare
-#     .config/ga-mcp with no prior state;
+#     .config/data-noodler with no prior state;
 #   - launch-data-noodler exits non-zero, writes nothing to stdout, and names
 #     the setup skill on stderr when no config.json exists at all -- this is
 #     the "nothing installed yet" case, not a credential case: this launcher's
@@ -29,17 +29,17 @@ FAKE_HOME=$(mktemp -d)
 trap 'rm -rf "$FAKE_HOME"' EXIT
 
 echo "== fake HOME: $FAKE_HOME"
-mkdir -p "$FAKE_HOME/.config/ga-mcp" \
+mkdir -p "$FAKE_HOME/.config/data-noodler" \
          "$FAKE_HOME/Library/Application Support/Claude"
 
 echo "== payload installs into a clean home"
 "$VENV_PY" "$REPO/data-noodler/installer/install.py" \
-  --repo-root "$REPO" --ga-home "$FAKE_HOME/.config/ga-mcp" --payload-only
+  --repo-root "$REPO" --home "$FAKE_HOME/.config/data-noodler" --payload-only
 
 echo "== launch-data-noodler fails cleanly with no config at all"
 set +e
-GA_HOME="$FAKE_HOME/.config/ga-mcp" \
-  "$FAKE_HOME/.config/ga-mcp/bin/launch-data-noodler" \
+DATA_NOODLER_HOME="$FAKE_HOME/.config/data-noodler" \
+  "$FAKE_HOME/.config/data-noodler/bin/launch-data-noodler" \
   >"$FAKE_HOME/out" 2>"$FAKE_HOME/err"
 CODE=$?
 set -e
@@ -57,7 +57,7 @@ echo "== registration creates configs from nothing"
 import os, sys
 sys.path.insert(0, "$REPO/data-noodler/installer")
 import harness_paths, register
-ga_home = os.path.join("$FAKE_HOME", ".config", "ga-mcp")
+ga_home = os.path.join("$FAKE_HOME", ".config", "data-noodler")
 entries = register.server_entries(ga_home)
 for path in (harness_paths.claude_code_config(home="$FAKE_HOME"),
              harness_paths.claude_desktop_config(home="$FAKE_HOME")):
@@ -70,7 +70,7 @@ PY
 
 echo "== bootstrap_config writes a usable config into a clean home"
 "$VENV_PY" "$REPO/data-noodler/installer/bootstrap_config.py" --home "$FAKE_HOME"
-CFG="$FAKE_HOME/.config/ga-mcp/config.json"
+CFG="$FAKE_HOME/.config/data-noodler/config.json"
 [ -f "$CFG" ] || { echo "FAIL: no config written"; exit 1; }
 "$VENV_PY" - <<PY
 import json, os
@@ -119,8 +119,8 @@ echo "== launch-analytics-mcp fails fatally with a config present but no credent
 # this fake home, so the config it just wrote already names an adc_file that
 # does not exist -- exactly the case this exercises.
 set +e
-GA_HOME="$FAKE_HOME/.config/ga-mcp" \
-  "$FAKE_HOME/.config/ga-mcp/bin/launch-analytics-mcp" \
+DATA_NOODLER_HOME="$FAKE_HOME/.config/data-noodler" \
+  "$FAKE_HOME/.config/data-noodler/bin/launch-analytics-mcp" \
   >"$FAKE_HOME/out2" 2>"$FAKE_HOME/err2"
 CODE=$?
 set -e

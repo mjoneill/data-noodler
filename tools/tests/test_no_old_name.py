@@ -23,6 +23,9 @@ OLD_NAMES = [
     "launch-" + "ga-",
     # google-analytics, except Google's own packages of that name.
     r"google-" + r"analytics(?!-(?:admin|data))",
+    # #1999 slice 2: the install home, its env vars and the sign-in files.
+    "ga-" + "mcp", "(?-i:GA_" + "MCP_)", r"(?-i:\bGA_" + r"HOME\b)",
+    "adc-ga-" + "personal",
 ]
 
 # The only places an old name may appear: the code that retires it from an
@@ -37,6 +40,23 @@ RETIREMENT = {
     "data-noodler/tests/test_install_payload.py",
     "data-noodler/tests/test_upgrade.py",
     "data-noodler/tests/test_register.py",
+    # slice 2: finding and moving an install whose home has the old name.
+    "data-noodler/installer/home.py",
+    "data-noodler/installer/migrate_home.py",
+    "data-noodler/installer/bootstrap_config.py",
+    "data-noodler/installer/probe.py",
+    "data-noodler/server/config.py",
+    "data-noodler/server/sessions.py",
+    "data-noodler/marketplace/plugins/data-noodler/.mcp.json",
+    "data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/ga_config.py",
+    "data-noodler/tests/test_home_migration.py",
+    "data-noodler/tests/test_bootstrap_config.py",
+    "data-noodler/tests/test_config.py",
+    "data-noodler/tests/test_plugin_manifests.py",
+    "tools/personal_guard.py",
+    "tools/leak_guard.py",
+    ".gitignore",
+    "data-noodler/.gitignore",
     "tools/tests/test_no_old_name.py",  # this check names what it forbids
 }
 
@@ -69,7 +89,8 @@ class TestTheOldNamesAreGone(unittest.TestCase):
         r = subprocess.run(["git", "ls-files"], cwd=TOP, capture_output=True,
                            text=True)
         stray = [p for p in r.stdout.splitlines()
-                 if any(re.search("(?i)" + n, p) for n in OLD_NAMES)]
+                 if any(re.search("(?i)" + n, p) for n in OLD_NAMES
+                        if not n.startswith("(?-i"))]
         self.assertEqual(stray, [])
 
 

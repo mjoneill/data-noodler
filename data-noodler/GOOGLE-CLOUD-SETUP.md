@@ -6,7 +6,7 @@ themselves, or whoever deploys it for a team, organization or institution. You
 do this once. If others will use it, everyone you deploy to then uses the file
 you make here.
 
-**What you end up with:** one file, `ga-mcp-client.json`, that lets each person
+**What you end up with:** one file, `data-noodler-client.json`, that lets each person
 sign in with their *own* Google account and grant read-only access to the
 Google Analytics and Search Console data *they already have*. The file gives
 nobody access to anything by itself. Each person's access still comes from
@@ -78,12 +78,12 @@ before you start:
    site from analytics.google.com, which you won't use during setup.
 2. Use the project picker at the top → **New project**.
    - **Name:** something you'll recognize later, for example
-     `ga-mcp` or `analytics-ai-tools`.
+     `data-noodler` or `analytics-ai-tools`.
    - **Organization / Location:** your organization if you're going
      **Internal**. This is what makes Internal possible. Just you, on a
      personal account: leave it as "No organization".
 3. **Write down the project ID.** Google adds digits when a name is taken, so
-   it looks like `ga-mcp-483921` rather than what you typed. Every link below
+   it looks like `data-noodler-483921` rather than what you typed. Every link below
    uses it.
 
 ## 2. Turn on the three APIs
@@ -135,10 +135,10 @@ area was called the "OAuth consent screen" until recently. If it asks you to
 2. **Application type: Desktop app.** This matters: it gives the
    `http://localhost` sign-in flow the tools use. A "Web application" client
    will not work.
-3. **Name:** anything, for example `ga-mcp desktop`.
+3. **Name:** anything, for example `data-noodler desktop`.
 4. **Create**, then **Download JSON**. Google may not show the secret again
    later, but you can always create another client.
-5. Rename the file to **`ga-mcp-client.json`**.
+5. Rename the file to **`data-noodler-client.json`**.
 
 **Check the file** before handing it out. Open it in a text editor:
 
@@ -152,8 +152,8 @@ On every machine that uses the tools, the installer looks for it here:
 
 | | |
 |---|---|
-| macOS | `~/.config/gcloud/ga-mcp-client.json` |
-| Windows | `%USERPROFILE%\.config\gcloud\ga-mcp-client.json` |
+| macOS | `~/.config/gcloud/data-noodler-client.json` |
+| Windows | `%USERPROFILE%\.config\gcloud\data-noodler-client.json` |
 
 The installing agent (Claude or Codex) looks for the file in Downloads,
 Desktop and Documents and copies it into place. It then offers to delete the
@@ -176,13 +176,13 @@ without that person signing in and approving. Even so:
 
 There are two JSON files in this system, and they are not alike.
 
-| | `ga-mcp-client.json` (this guide) | `adc-ga-personal.json` (the credential) |
+| | `data-noodler-client.json` (this guide) | `data-noodler-credential.json` (the credential) |
 |---|---|---|
 | What it is | Your *app's* identity with Google: "this is <your app name>, from Cloud project X" | One *person's* access: a refresh token for their Google account, limited to the two read-only permissions |
 | Gives access to data? | No. By itself it can't read anything | Yes: everything that person's account can see in GA and Search Console |
 | Who makes it | You, once, in this guide | Each person, on their own machine, during install |
 | How | Download from the Cloud console | The install's consent step: `mint_adc.py` opens the browser, the person signs in and approves the two permissions, and the script writes the file, readable only by that user |
-| Where it lives | `~/.config/gcloud/ga-mcp-client.json` on every machine | `~/.config/gcloud/adc-ga-personal.json`, on that person's machine only |
+| Where it lives | `~/.config/gcloud/data-noodler-client.json` on every machine | `~/.config/gcloud/data-noodler-credential.json`, on that person's machine only |
 | Copies | One per deployment, handed to each person directly | Never copied, never shared, never in a zip or a repository |
 | Lifetime | Until you delete the client in the Cloud console | External/Testing: **7 days**, then the person re-runs the renewal command (`credential_status` prints it) and fully quits and reopens their apps. Internal: long-lived |
 | If it leaks | Someone could show a consent screen wearing your app's name, or use your project's quota. Fix: delete the client in **Clients**, create a new one, re-issue the file | Someone could read that person's analytics data until it expires. Fix: the person revokes the app at [myaccount.google.com/permissions](https://myaccount.google.com/permissions), which kills the token at once, then signs in again |
@@ -223,7 +223,7 @@ answer, your file is ready to hand out.
 
 ## 8. What to give the people you deploy to
 
-- `ga-mcp-client.json` (from step 4), handed over directly.
+- `data-noodler-client.json` (from step 4), handed over directly.
 - **External:** confirmation that you've added their Google account as a test
   user. Do this *before* they install, or sign-in fails with `access_denied`.
 - The package (zip or repository).
@@ -239,8 +239,8 @@ answer, your file is ready to hand out.
 | `Error 403: access_denied` at sign-in | External/Testing, and this Google account isn't a test user | Add the exact account under **Audience → Test users**, then they sign in again |
 | "This app is blocked" / "your institution's policy" | A Workspace administrator restricts third-party apps | An administrator trusts the client ID (Admin console → Security → API controls), or switch to an Internal app in your organization |
 | "…API has not been used in project … or it is disabled" | Step 2 missed for that API | Enable it on the **same** project as the client |
-| `invalid_grant` / "token expired" weekly | Expected for External/Testing: the 7-day credential (`adc-ga-personal.json`) has expired | They run the renewal command `credential_status` gives them, then fully quit and reopen the app. Internal avoids this |
-| Someone's credential may have been exposed | `adc-ga-personal.json` left their machine | They revoke the app at myaccount.google.com/permissions (immediate), then sign in again at the next use |
+| `invalid_grant` / "token expired" weekly | Expected for External/Testing: the 7-day credential (`data-noodler-credential.json`) has expired | They run the renewal command `credential_status` gives them, then fully quit and reopen the app. Internal avoids this |
+| Someone's credential may have been exposed | `data-noodler-credential.json` left their machine | They revoke the app at myaccount.google.com/permissions (immediate), then sign in again at the next use |
 | Signs in, but no properties | Their Google account has no GA/Search Console access | Step 6 |
 | `redirect_uri_mismatch` | The client isn't a **Desktop app** | Create a Desktop app client (step 4) and replace the file |
 | "Google hasn't verified this app" | Normal for External/Testing | **Advanced → Continue**. Only publishing and verification remove it |

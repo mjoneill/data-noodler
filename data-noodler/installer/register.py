@@ -76,7 +76,7 @@ def _windows_entries(ga_home, venv_python, adc_file):
     # it runs on a Mac, or it is only correct on the machine nobody here
     # can test on. os.path.dirname cannot split a backslash path on POSIX.
     # One separator, everywhere. Paths arrive mixed -- expanduser replaces only
-    # the tilde, leaving "C:\\Users\\x/.config/ga-mcp" -- and a mixed entry,
+    # the tilde, leaving "C:\\Users\\x/.config/data-noodler" -- and a mixed entry,
     # though it works, reads as a defect to whoever opens the config later.
     ga_home = ntpath.normpath(ga_home)
     venv_python = ntpath.normpath(venv_python)

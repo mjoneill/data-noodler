@@ -41,7 +41,7 @@ def _tools():
     from mcp.client.stdio import stdio_client
 
     async def run():
-        env = dict(os.environ, GA_MCP_CONFIG="/nonexistent/config.json")
+        env = dict(os.environ, DATA_NOODLER_CONFIG="/nonexistent/config.json")
         params = StdioServerParameters(command=sys.executable, args=[SERVER],
                                        env=env)
         async with stdio_client(params) as (r, w):
@@ -97,7 +97,7 @@ class TestTraceContextParsingIsOff(unittest.TestCase):
                 "from opentelemetry.propagate import get_global_textmap as t;"
                 "print([type(m).__name__ for m in g.mcp._lowlevel_server.middleware]);"
                 "print(len(t()._propagators))")
-        env = dict(os.environ, GA_MCP_CONFIG="/nonexistent/config.json")
+        env = dict(os.environ, DATA_NOODLER_CONFIG="/nonexistent/config.json")
         env.pop("OTEL_PROPAGATORS", None)
         out = subprocess.run([sys.executable, "-c", code], env=env,
                              capture_output=True, text=True, timeout=60)
@@ -111,10 +111,10 @@ class TestEntriesAndLaunchers(unittest.TestCase):
 
     def _all_entries(self):
         win = register.server_entries(
-            r"C:\Users\x\.config\ga-mcp", platform="win32",
-            venv_python=r"C:\Users\x\.config\ga-mcp\venv\Scripts\python.exe",
-            adc_file=r"C:\Users\x\.config\gcloud\adc-ga-personal.json")
-        posix = register.server_entries("/Users/x/.config/ga-mcp",
+            r"C:\Users\x\.config\data-noodler", platform="win32",
+            venv_python=r"C:\Users\x\.config\data-noodler\venv\Scripts\python.exe",
+            adc_file=r"C:\Users\x\.config\gcloud\data-noodler-credential.json")
+        posix = register.server_entries("/Users/x/.config/data-noodler",
                                         platform="darwin")
         return list(win.items()) + list(posix.items())
 
@@ -173,7 +173,7 @@ class TestAProbeLeavesNoServerBehind(unittest.TestCase):
         import time
         import verify
         marker = "GA_PROBE_MARKER=" + uuid.uuid4().hex
-        env = dict(os.environ, GA_MCP_CONFIG="/nonexistent/config.json")
+        env = dict(os.environ, DATA_NOODLER_CONFIG="/nonexistent/config.json")
         env["GA_PROBE_MARKER"] = marker.split("=", 1)[1]
         result = verify.probe(sys.executable, [SERVER], env=env)
         self.assertTrue(result["ok"], result["error"])

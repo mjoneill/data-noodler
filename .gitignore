@@ -1,7 +1,9 @@
 # Never commit credentials. They live in ~/.config, outside this repo.
-# The OAuth client's real filename is ga-mcp-client.json.
+# The OAuth client's real filename is data-noodler-client.json
+# (ga-mcp-client.json before #1999; both stay excluded).
 *adc*.json
 *client_secret*.json
+*data-noodler-client*.json
 *ga-mcp-client*.json
 *-client.json
 credentials.json

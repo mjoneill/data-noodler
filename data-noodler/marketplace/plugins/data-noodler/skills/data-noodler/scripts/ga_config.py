@@ -1,7 +1,7 @@
 """Shared config loader for the data-noodler skill scripts.
 
 All machine-specific values (paths, GCP project, venv location) live in
-~/.config/ga-mcp/config.json so the skill itself stays portable and carries no
+~/.config/data-noodler/config.json so the skill itself stays portable and carries no
 account identity. Scripts import from here rather than hardcoding anything.
 """
 
@@ -9,7 +9,23 @@ import json
 import os
 import sys
 
-CONFIG_PATH = os.path.expanduser("~/.config/ga-mcp/config.json")
+
+
+def _config_path():
+    """DATA_NOODLER_CONFIG, else the new home's, else an old home's that
+    exists (#1999: installs from before the rename keep working until
+    migrate_home.py moves them). The same rule as the server's config.py."""
+    if os.environ.get("DATA_NOODLER_CONFIG"):
+        return os.environ["DATA_NOODLER_CONFIG"]
+    base = os.path.expanduser("~/.config")
+    new = os.path.join(base, "data-noodler")
+    old = os.path.join(base, "ga-" "mcp", "config.json")
+    if not os.path.isdir(new) and os.path.isfile(old):
+        return old
+    return os.path.join(new, "config.json")
+
+
+CONFIG_PATH = _config_path()
 
 REQUIRED = [
     "oauth_client_file",

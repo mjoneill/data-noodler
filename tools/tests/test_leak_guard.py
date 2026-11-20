@@ -34,10 +34,11 @@ def rules(files):
 
 class SensitiveFileNames(unittest.TestCase):
     def test_oauth_client_and_credential_files_are_refused_by_name(self):
-        for path in ("data-noodler/my-ga-mcp-client.json",
+        for path in ("data-noodler/my-data-noodler-client.json",
                      "anything/desktop-client.json",
                      "x/application_default_credentials.json",
                      "adc.json",
+                     "x/data-noodler-credential.json",
                      "client_secret_12345.json",
                      "credentials.json",
                      "config.json",
@@ -132,7 +133,7 @@ class HomePaths(unittest.TestCase):
                 self.assertIn("home-path", rules({"docs/notes.md": text + "\n"}))
 
     def test_placeholder_home_folders_pass(self):
-        for text in ("/Users/x/.config/ga-mcp", "/Users/example", "/Users/Jane/Documents", "/Users/a",
+        for text in ("/Users/x/.config/data-noodler", "/Users/example", "/Users/Jane/Documents", "/Users/a",
                      "/Users/you", "C:\\Users\\example\\AppData", "C:\\\\Users\\\\x/.config",
                      "/Users/<you>/Library", "/Users/$USER", "C:\\Users\\%USERNAME%", "/Users/",
                      "c:\\users\\EXAMPLE\\.SSH",

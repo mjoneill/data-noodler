@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy the package into ~/.config/ga-mcp and register the local harnesses.
+"""Copy the package into ~/.config/data-noodler and register the local harnesses.
 
 Kept separate from the setup skill so the copy step is testable and repeatable
 on its own. Idempotent: safe to re-run after editing the source.
@@ -16,6 +16,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import harness_paths
+import home as home_mod
 import register
 
 PAYLOAD = ("server", "bin", "marketplace")
@@ -35,20 +36,23 @@ class InstallError(Exception):
     """Raised with a message intended to be read by a user, not a developer."""
 
 
-MARKER = ".ga-mcp-payload"
+MARKER = ".data-noodler-payload"
+# #1999: the marker's name before the product had one name. An install that
+# carries it is just as much ours.
+LEGACY_MARKERS = (".ga-" "mcp-payload",)
 
 
 def _validated_ga_home(ga_home, home=None):
     """Refuse a destination that recursive replacement must never be pointed at.
 
-    --ga-home is an argparse string with no validation, and this function
+    --home is an argparse string with no validation, and this function
     replaces whole directories under it. The three refusals below are the
     ones where a typo or an invented flag value destroys something.
     """
     home = os.path.expanduser("~") if home is None else home
     if not os.path.isabs(ga_home):
         raise InstallError(
-            f"--ga-home must be an absolute path, got {ga_home!r}. A relative "
+            f"--home must be an absolute path, got {ga_home!r}. A relative "
             "path resolves against whatever directory this happens to run "
             "from, which is not something to replace directories under.")
     ga_home = os.path.abspath(ga_home)
@@ -74,7 +78,8 @@ def _is_previous_payload(dest, src):
     Anything else is someone else's directory and is refused rather than
     deleted. The old code called shutil.rmtree() here with no test of any kind.
     """
-    if os.path.exists(os.path.join(dest, MARKER)):
+    if any(os.path.exists(os.path.join(dest, m))
+           for m in (MARKER,) + LEGACY_MARKERS):
         return True
     try:
         existing = set(os.listdir(dest))
@@ -168,7 +173,7 @@ def describe_payload_plan(repo_root, ga_home, home=None):
                 raise InstallError(
                     f"{dest} exists and does not look like a previous install "
                     "of this package -- it holds files this package never put "
-                    "there. Refusing to replace it. Check whether --ga-home is "
+                    "there. Refusing to replace it. Check whether --home is "
                     "what you meant, then move or remove that directory by "
                     "hand.")
             lines.append(f"  keep     {dest} -> {dest}.ga-old-<timestamp>")
@@ -191,7 +196,7 @@ def install_payload(repo_root, ga_home, home=None, platform=None):
 
     This replaced a shutil.rmtree() of the destination. That call was the
     most dangerous line in the package and had no tests at all: with
-    --ga-home ~ it removed ~/companion, ~/bin and ~/marketplace.
+    --home ~ it removed ~/companion, ~/bin and ~/marketplace.
     """
     platform = sys.platform if platform is None else platform
     ga_home = _validated_ga_home(ga_home, home=home)
@@ -212,7 +217,7 @@ def install_payload(repo_root, ga_home, home=None, platform=None):
                 f"{dest} exists and does not look like a previous install of "
                 "this package -- it holds files this package never put there. "
                 "Refusing to replace it, and nothing was changed. Check "
-                "whether --ga-home is what you meant, then move or remove "
+                "whether --home is what you meant, then move or remove "
                 "that directory by hand.")
 
     for name in PAYLOAD:
@@ -229,7 +234,7 @@ def install_payload(repo_root, ga_home, home=None, platform=None):
             shutil.copytree(src, staging,
                             ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
             with open(os.path.join(staging, MARKER), "w", encoding="utf-8") as f:
-                f.write("Written by ga-mcp install.py. Its presence is what "
+                f.write("Written by Data Noodler's install.py. Its presence is what "
                         "permits this directory to be replaced by a reinstall.\n")
         except OSError as exc:
             shutil.rmtree(staging, ignore_errors=True)
@@ -435,8 +440,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--repo-root", default=os.path.dirname(os.path.dirname(
         os.path.dirname(os.path.abspath(__file__)))))
-    ap.add_argument("--ga-home",
-                    default=os.path.expanduser("~/.config/ga-mcp"))
+    ap.add_argument("--home", "--ga-home", dest="ga_home",
+                    default=home_mod.default_home())
     ap.add_argument("--targets", default="claude_code,claude_desktop",
                     help="comma-separated: claude_code, claude_desktop")
     ap.add_argument("--payload-only", action="store_true",
@@ -446,7 +451,7 @@ def main():
                          "nothing, and exit")
     args = ap.parse_args()
     # expanduser replaces only the tilde, so on Windows the default came out as
-    # C:\\Users\\x/.config/ga-mcp. normpath settles it on every platform.
+    # C:\\Users\\x/.config/data-noodler. normpath settles it on every platform.
     args.ga_home = os.path.normpath(os.path.expanduser(args.ga_home))
     report_targets = [t.strip() for t in args.targets.split(",") if t.strip()]
 

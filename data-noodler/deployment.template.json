@@ -4,7 +4,7 @@
   "maintainer": "",
   "maintainer_contact": "",
   "client_file_source": "own-cloud-project",
-  "client_file_source_note": "Create your own OAuth client once, following GOOGLE-CLOUD-SETUP.md, then hand the resulting ga-mcp-client.json to each person directly (password manager, shared drive your team controls, or in person), never over a chat channel or a mailing list. If your audience is External (Testing), add each person's Google account as a test user before they install.",
+  "client_file_source_note": "Create your own OAuth client once, following GOOGLE-CLOUD-SETUP.md, then hand the resulting data-noodler-client.json to each person directly (password manager, shared drive your team controls, or in person), never over a chat channel or a mailing list. If your audience is External (Testing), add each person's Google account as a test user before they install.",
   "install_reports_to": "",
   "sessions_root_hint": "~/Documents/analyst-sessions",
   "example_site": "admissions.example.edu",

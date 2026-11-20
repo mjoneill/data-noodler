@@ -28,11 +28,11 @@ PY=${PY312:-$(ls "$HOME"/.local/share/uv/python/cpython-3.12.*/bin/python3.12 2>
 
 T=$(mktemp -d)
 H="$T/home"
-GA="$H/.config/ga-mcp"
+GA="$H/.config/data-noodler"
 mkdir -p "$H/.claude" "$H/.config/gcloud" "$H/Documents/analyst-sessions" "$T/old"
 trap 'rm -rf "$T"' EXIT
 export HOME="$H"
-unset GA_HOME GA_MCP_CONFIG || true
+unset DATA_NOODLER_HOME DATA_NOODLER_CONFIG || true
 
 echo "== 1. the install a partner has today ($OLD_COMMIT)"
 git -C "$REPO" archive "$OLD_COMMIT" data-noodler | tar -x -C "$T/old"
@@ -40,10 +40,10 @@ git -C "$REPO" archive "$OLD_COMMIT" data-noodler | tar -x -C "$T/old"
 "$GA/venv/bin/python" -m pip install -q --disable-pip-version-check \
   -c "$T/old/data-noodler/installer/constraints.txt" \
   analytics-mcp==0.7.0 google-auth-oauthlib
-echo '{}' > "$H/.config/gcloud/adc-ga-personal.json"
+echo '{}' > "$H/.config/gcloud/data-noodler-credential.json"
 cat > "$GA/config.json" <<EOF
-{"oauth_client_file": "$H/.config/gcloud/ga-mcp-client.json",
- "adc_file": "$H/.config/gcloud/adc-ga-personal.json",
+{"oauth_client_file": "$H/.config/gcloud/data-noodler-client.json",
+ "adc_file": "$H/.config/gcloud/data-noodler-credential.json",
  "venv_python": "$GA/venv/bin/python",
  "analytics_mcp_bin": "$GA/venv/bin/analytics-mcp",
  "properties_csv": "$GA/properties.csv",
@@ -52,7 +52,7 @@ EOF
 echo '{"mcpServers": {"someone-else": {"command": "/nonexistent/server"}}}' > "$H/.claude.json"
 chmod 600 "$H/.claude.json"
 "$GA/venv/bin/python" "$T/old/data-noodler/installer/install.py" \
-  --repo-root "$T/old" --ga-home "$GA" --targets claude_code >/dev/null
+  --repo-root "$T/old" --home "$GA" --targets claude_code >/dev/null
 BEFORE=$("$GA/venv/bin/python" -c "import importlib.metadata as m; print(m.version('mcp'), m.version('analytics-mcp'), m.version('pip'))")
 echo "   before: mcp/analytics-mcp/pip = $BEFORE"
 
@@ -68,7 +68,7 @@ py, repo, ga, out, which = sys.argv[1:6]
 with open(out, "w") as log:
     p = subprocess.Popen(
         [py, "-u", f"{repo}/data-noodler/installer/upgrade.py", "--repo-root",
-         repo, "--ga-home", ga, "--targets", "claude_code"],
+         repo, "--home", ga, "--targets", "claude_code"],
         stdout=log, stderr=subprocess.STDOUT, start_new_session=True,
         preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL))
     deadline = time.time() + 120
@@ -85,7 +85,7 @@ DRIVER
   if [ "$INTERRUPT" = "KILL" ]; then
     [ -f "$GA/.upgrade-in-progress.json" ] || fail "no record left for --recover"
     echo "   killed; running --recover"
-    "$PY" "$REPO/data-noodler/installer/upgrade.py" --ga-home "$GA" --recover || fail "--recover failed"
+    "$PY" "$REPO/data-noodler/installer/upgrade.py" --home "$GA" --recover || fail "--recover failed"
     [ -f "$GA/.upgrade-in-progress.json" ] && fail "record still there after recover"
   else
     grep -q "INTERRUPTED" "$OUT" || fail "no interruption reported"
@@ -103,12 +103,12 @@ fi
 
 echo "== 2. upgrade.py --plan, then the run, for real"
 "$PY" "$REPO/data-noodler/installer/upgrade.py" --repo-root "$REPO" \
-  --ga-home "$GA" --targets claude_code --plan
+  --home "$GA" --targets claude_code --plan
 "$PY" "$REPO/data-noodler/installer/upgrade.py" --repo-root "$REPO" \
-  --ga-home "$GA" --targets claude_code
+  --home "$GA" --targets claude_code
 echo "== 2b. the agent's step afterwards: skills"
 "$GA/venv/bin/python" "$REPO/data-noodler/installer/copy_skills.py" \
-  --ga-home "$GA" --dist "$REPO/data-noodler" --skills-dir "$H/.claude/skills"
+  --home "$GA" --dist "$REPO/data-noodler" --skills-dir "$H/.claude/skills"
 
 echo "== 3. checks"
 fail() { echo "FAIL: $*" >&2; exit 1; }
@@ -124,6 +124,6 @@ print(probe.probe_dependencies('$GA/venv/bin/python')['below_floor'])")
 grep -q someone-else "$H/.claude.json" || fail "the user's other server was lost"
 [ "$(stat -f %Lp "$H/.claude.json" 2>/dev/null || stat -c %a "$H/.claude.json")" = 600 ] || fail ".claude.json permissions changed"
 ls -d "$GA"/venv.old-* >/dev/null 2>&1 || fail "the old venv was removed -- only the user may"
-[ -f "$H/.claude/skills/data-noodler/.ga-mcp-installed" ] || fail "skills not installed with their marker"
+[ -f "$H/.claude/skills/data-noodler/.data-noodler-installed" ] || fail "skills not installed with their marker"
 grep -q OTEL_PROPAGATORS "$H/.claude.json" || fail "entries lack OTEL_PROPAGATORS"
 echo "== PASS: upgrade rehearsal ($OLD_COMMIT -> working tree)"

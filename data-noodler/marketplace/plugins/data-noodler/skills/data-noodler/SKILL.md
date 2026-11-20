@@ -15,7 +15,7 @@ Everything is read-only by construction — the credential holds only
 `analytics.readonly`, so no query can alter GA configuration. Explore freely;
 the risk is a confusing answer, never a destructive one.
 
-Machine-specific paths live in `~/.config/ga-mcp/config.json`. If that file is
+Machine-specific paths live in `~/.config/data-noodler/config.json`. If that file is
 missing, this machine hasn't been set up — read `references/setup.md`.
 
 ## Resolving property names to IDs
@@ -37,7 +37,7 @@ If the script reports no matches on something that should exist, the snapshot is
 stale. Rebuild it:
 
 ```bash
-"$(python -c "import json,os;print(os.path.expanduser(json.load(open(os.path.expanduser('~/.config/ga-mcp/config.json')))['venv_python']))")" \
+"$(python -c "import json,os;print(os.path.expanduser(json.load(open(os.path.expanduser('~/.config/data-noodler/config.json')))['venv_python']))")" \
   <skill>/scripts/refresh_properties.py
 ```
 
@@ -150,7 +150,7 @@ Exports go only to approved places, chosen with `save_to`: the project
 folder the app is working in (`<project>/_outputs/`, the default in Claude
 Code and Codex), the sessions folder (the default when there is no project,
 as in Claude Desktop chat), or folders the user listed under `export_roots`
-in `~/.config/ga-mcp/config.json`. An arbitrary path is refused by design --
+in `~/.config/data-noodler/config.json`. An arbitrary path is refused by design --
 text inside GA or Search Console data can steer a model, so the model never
 gets to name where a file goes. Tell the user where the file landed; if the
 receipt warns that `_outputs/` isn't gitignored, pass that on.
@@ -285,7 +285,7 @@ two durable alternatives and their tradeoffs.
 
 `references/setup.md` has the full procedure: creating the OAuth desktop client,
 enabling the two required APIs, minting a narrow-scope credential, and
-registering the MCP server. Read it when `~/.config/ga-mcp/config.json` is
+registering the MCP server. Read it when `~/.config/data-noodler/config.json` is
 absent, when setting up a new machine, or when the user hits an auth error that
 isn't simple expiry. It also documents several traps that cost real time —
 including two errors in Google's own README.

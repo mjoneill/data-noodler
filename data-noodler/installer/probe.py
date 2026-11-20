@@ -31,6 +31,7 @@ import subprocess
 
 import bootstrap_config
 import harness_paths
+import home as home_mod
 import security_floors
 
 GA_SERVERS = ("analytics-mcp", "data-noodler")
@@ -153,7 +154,7 @@ def probe_uv(which=None, run=None):
 
 def probe_config(home=None):
     home = os.path.expanduser("~") if home is None else home
-    path = os.path.join(home, ".config", "ga-mcp", "config.json")
+    path = os.path.join(home_mod.default_home(home), "config.json")
     parsed, error = _read_json(path)
     out = {"path": path, "exists": os.path.exists(path), "error": error,
            "keys": sorted(parsed) if isinstance(parsed, dict) else None,
@@ -213,13 +214,13 @@ def probe_harnesses(home=None, env=None, platform=None):
 
 def probe_payload(home=None):
     home = os.path.expanduser("~") if home is None else home
-    ga_home = os.path.join(home, ".config", "ga-mcp")
+    ga_home = home_mod.default_home(home)
     out = {"ga_home": ga_home, "directories": {}}
     for name in ("server", "bin", "marketplace"):
         d = os.path.join(ga_home, name)
         out["directories"][name] = {
             "present": os.path.isdir(d),
-            "marker": os.path.exists(os.path.join(d, ".ga-mcp-payload")),
+            "marker": any(os.path.exists(os.path.join(d, m)) for m in (".data-noodler-payload", ".ga-" "mcp-payload")),
         }
     return out
 

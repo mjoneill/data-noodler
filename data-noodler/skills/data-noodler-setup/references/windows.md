@@ -63,7 +63,7 @@ per-user install goes to `%LOCALAPPDATA%\Programs\Python\Python312\`, and a
 bare `python` can still resolve to the Store stub:
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m venv "$env:USERPROFILE\.config\ga-mcp\venv"
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m venv "$env:USERPROFILE\.config\data-noodler\venv"
 ```
 
 ## Why there is no uv here
@@ -77,9 +77,9 @@ installs were gated behind an IT-managed Software Center. Python 3.12 and
 `pip` were present. So:
 
 ```powershell
-python -m venv "$env:USERPROFILE\.config\ga-mcp\venv"
-& "$env:USERPROFILE\.config\ga-mcp\venv\Scripts\python.exe" -m pip install "pip @ https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl#sha256=fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
-& "$env:USERPROFILE\.config\ga-mcp\venv\Scripts\python.exe" -m pip install -c <repo>\data-noodler\installer\constraints.txt --upgrade analytics-mcp==1.1.0 google-auth-oauthlib
+python -m venv "$env:USERPROFILE\.config\data-noodler\venv"
+& "$env:USERPROFILE\.config\data-noodler\venv\Scripts\python.exe" -m pip install "pip @ https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl#sha256=fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
+& "$env:USERPROFILE\.config\data-noodler\venv\Scripts\python.exe" -m pip install -c <repo>\data-noodler\installer\constraints.txt --upgrade analytics-mcp==1.1.0 google-auth-oauthlib
 ```
 
 **Why pip is installed by URL and hash, before anything else.** In October
@@ -158,11 +158,11 @@ Instead the registered entry names the interpreter directly. This shape was
 ```json
 "data-noodler": {
   "type": "stdio",
-  "command": "C:\\Users\\<user>\\.config\\ga-mcp\\venv\\Scripts\\python.exe",
-  "args": ["C:\\Users\\<user>\\.config\\ga-mcp\\server\\data_noodler.py"],
+  "command": "C:\\Users\\<user>\\.config\\data-noodler\\venv\\Scripts\\python.exe",
+  "args": ["C:\\Users\\<user>\\.config\\data-noodler\\server\\data_noodler.py"],
   "env": {
     "GRPC_DNS_RESOLVER": "native",
-    "GOOGLE_APPLICATION_CREDENTIALS": "C:\\Users\\<user>\\.config\\gcloud\\adc-ga-personal.json"
+    "GOOGLE_APPLICATION_CREDENTIALS": "C:\\Users\\<user>\\.config\\gcloud\\data-noodler-credential.json"
   }
 }
 ```
@@ -186,7 +186,7 @@ So `install.py` registers analytics-mcp the way data-noodler already ran:
 ```json
 "analytics-mcp": {
   "type": "stdio",
-  "command": "C:\\Users\\<user>\\.config\\ga-mcp\\venv\\Scripts\\python.exe",
+  "command": "C:\\Users\\<user>\\.config\\data-noodler\\venv\\Scripts\\python.exe",
   "args": ["-m", "analytics_mcp.server"],
   "env": {
     "GRPC_DNS_RESOLVER": "native",
@@ -225,7 +225,7 @@ directory. `bootstrap_config.py` uses that.
 When it cannot, **the recourse is a flag, not an inference**:
 
 ```powershell
-python bootstrap_config.py --venv-python "C:\Users\<user>\.config\ga-mcp\venv\Scripts\python.exe"
+python bootstrap_config.py --venv-python "C:\Users\<user>\.config\data-noodler\venv\Scripts\python.exe"
 ```
 
 `bootstrap_config.py` also runs one import probe against whichever interpreter
@@ -270,11 +270,11 @@ use `[System.IO.File]::WriteAllText`, or PowerShell 7's `-Encoding utf8NoBOM`.
 |---|---|
 | Claude Desktop config | `%APPDATA%\Claude\claude_desktop_config.json`; for a Microsoft Store install, `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude_desktop_config.json`. `install.py` prints the one it used (`claude_desktop: using ...`). |
 | Claude Code config | `%USERPROFILE%\.claude.json` |
-| Package config | `%USERPROFILE%\.config\ga-mcp\config.json` |
-| Credential | `%USERPROFILE%\.config\gcloud\adc-ga-personal.json` |
-| OAuth client | `%USERPROFILE%\.config\gcloud\ga-mcp-client.json` — **not in the package**; get it from your maintainer directly (`deployment.json`), or make your own: `GOOGLE-CLOUD-SETUP.md` |
+| Package config | `%USERPROFILE%\.config\data-noodler\config.json` |
+| Credential | `%USERPROFILE%\.config\gcloud\data-noodler-credential.json` |
+| OAuth client | `%USERPROFILE%\.config\gcloud\data-noodler-client.json` — **not in the package**; get it from your maintainer directly (`deployment.json`), or make your own: `GOOGLE-CLOUD-SETUP.md` |
 
-`~/.config/ga-mcp` is not idiomatic Windows — `%LOCALAPPDATA%` would be — but
+`~/.config/data-noodler` is not idiomatic Windows — `%LOCALAPPDATA%` would be — but
 it is deliberate. data-noodler's config loader and the export denylist both
 encode that path already, and one fewer divergence between platforms is worth
 more than matching convention. Do not "fix" it.
@@ -323,7 +323,7 @@ copy of this package predates 2026-10-05, the workarounds below still apply.
   It searched only `PATH` and `~/.local/bin`, and refused before it ever read
   `--venv-python`. It now searches the venv this page creates, and
   `--venv-python` is enough on its own.
-  *Old workaround:* `$env:PATH = "$env:USERPROFILE\.config\ga-mcp\venv\Scripts;$env:PATH"`
+  *Old workaround:* `$env:PATH = "$env:USERPROFILE\.config\data-noodler\venv\Scripts;$env:PATH"`
 - **A Microsoft Store (MSIX) Claude Desktop hid its config.** `%APPDATA%\Claude`
   resolves only *inside* the app container, so an install run from ordinary
   PowerShell said `claude_desktop: not installed, skipping` and exited 0. The

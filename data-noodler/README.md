@@ -47,7 +47,7 @@ and what has and has not been proven on real machines.
 - **No credentials and no data.** There is no shared account. Each person
   signs in with their own Google account, and the token stays on their
   machine.
-- **No Google sign-in file.** `ga-mcp-client.json` belongs to a deployment's
+- **No Google sign-in file.** `data-noodler-client.json` belongs to a deployment's
   own Google Cloud project. You create your own, and it never goes into a
   repository; `.gitignore` here excludes it.
 

@@ -1,6 +1,6 @@
 # First-time setup: analytics-mcp with a narrow-scope credential
 
-Read this when `~/.config/ga-mcp/config.json` is absent, when setting up a new
+Read this when `~/.config/data-noodler/config.json` is absent, when setting up a new
 machine, or when an auth failure isn't simple token expiry.
 
 The goal is a credential holding **only** `analytics.readonly`. Google's own
@@ -65,7 +65,7 @@ In the **Google Cloud Console** (`console.cloud.google.com` — a different site
 from `analytics.google.com`, which is never used during setup):
 
 1. Create a project. Record the **project ID** — Google appends digits if the
-   name is taken, so it looks like `ga-mcp-483921` rather than the display name
+   name is taken, so it looks like `data-noodler-483921` rather than the display name
    you typed.
 2. Enable both APIs, with the project pinned in the URL so there's no chance of
    configuring the wrong one:
@@ -132,14 +132,14 @@ minted next.
 
 ## 5. Write the config
 
-`~/.config/ga-mcp/config.json`:
+`~/.config/data-noodler/config.json`:
 
 ```json
 {
-  "oauth_client_file": "~/.config/gcloud/ga-mcp-client.json",
-  "adc_file": "~/.config/gcloud/adc-ga-personal.json",
+  "oauth_client_file": "~/.config/gcloud/data-noodler-client.json",
+  "adc_file": "~/.config/gcloud/data-noodler-credential.json",
   "venv_python": "~/Library/Application Support/pipx/venvs/analytics-mcp/bin/python",
-  "properties_csv": "~/.config/ga-mcp/properties.csv"
+  "properties_csv": "~/.config/data-noodler/properties.csv"
 }
 ```
 

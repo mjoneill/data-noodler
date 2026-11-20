@@ -61,6 +61,7 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import home as home_mod  # noqa: E402
 import safe_write  # noqa: E402
 import security_floors  # noqa: E402
 
@@ -154,7 +155,7 @@ def make_plan(repo_root=None, ga_home=None, config_path=None,
     platform = sys.platform if platform is None else platform
     repo_root = repo_root or os.path.dirname(os.path.dirname(HERE))
     ga_home = os.path.normpath(os.path.expanduser(
-        ga_home or "~/.config/ga-mcp"))
+        ga_home or home_mod.default_home()))
     config_path = config_path or os.path.join(ga_home, "config.json")
     try:
         with open(config_path, encoding="utf-8") as f:
@@ -385,7 +386,7 @@ def prove_venv(plan, log):
         "import verify\n"
         "env = dict(os.environ, GRPC_DNS_RESOLVER='native',"
         " OTEL_PROPAGATORS='none', ANALYTICS_MCP_ALLOW_WRITE='false',"
-        " GA_MCP_CONFIG=sys.argv[1])\n"
+        " DATA_NOODLER_CONFIG=sys.argv[1])\n"
         "out = {}\n"
         "for name, args in (('analytics-mcp', ['-m', 'analytics_mcp.server']),"
         " ('data-noodler', [sys.argv[2]])):\n"
@@ -418,10 +419,10 @@ def install_and_register(plan, log):
                               os.path.join(plan.dist, "installer",
                                            "install.py"),
                               "--repo-root", plan.repo_root,
-                              "--ga-home", plan.ga_home,
+                              "--home", plan.ga_home,
                               "--targets", ",".join(plan.targets)],
                              env=dict(os.environ,
-                                      GA_MCP_CONFIG=plan.config_path)))
+                                      DATA_NOODLER_CONFIG=plan.config_path)))
 
 
 def _verify(plan, config_path, step, names=None):
@@ -459,8 +460,8 @@ def verify_shared(plan, log):
         plan.ga_home, platform=plan.platform, venv_python=plan.venv_python,
         adc_file=os.path.expanduser(cfg.get("adc_file") or ""))
     for entry in entries.values():
-        entry.setdefault("env", {})["GA_HOME"] = plan.ga_home
-    d = tempfile.mkdtemp(prefix="ga-mcp-verify-")
+        entry.setdefault("env", {})["DATA_NOODLER_HOME"] = plan.ga_home
+    d = tempfile.mkdtemp(prefix="data-noodler-verify-")
     path = os.path.join(d, "entries.json")
     try:
         with open(path, "w", encoding="utf-8") as f:
@@ -790,9 +791,9 @@ def restore(state, log):
 
 
 def _recover_command(ga_home):
-    default = os.path.normpath(os.path.expanduser("~/.config/ga-mcp"))
+    default = os.path.normpath(home_mod.default_home())
     return ("`upgrade.py --recover`" if os.path.normpath(ga_home) == default
-            else f"`upgrade.py --recover --ga-home \"{ga_home}\"`")
+            else f"`upgrade.py --recover --home \"{ga_home}\"`")
 
 
 def _report_restore(result, ga_home, log):
@@ -938,8 +939,8 @@ def recover(ga_home, log=print, running=None, platform=None,
     state = load_state(ga_home)
     if state is None:
         log(f"Nothing to recover: no unfinished upgrade is recorded in "
-            f"{ga_home}. If the upgrade ran with --ga-home, pass the same "
-            "--ga-home here.")
+            f"{ga_home}. If the upgrade ran with --home, pass the same "
+            "--home here.")
         return True
     pid = state.get("pid")
     if pid != os.getpid():
@@ -1018,7 +1019,7 @@ def main():
                                  formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--repo-root", default=None,
                     help="the unpacked package's folder (default: this one)")
-    ap.add_argument("--ga-home", default=None)
+    ap.add_argument("--home", "--ga-home", dest="ga_home", default=None)
     ap.add_argument("--base-python", default=None,
                     help="the Python the venv was made from (default: read "
                          "from its pyvenv.cfg)")
@@ -1035,7 +1036,7 @@ def main():
     args = ap.parse_args()
     if args.recover or args.forget:
         ga_home = os.path.normpath(os.path.expanduser(
-            args.ga_home or "~/.config/ga-mcp"))
+            args.ga_home or home_mod.default_home()))
         if args.forget:
             return 0 if forget(ga_home) else 1
         return 0 if recover(ga_home) else 1

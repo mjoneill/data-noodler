@@ -56,7 +56,7 @@ def _call_lookup(csv_path, query):
     from mcp.client.stdio import stdio_client
 
     env = dict(os.environ)
-    env["GA_MCP_CONFIG"] = _write_config(csv_path=csv_path)
+    env["DATA_NOODLER_CONFIG"] = _write_config(csv_path=csv_path)
 
     async def run():
         params = StdioServerParameters(
@@ -83,7 +83,7 @@ def _list_tools():
     from mcp.client.stdio import stdio_client
 
     env = dict(os.environ)
-    env["GA_MCP_CONFIG"] = _write_config()
+    env["DATA_NOODLER_CONFIG"] = _write_config()
 
     async def run():
         params = StdioServerParameters(
@@ -135,7 +135,7 @@ class TestHandshake(unittest.TestCase):
         from mcp.client.stdio import stdio_client
 
         env = dict(os.environ)
-        env["GA_MCP_CONFIG"] = _write_config()
+        env["DATA_NOODLER_CONFIG"] = _write_config()
 
         async def run():
             params = StdioServerParameters(
@@ -156,7 +156,7 @@ class TestHandshake(unittest.TestCase):
         from mcp.client.stdio import stdio_client
 
         env = dict(os.environ)
-        env["GA_MCP_CONFIG"] = _write_config()
+        env["DATA_NOODLER_CONFIG"] = _write_config()
 
         async def run():
             params = StdioServerParameters(
@@ -211,7 +211,7 @@ class TestVerify(unittest.TestCase):
     def test_probe_reports_tools_for_a_working_server(self):
         import verify
         env = dict(os.environ)
-        env["GA_MCP_CONFIG"] = _write_config()
+        env["DATA_NOODLER_CONFIG"] = _write_config()
         result = verify.probe(sys.executable, [SERVER], env=env)
         self.assertTrue(result["ok"], result["error"])
         self.assertEqual(set(result["tools"]), EXPECTED_TOOLS)
@@ -242,7 +242,7 @@ class TestVerify(unittest.TestCase):
                     "good": {
                         "command": sys.executable,
                         "args": [SERVER],
-                        "env": {"GA_MCP_CONFIG": _write_config()},
+                        "env": {"DATA_NOODLER_CONFIG": _write_config()},
                     },
                 }
             }, f)
@@ -299,7 +299,7 @@ class TestVerify(unittest.TestCase):
                     "good": {
                         "command": sys.executable,
                         "args": [SERVER],
-                        "env": {"GA_MCP_CONFIG": _write_config()},
+                        "env": {"DATA_NOODLER_CONFIG": _write_config()},
                     },
                 }
             }, f)
@@ -340,7 +340,7 @@ class TestExpandedSurface(unittest.TestCase):
         from mcp.client.stdio import stdio_client
 
         env = dict(os.environ)
-        env["GA_MCP_CONFIG"] = _write_config()
+        env["DATA_NOODLER_CONFIG"] = _write_config()
 
         async def run():
             params = StdioServerParameters(
@@ -358,7 +358,7 @@ class TestExpandedSurface(unittest.TestCase):
         from mcp.client.stdio import stdio_client
 
         env = dict(os.environ)
-        env["GA_MCP_CONFIG"] = _write_config()
+        env["DATA_NOODLER_CONFIG"] = _write_config()
 
         async def run():
             params = StdioServerParameters(
@@ -381,7 +381,7 @@ class TestExpandedSurface(unittest.TestCase):
         # start_session takes a place, not a path (#156): approve root as
         # the sessions folder, and ask for it explicitly -- the test runner's
         # own folder would otherwise qualify as the project.
-        env["GA_MCP_CONFIG"] = _write_config(sessions_root=root)
+        env["DATA_NOODLER_CONFIG"] = _write_config(sessions_root=root)
 
         async def run():
             params = StdioServerParameters(

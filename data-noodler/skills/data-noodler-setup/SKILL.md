@@ -126,9 +126,9 @@ What to read in the output:
 - `harnesses.*.other_servers` — MCP servers that are not ours. You are writing
   into a config someone else's tools also live in; mention it.
 
-`installer/` is never copied to `~/.config/ga-mcp/` — only `server/`, `bin/`
+`installer/` is never copied to `~/.config/data-noodler/` — only `server/`, `bin/`
 and `marketplace/` are (see Step 6) — so this and Step 8 both run from the repo
-checkout. A path under `~/.config/ga-mcp/` will never exist and would silently
+checkout. A path under `~/.config/data-noodler/` will never exist and would silently
 prove nothing.
 
 If GA tools already work in this harness, the user probably wants a *different*
@@ -226,11 +226,11 @@ or undo an upgrade by hand.
    plugins by version; without this it keeps the old plugin. If
    `codex plugin marketplace list` still shows `ga-tools`, first run
    `codex plugin remove ga-analytics@ga-tools` and `codex plugin marketplace remove ga-tools`,
-   then `codex plugin marketplace add ~/.config/ga-mcp/marketplace`, so only
+   then `codex plugin marketplace add ~/.config/data-noodler/marketplace`, so only
    Data Noodler remains.
 3. **Claude Code used?** `<venv_python> <package>/data-noodler/installer/copy_skills.py`.
    It refreshes only skill folders this package installed (they carry a
-   `.ga-mcp-installed` marker). It prints one line per skill; read every
+   `.data-noodler-installed` marker). It prints one line per skill; read every
    line, whatever the exit code. Exit 0: done. Exit 2: a folder exists that
    this package did not put there (`not-ours-differs`) -- an earlier hand
    copy, or the maintainer's own master; tell the user, and only on a yes
@@ -239,7 +239,18 @@ or undo an upgrade by hand.
    `missing-source`: the payload is missing) -- say so, and do not report
    the skills as installed. Exit 1 wins over 2, so check the lines for a
    `not-ours-differs` decision too.
-4. Step 9 (offer to remove the old venv and older backups), then Step 10.
+4. **Home still `~/.config/ga-mcp`?** (probe.py's payload section names it.) It keeps
+   working, so the move is an offer, never a requirement. Run
+   `"<base python>" <package>/data-noodler/installer/migrate_home.py` and
+   show the user what it prints. It renames their Google sign-in files, so
+   ask; only on a yes, with every app fully quit, re-run it with `--yes`.
+   Then re-run install.py (re-registers every app at the new path),
+   copy_skills.py, and for Codex `codex plugin marketplace remove
+   data-noodler` + `codex plugin marketplace add ~/.config/data-noodler/marketplace`
+   + `codex plugin add data-noodler@data-noodler`, then Step 8 (verify).
+   `NOT MOVED: ...` means nothing changed: relay the reason. Undo:
+   `migrate_home.py --undo`, then install.py again.
+5. Step 9 (offer to remove the old venv and older backups), then Step 10.
 
 **On Windows** none of the above applies. Follow `references/windows.md`
 instead: first check that a real Python exists (the `python.exe` in
@@ -254,7 +265,7 @@ likely to be missing on a machine that is not the author's. Check before
 going further:
 
 ```bash
-ls -l ~/.config/gcloud/ga-mcp-client.json
+ls -l ~/.config/gcloud/data-noodler-client.json
 ```
 
 If it is there, say so and move to Step 4.
@@ -262,8 +273,8 @@ If it is there, say so and move to Step 4.
 If it is not, **look for it where people actually save things** before asking.
 People download what they are sent wherever their browser puts it, so check
 the Downloads, Desktop and Documents folders, the folder the package was
-unzipped into, and the current working folder. Look for `ga-mcp-client.json`
-and browser renames of it, such as `ga-mcp-client (1).json`. **Never print
+unzipped into, and the current working folder. Look for `data-noodler-client.json`
+and browser renames of it, such as `data-noodler-client (1).json`. **Never print
 the file's contents.** To check that a candidate is the right kind of file,
 read only its top-level key (`"installed"`) and its `client_id`. A
 `client_secret_*.json` may belong to something else entirely, so ask the user
@@ -284,8 +295,8 @@ nowhere you can fetch it from.
 
 What to tell them: `deployment.json` names the maintainer and says how the
 file is handed over -- directly, by password manager, AirDrop, or in person,
-never over Slack or a mailing list. Save it as `ga-mcp-client.json` at
-`~/.config/gcloud/ga-mcp-client.json` (`mkdir -p ~/.config/gcloud` first).
+never over Slack or a mailing list. Save it as `data-noodler-client.json` at
+`~/.config/gcloud/data-noodler-client.json` (`mkdir -p ~/.config/gcloud` first).
 `START-HERE.md` says what it is and why it is kept out of the package.
 
 Tell them to ask, in the same message, to be added to the test-user list. It is
@@ -304,7 +315,7 @@ point nothing on screen suggests a file was ever missing.
 
 ## Step 4: Generate this machine's config
 
-Every step after this one reads its paths from `~/.config/ga-mcp/config.json`,
+Every step after this one reads its paths from `~/.config/data-noodler/config.json`,
 which is what makes them portable. **Nothing else in this flow creates that
 file.** On a machine that has had GA access before it is already there; on a
 colleague's machine it is not, and without it Step 5 has no `adc_file` to check
@@ -318,7 +329,7 @@ nothing to put in the command.
 PY3=/usr/bin/python3
 xcode-select -p >/dev/null 2>&1 || PY3="$(uv python find)"
 [ -x "$PY3" ] || echo "no usable Python 3: install uv first (Step 2), then re-run"
-if [ -f ~/.config/ga-mcp/config.json ]; then
+if [ -f ~/.config/data-noodler/config.json ]; then
   echo "config already present; leaving it alone"
 else
   "$PY3" <repo>/data-noodler/installer/bootstrap_config.py
@@ -369,9 +380,9 @@ xcode-select -p >/dev/null 2>&1 || PY3="$(uv python find)"
 "$PY3" -c "
 import json, os, time
 # Any Python 3 will do; this reads stdlib json only.
-cfg_path = os.path.expanduser('~/.config/ga-mcp/config.json')
+cfg_path = os.path.expanduser('~/.config/data-noodler/config.json')
 if not os.path.exists(cfg_path):
-    print('no ~/.config/ga-mcp/config.json -- Step 4 did not run or failed')
+    print('no ~/.config/data-noodler/config.json -- Step 4 did not run or failed')
 else:
     cfg = json.load(open(cfg_path))
     p = os.path.expanduser(cfg['adc_file'])
@@ -380,7 +391,7 @@ else:
 "
 ```
 
-Read `adc_file` out of `~/.config/ga-mcp/config.json` rather than assuming its
+Read `adc_file` out of `~/.config/data-noodler/config.json` rather than assuming its
 filename. That config is already the authority for `venv_python` elsewhere in
 this doc; treating the credential path as fixed instead would give a false
 "missing" on any colleague's machine where it is named differently, and route
@@ -397,13 +408,13 @@ If it is missing or expired, give the user this command to run themselves — it
 opens a browser and you cannot click through it for them:
 
 ```bash
-"<venv_python from ~/.config/ga-mcp/config.json>" <repo>/data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py --force
+"<venv_python from ~/.config/data-noodler/config.json>" <repo>/data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py --force
 ```
 
 Run the copy in the repo checkout, because at this point in the flow the
-payload step has not run yet, so no copy exists under `~/.config/ga-mcp/`.
+payload step has not run yet, so no copy exists under `~/.config/data-noodler/`.
 Once the payload is installed, the equivalent installed copy is
-`~/.config/ga-mcp/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py`
+`~/.config/data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py`
 — which is what `config.json`'s `mint_script` names and what
 `credential_status` hands the user for weekly renewal. Do not point anyone at
 `~/.claude/skills/data-noodler/scripts/mint_adc.py`: nothing in this
@@ -435,7 +446,7 @@ not come up.) The list caps at 100 test users.
 "<venv_python>" <repo>/data-noodler/installer/install.py --payload-only
 ```
 
-Copies `server/`, `bin/` and `marketplace/` into `~/.config/ga-mcp/`. Safe
+Copies `server/`, `bin/` and `marketplace/` into `~/.config/data-noodler/`. Safe
 to re-run.
 
 Then install the `data-noodler` skill for Claude Code, plus this setup
@@ -448,7 +459,7 @@ Desktop chat has no skill mechanism.)
 ```
 
 That installs both into `~/.claude/skills/` (on Windows
-`%USERPROFILE%\.claude\skills\`) with a `.ga-mcp-installed` marker, so a
+`%USERPROFILE%\.claude\skills\`) with a `.data-noodler-installed` marker, so a
 later upgrade can refresh them. It never overwrites a skill folder it did not
 put there and never deletes anything. Read every line it prints: exit 2
 (`not-ours-differs`) means such a folder exists and differs -- tell the user,
@@ -516,7 +527,7 @@ plugins and marketplaces). Use it in place of `codex` in the commands below:
 `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex`.
 
 ```bash
-codex plugin marketplace add ~/.config/ga-mcp/marketplace
+codex plugin marketplace add ~/.config/data-noodler/marketplace
 codex plugin add data-noodler
 ```
 
@@ -582,7 +593,7 @@ are unsure whether something is safe to remove, say so and leave it.
 
 **Loose copies of the OAuth client file.** Once consent has worked, look again
 in the places Step 3 searched for copies other than
-`~/.config/gcloud/ga-mcp-client.json`. Identify them by `client_id` only;
+`~/.config/gcloud/data-noodler-client.json`. Identify them by `client_id` only;
 never print the contents. Tell the user where each one is and why it should
 not stay there: Downloads, Documents and Desktop are often synced (OneDrive,
 iCloud) or shared. Offer to delete each one.
@@ -598,15 +609,15 @@ iCloud) or shared. Offer to delete each one.
 - **Hand-edited entries.** Step 7 rewrote our two entries, but compare
   `verify.py`'s output with what you expect. Any other `mcpServers` entry
   belongs to the user, so leave it alone, and do not offer to remove it.
-- **Old unzipped package folders**, for example an earlier `ga-mcp-src`.
+- **Old unzipped package folders**, for example an earlier `data-noodler-src`.
   Check what is in one before calling it old.
 - **The previous venv** `upgrade.py` left, at the path it printed:
-  `~/.config/ga-mcp/<venv name>.old-<stamp>` (beside the venv only if
+  `~/.config/data-noodler/<venv name>.old-<stamp>` (beside the venv only if
   that is on another disk). Installs upgraded before 2026-10-26 may also
   have one beside the venv, e.g. in pipx's `venvs` folder. Nothing uses
   it once the upgrade verified; it is only the undo. Offer to delete it --
   after the user has used the upgraded tools once is a sensible time.
-- **Older payload copies** (`~/.config/ga-mcp/{server,bin,marketplace}.ga-old-<stamp>`, and `companion.ga-old-<stamp>` (the server folder's old name)).
+- **Older payload copies** (`~/.config/data-noodler/{server,bin,marketplace}.ga-old-<stamp>`, and `companion.ga-old-<stamp>` (the server folder's old name)).
   `install.py` keeps one per run and never removes them. Offer to delete all
   but the newest. Likewise any `*.failed-<stamp>` folder a rolled-back
   upgrade had to move aside.
@@ -629,8 +640,8 @@ went wrong or needed a workaround on this machine never reaches the person who
 can fix it.
 
 Use the template in `references/install-report.md`, and save it as
-`~/.config/ga-mcp/install-reports/<YYYY-MM-DD>-<fresh|upgrade>.md` (create the
-folder; on Windows `%USERPROFILE%\.config\ga-mcp\install-reports\`). Then:
+`~/.config/data-noodler/install-reports/<YYYY-MM-DD>-<fresh|upgrade>.md` (create the
+folder; on Windows `%USERPROFILE%\.config\data-noodler\install-reports\`). Then:
 
 1. Show the user the report, or a short summary of it, and the path.
 2. Ask them to send the file to the maintainer, the way `deployment.json`'s

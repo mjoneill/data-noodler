@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
-  "sha256": "3ccc61dae11e4495d70e1abc4009b22950f52930b8fe61634758a19eb2a82cf8",
-  "recorded_from": "the repo at release, 2026-11-20 (one product name: plugin, skill and marketplace are all data-noodler, display name Data Noodler; #1999)"
+  "version": "0.9.0",
+  "sha256": "27c0c829996e853379923755ac566debe7eaaf1ed823f977c9250577afabf395",
+  "recorded_from": "the repo at release, 2026-11-20 (install home ~/.config/data-noodler with the old home as fallback; #1999 slice 2)"
 }

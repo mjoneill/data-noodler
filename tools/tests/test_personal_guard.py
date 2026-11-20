@@ -44,7 +44,7 @@ class Repo:
                     os.path.join(self.work, "tools", "identity_guard.py"))
         shutil.copy(os.path.join(HOOKS, "pre-push"), os.path.join(self.work, "tools", "hooks", "pre-push"))
         git(self.work, "config", "core.hooksPath", "tools/hooks")
-        self.env = dict(os.environ, GA_MCP_PERSONAL_GUARD_CONFIG_DIR=config_dir)
+        self.env = dict(os.environ, DATA_NOODLER_PERSONAL_GUARD_CONFIG_DIR=config_dir)
         self.commit("README.md", "hello\n", "first")
         r = self.push()
         assert r.returncode == 0, r.stderr
@@ -219,3 +219,35 @@ class PersonalGuard(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TheGuardFollowsTheInstallHome(unittest.TestCase):
+    """#1999, Indigo's hazard: with no list found this guard warns and PASSES.
+    So when the install home moves from ~/.config/ga-mcp to
+    ~/.config/data-noodler, a guard looking only in one of them would quietly
+    stop checking. Real pushes, located by HOME alone (no override)."""
+
+    def _repo_with_home(self, home_folder):
+        tmp = tempfile.mkdtemp()
+        home = os.path.join(tmp, "home")
+        cfg = os.path.join(home, ".config", home_folder)
+        os.makedirs(cfg)
+        write_config(cfg)
+        repo = Repo(tmp, cfg)
+        repo.env = {k: v for k, v in os.environ.items()
+                    if k != "DATA_NOODLER_PERSONAL_GUARD_CONFIG_DIR"}
+        repo.env["HOME"] = home
+        return repo
+
+    def _assert_refused(self, repo):
+        before = repo.remote_head()
+        repo.commit("notes.md", "see " + PERSONAL + "\n", "add notes")
+        r = repo.push()
+        self.assertNotEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(repo.remote_head(), before)
+
+    def test_a_list_in_the_home_from_before_the_rename_still_refuses(self):
+        self._assert_refused(self._repo_with_home("ga-" "mcp"))
+
+    def test_a_list_in_the_new_home_refuses(self):
+        self._assert_refused(self._repo_with_home("data-noodler"))

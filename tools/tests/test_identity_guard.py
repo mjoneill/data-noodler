@@ -42,7 +42,7 @@ class Repo:
         git(self.work, "config", "core.hooksPath", "tools/hooks")
         # An empty personal-guard config folder: that guard warns and passes.
         self.env = dict(os.environ,
-                        GA_MCP_PERSONAL_GUARD_CONFIG_DIR=os.path.join(root, "cfg"))
+                        DATA_NOODLER_PERSONAL_GUARD_CONFIG_DIR=os.path.join(root, "cfg"))
         self.commit("README.md", "hello\n", "first", NOREPLY)
         r = self.push()
         assert r.returncode == 0, r.stderr

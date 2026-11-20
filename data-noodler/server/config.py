@@ -9,7 +9,26 @@ depend on it. The two loaders read the same file and must stay compatible.
 import json
 import os
 
-CONFIG_PATH = os.path.expanduser("~/.config/ga-mcp/config.json")
+HOME_NAME = "data-noodler"
+# #1999: installs from before the product had one name live here until
+# installer/migrate_home.py moves them, and keep working meanwhile.
+LEGACY_HOME_NAME = "ga-" "mcp"
+
+
+def default_config_path(env=None, home=None):
+    """The config this server reads: DATA_NOODLER_CONFIG when set, else the
+    new home's, else an old home's that exists, else the new home's.
+
+    The same rule as installer/home.py, which this module cannot import."""
+    env = os.environ if env is None else env
+    if env.get("DATA_NOODLER_CONFIG"):
+        return env["DATA_NOODLER_CONFIG"]
+    base = os.path.join(home or os.path.expanduser("~"), ".config")
+    new = os.path.join(base, HOME_NAME)
+    old = os.path.join(base, LEGACY_HOME_NAME, "config.json")
+    if not os.path.isdir(new) and os.path.isfile(old):
+        return old
+    return os.path.join(new, "config.json")
 
 PATH_KEYS = ("oauth_client_file", "adc_file", "venv_python", "properties_csv")
 REQUIRED = PATH_KEYS
@@ -23,7 +42,7 @@ class ConfigError(Exception):
 
 
 def load(path=None):
-    path = CONFIG_PATH if path is None else path
+    path = default_config_path() if path is None else path
 
     if not os.path.exists(path):
         raise ConfigError(f"No GA configuration at {path}. {SETUP_HINT}")
@@ -52,7 +71,7 @@ def load(path=None):
 
 
 # The copy of the consent script that install.py's payload creates, under
-# ~/.config/ga-mcp/. bootstrap_config.build_config writes this same path into
+# ~/.config/data-noodler/. bootstrap_config.build_config writes this same path into
 # config.json as `mint_script`; this is the fallback for a config written
 # before that key existed. It deliberately does NOT name
 # ~/.claude/skills/data-noodler/scripts/mint_adc.py: nothing in the
@@ -60,8 +79,17 @@ def load(path=None):
 # so on a clean machine that path does not exist and the renewal command --
 # the highest-value string this server produces, and the only diagnostic
 # channel Claude Desktop's chat has -- would point at nothing.
-DEFAULT_MINT_SCRIPT = ("~/.config/ga-mcp/marketplace/plugins/data-noodler"
+DEFAULT_MINT_SCRIPT = ("~/.config/data-noodler/marketplace/plugins/data-noodler"
                        "/skills/data-noodler/scripts/mint_adc.py")
+
+
+def default_mint_script(home=None):
+    """DEFAULT_MINT_SCRIPT under the home this machine actually has: an
+    install from before the rename keeps the old one until migrate_home.py
+    moves it (#1999), and a renewal command naming the new home there would
+    point at nothing."""
+    base = os.path.dirname(default_config_path(env={}, home=home))
+    return os.path.join(base, *DEFAULT_MINT_SCRIPT.split("/")[3:])
 
 
 def renewal_command(cfg):
@@ -74,7 +102,7 @@ def renewal_command(cfg):
     paths are expanded first: a quoted "~" is a literal tilde to the shell,
     not the home directory.
     """
-    script = cfg.get("mint_script") or DEFAULT_MINT_SCRIPT
+    script = cfg.get("mint_script") or default_mint_script()
     return (f'"{os.path.expanduser(cfg["venv_python"])}" '
             f'"{os.path.expanduser(script)}" --force')
 

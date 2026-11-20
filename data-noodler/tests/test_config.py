@@ -16,11 +16,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
 import config
 
 GOOD = {
-    "oauth_client_file": "~/.config/gcloud/ga-mcp-client.json",
-    "adc_file": "~/.config/gcloud/adc-ga-personal.json",
-    "quota_project": "ga-mcp-123456",
+    "oauth_client_file": "~/.config/gcloud/data-noodler-client.json",
+    "adc_file": "~/.config/gcloud/data-noodler-credential.json",
+    "quota_project": "data-noodler-123456",
     "venv_python": "~/Library/Application Support/pipx/venvs/analytics-mcp/bin/python",
-    "properties_csv": "~/.config/ga-mcp/properties.csv",
+    "properties_csv": "~/.config/data-noodler/properties.csv",
 }
 
 
@@ -41,11 +41,11 @@ class TestLoad(unittest.TestCase):
 
     def test_preserves_non_path_values(self):
         cfg = config.load(self._write(GOOD))
-        self.assertEqual(cfg["quota_project"], "ga-mcp-123456")
+        self.assertEqual(cfg["quota_project"], "data-noodler-123456")
 
     def test_missing_file_names_the_setup_skill(self):
         with self.assertRaises(config.ConfigError) as ctx:
-            config.load("/nonexistent/ga-mcp/config.json")
+            config.load("/nonexistent/data-noodler/config.json")
         self.assertIn("data-noodler-setup", str(ctx.exception))
 
     def test_missing_key_says_which_key(self):
@@ -105,7 +105,7 @@ class TestQuotaProject(unittest.TestCase):
 
     def test_returns_the_value_when_present(self):
         cfg = dict(GOOD)
-        self.assertEqual(config.quota_project(cfg), "ga-mcp-123456")
+        self.assertEqual(config.quota_project(cfg), "data-noodler-123456")
 
     def test_returns_none_for_an_empty_string(self):
         cfg = dict(GOOD)
@@ -125,12 +125,27 @@ class TestRenewalCommand(unittest.TestCase):
         cmd = config.renewal_command(cfg)
         self.assertIn("mint_adc.py", cmd)
         # The install payload is ("server", "bin", "marketplace"), so the
-        # marketplace copy under ~/.config/ga-mcp is the only one any install
+        # marketplace copy under the install home is the only one any install
         # creates. ~/.claude/skills/ is never written by anything here, so a
         # command naming it would point at nothing on a clean machine.
-        self.assertIn(".config/ga-mcp/marketplace/plugins/data-noodler"
+        self.assertIn("/marketplace/plugins/data-noodler"
                       "/skills/data-noodler/scripts/mint_adc.py", cmd)
+        self.assertIn(os.path.dirname(config.default_config_path(env={})), cmd)
         self.assertNotIn(".claude/skills", cmd)
+
+    def test_the_fallback_follows_an_install_that_predates_the_rename(self):
+        # #1999: until migrate_home.py moves it, the payload is in the old
+        # home, so that is where the renewal command must point.
+        h = tempfile.mkdtemp()
+        old = os.path.join(h, ".config", "ga-" "mcp")
+        os.makedirs(old)
+        with open(os.path.join(old, "config.json"), "w") as f:
+            f.write("{}")
+        self.assertTrue(config.default_mint_script(home=h).startswith(
+            old + os.sep), config.default_mint_script(home=h))
+        os.makedirs(os.path.join(h, ".config", "data-noodler"))
+        self.assertTrue(config.default_mint_script(home=h).startswith(
+            os.path.join(h, ".config", "data-noodler") + os.sep))
 
     def test_the_fallback_path_is_the_one_bootstrap_config_writes(self):
         # The two must not drift: bootstrap_config puts mint_script in every
@@ -157,9 +172,9 @@ class TestRenewalCommand(unittest.TestCase):
         # space ("/Users/Jane Smith") would break an unquoted script path,
         # and the user would see a command that silently does nothing.
         cfg = dict(GOOD)
-        cfg["mint_script"] = "/Users/Jane Smith/.config/ga-mcp/mint_adc.py"
+        cfg["mint_script"] = "/Users/Jane Smith/.config/data-noodler/mint_adc.py"
         cmd = config.renewal_command(cfg)
-        self.assertIn('"/Users/Jane Smith/.config/ga-mcp/mint_adc.py"', cmd)
+        self.assertIn('"/Users/Jane Smith/.config/data-noodler/mint_adc.py"', cmd)
 
     def test_no_tilde_survives_into_the_command(self):
         # Quoting is only safe after expansion: the shell does not expand a

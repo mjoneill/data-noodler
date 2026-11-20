@@ -68,7 +68,7 @@ class TestStartSession(unittest.TestCase):
         # and then check_writable refuses every single export into it -- an
         # announced destination nothing can be written to. Refuse while the
         # user can still choose somewhere else.
-        for bad in ("~/.claude", "~/.ssh", "~/.config/ga-mcp"):
+        for bad in ("~/.claude", "~/.ssh", "~/.config/data-noodler"):
             with self.subTest(root=bad):
                 with self.assertRaises(sessions.SessionError) as ctx:
                     sessions.start_session("x", root=bad, now=FIXED)
@@ -162,7 +162,7 @@ class TestCheckWritable(unittest.TestCase):
                     "~/.config/gcloud/out.csv",
                     "~/.claude/out.csv",
                     "~/.codex/out.csv",
-                    "~/.config/ga-mcp/out.csv"):
+                    "~/.config/data-noodler/out.csv"):
             with self.subTest(path=bad):
                 with self.assertRaises(sessions.SessionError) as ctx:
                     sessions.check_writable(os.path.expanduser(bad))
@@ -258,7 +258,7 @@ class TestDenylistCoversWindowsToo(unittest.TestCase):
         got = sessions.build_denylist(env={})
         self.assertIn(os.path.expanduser("~/.claude"), got)
         self.assertIn(os.path.expanduser("~/.ssh"), got)
-        self.assertIn(os.path.expanduser("~/.config/ga-mcp"), got)
+        self.assertIn(os.path.expanduser("~/.config/data-noodler"), got)
 
     def test_an_absent_appdata_is_not_an_error(self):
         # A scrubbed environment must not produce a denylist entry of "Claude"
@@ -425,7 +425,7 @@ class TestTheDenylistMatchesRealWindowsPaths(unittest.TestCase):
         for inside in (r"C:\Users\example\.ssh\x.csv",
                        r"C:\Users\example\.claude\projects\x.csv",
                        r"C:\Users\example\.config\gcloud\adc.csv",
-                       r"C:\Users\example\.config\ga-mcp\properties.csv",
+                       r"C:\Users\example\.config\data-noodler\properties.csv",
                        r"C:\Users\example\.codex\x.csv"):
             self.assertIsNotNone(self._match(inside), inside)
 

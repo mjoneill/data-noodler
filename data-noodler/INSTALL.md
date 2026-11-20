@@ -38,6 +38,23 @@ new package say what changes.
    If you use Claude Code: `"<venv_python>" <repo>/data-noodler/installer/copy_skills.py`.
 4. The previous setup is left in place as the undo, at the path the upgrade
    printed. Delete it once you've used the upgraded tools.
+5. **Installed before the product was called Data Noodler?** Your setup lives
+   in `~/.config/ga-mcp` and keeps working there. To move it to
+   `~/.config/data-noodler` (optional; it also renames your two Google
+   sign-in files to their Data Noodler names), fully quit your apps again,
+   then:
+
+   ```bash
+   "<base python>" <repo>/data-noodler/installer/migrate_home.py          # shows what it would do
+   "<base python>" <repo>/data-noodler/installer/migrate_home.py --yes    # does it
+   "<venv_python>" <repo>/data-noodler/installer/install.py --targets claude_code,claude_desktop
+   ```
+
+   For Codex, re-add the marketplace from the new place
+   (`codex plugin marketplace remove data-noodler`, then section 8). Undo with
+   `migrate_home.py --undo`. It refuses, changing nothing, while an app is
+   still running, or when the analytics-mcp Python lives inside the old
+   folder (as on Windows), where moving it would break it.
 
 For someone who would rather run these commands themselves than have an
 agent do it. Every command below is meant to be copy-pasted into a terminal
@@ -154,7 +171,7 @@ institution, with no maintainer to get the file from?* Make your own first:
 [`GOOGLE-CLOUD-SETUP.md`](GOOGLE-CLOUD-SETUP.md) (about 20 minutes, once).
 
 This file is **deliberately not in the repo**. Get the shared OAuth client
-JSON — `ga-mcp-client.json` — from your deployment's maintainer (named in
+JSON — `data-noodler-client.json` — from your deployment's maintainer (named in
 `deployment.json`, with how they hand it over) directly: by password manager,
 AirDrop, or in person. Not Slack, and not email to a list. `START-HERE.md`
 explains what the file is and why it is kept out of version control.
@@ -167,7 +184,7 @@ Put it somewhere under your home directory, for example:
 ```bash
 mkdir -p ~/.config/gcloud
 # move or copy the file you were given to:
-#   ~/.config/gcloud/ga-mcp-client.json
+#   ~/.config/gcloud/data-noodler-client.json
 ```
 
 A correct file has a top-level `"installed"` key (not `"web"`) and
@@ -184,7 +201,7 @@ delete that copy once consent (step 4) has worked. The copy in
 
 This is the step most by-hand instructions skip, which is why they don't
 actually work — every other script here reads its paths from
-`~/.config/ga-mcp/config.json`, and nothing creates that file for you until
+`~/.config/data-noodler/config.json`, and nothing creates that file for you until
 now.
 
 ```bash
@@ -204,7 +221,7 @@ and its whole job is to go *find* the interpreter that `analytics-mcp` runs
 under (by reading the console script's shebang) so nothing later has to
 guess it. It doesn't need to run inside that interpreter itself.
 
-This writes `~/.config/ga-mcp/config.json` naming:
+This writes `~/.config/data-noodler/config.json` naming:
 
 - where your OAuth client file and credential live,
 - the exact Python interpreter that runs `analytics-mcp` (found by reading
@@ -212,7 +229,7 @@ This writes `~/.config/ga-mcp/config.json` naming:
   work whether you used `pipx` or `uv`),
 - where your property-name lookup cache will live,
 - the copy of `mint_adc.py` that the weekly-renewal command should point at —
-  the one Step 5 installs under `~/.config/ga-mcp/`. This is what the
+  the one Step 5 installs under `~/.config/data-noodler/`. This is what the
   `credential_status` tool reads to build the command it hands you, so the
   command it prints names a file that is actually on your machine.
 
@@ -260,7 +277,7 @@ on macOS with `pipx` it contains a space
 fails.
 
 This runs the copy of `mint_adc.py` inside your repo clone, not one under
-`~/.config/ga-mcp/` — that copy doesn't exist until Step 5 installs the
+`~/.config/data-noodler/` — that copy doesn't exist until Step 5 installs the
 payload, and there's no reason to wait for it since the script works
 identically from either location. Once Step 5 has run, the weekly-renewal
 command later in this document points at the installed copy instead, since
@@ -286,7 +303,7 @@ again.
 ```
 
 Copies the data-noodler server, launcher scripts, and the Codex plugin
-directory into `~/.config/ga-mcp/`. Safe to re-run any time you update the
+directory into `~/.config/data-noodler/`. Safe to re-run any time you update the
 repo.
 
 ## 6. Install the skills for Claude Code
@@ -360,7 +377,7 @@ plugins and marketplaces). Use it in place of `codex` in the commands below:
 `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex`.
 
 ```bash
-codex plugin marketplace add ~/.config/ga-mcp/marketplace
+codex plugin marketplace add ~/.config/data-noodler/marketplace
 codex plugin add data-noodler@data-noodler
 ```
 
@@ -403,7 +420,7 @@ cannot prove the tools show up in an app's UI.
 running locally and writes the file straight to disk — there is no browser
 involved, so it never lands in `~/Downloads`. Exports go into
 `~/Documents/analyst-sessions/` (one dated folder per session, or wherever
-`sessions_root` in `~/.config/ga-mcp/config.json` points, if it was
+`sessions_root` in `~/.config/data-noodler/config.json` points, if it was
 changed). The chat receipt always names the full path it wrote to; that
 path is the answer to "where did my file go?", not your Downloads folder.
 
@@ -429,7 +446,7 @@ error text if there was one. Something you had to work around is the most
 useful thing you can send, because it is the next person's wall. An agent
 following the `data-noodler-setup` skill writes a fuller report for you at this
 point; by hand, a few lines is plenty. Never include the contents of
-`ga-mcp-client.json` or of the credential file.
+`data-noodler-client.json` or of the credential file.
 
 ## Weekly reauthentication
 
@@ -441,11 +458,11 @@ project needing no per-user setup on our end. When it happens, any GA tool
 call will say so; ask the model, or run the renewal command yourself:
 
 ```bash
-"<venv_python>" ~/.config/ga-mcp/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py --force
+"<venv_python>" ~/.config/data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py --force
 ```
 
 This is the copy of `mint_adc.py` that Step 5 installed under
-`~/.config/ga-mcp/` — by now it's guaranteed to be there and kept current by
+`~/.config/data-noodler/` — by now it's guaranteed to be there and kept current by
 re-running Step 5, whereas your repo clone from Step 4 may no longer be on
 this machine or up to date. This opens the same browser consent as Step 4.
 No terminal-only fix exists because Google's consent step requires a

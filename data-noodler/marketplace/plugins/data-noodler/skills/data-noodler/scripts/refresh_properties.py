@@ -7,7 +7,7 @@ they are the same code. This wrapper exists because a shell-having harness can
 run it directly, which is faster than a tool round-trip.
 
 Must run with the analytics-mcp venv's Python (see venv_python in
-~/.config/ga-mcp/config.json).
+~/.config/data-noodler/config.json).
 """
 
 import os
@@ -19,7 +19,7 @@ import ga_config
 cfg = ga_config.load()
 ga_config.require_adc(cfg)
 
-SERVER_DIR = os.path.expanduser("~/.config/ga-mcp/server")
+SERVER_DIR = os.path.join(os.path.dirname(ga_config.CONFIG_PATH), "server")
 if not os.path.isdir(SERVER_DIR):
     sys.exit(f"data-noodler not installed at {SERVER_DIR}. "
              "Run the data-noodler-setup skill.")

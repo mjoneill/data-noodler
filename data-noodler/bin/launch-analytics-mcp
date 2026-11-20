@@ -15,8 +15,11 @@
 # non-zero.
 set -eu
 
-GA_HOME="${GA_HOME:-$HOME/.config/ga-mcp}"
-CONFIG="${GA_MCP_CONFIG:-$GA_HOME/config.json}"
+# The home is the folder this launcher was installed into: bin/'s parent.
+# So a launcher runs from ~/.config/data-noodler after the move and from an
+# install that predates the rename before it, with no fallback logic (#1999).
+DN_HOME="${DATA_NOODLER_HOME:-$(cd "$(dirname "$0")/.." && pwd)}"
+CONFIG="${DATA_NOODLER_CONFIG:-$DN_HOME/config.json}"
 SETUP_HINT="Run the data-noodler-setup skill from Claude Code or Codex to finish installation."
 
 if [ ! -f "$CONFIG" ]; then

@@ -2,6 +2,7 @@
 # deployment's Cloud project, and a credential is one person's access. Both
 # live under ~/.config, outside any repository; these patterns are for the
 # day one is copied here by mistake.
+*data-noodler-client*.json
 *ga-mcp-client*.json
 *-client.json
 *client_secret*.json

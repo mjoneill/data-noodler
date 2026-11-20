@@ -31,7 +31,7 @@ class TestLaunchers(unittest.TestCase):
             with self.subTest(launcher=name):
                 p = subprocess.run(
                     [os.path.join(BIN, name)],
-                    env={**os.environ, "GA_HOME": empty},
+                    env={**os.environ, "DATA_NOODLER_HOME": empty},
                     capture_output=True, text=True, timeout=30)
                 self.assertNotEqual(p.returncode, 0)
                 self.assertEqual(p.stdout, "")
@@ -56,7 +56,7 @@ class TestLaunchers(unittest.TestCase):
             }, f)
         p = subprocess.run(
             [os.path.join(BIN, "launch-data-noodler")],
-            env={**os.environ, "GA_HOME": home, "GA_LAUNCH_CHECK": "1"},
+            env={**os.environ, "DATA_NOODLER_HOME": home, "GA_LAUNCH_CHECK": "1"},
             capture_output=True, text=True, timeout=30)
         self.assertEqual(p.returncode, 0, p.stderr)
         self.assertEqual(p.stdout, "")
@@ -73,7 +73,7 @@ class TestLaunchers(unittest.TestCase):
             }, f)
         p = subprocess.run(
             [os.path.join(BIN, "launch-data-noodler")],
-            env={**os.environ, "GA_HOME": home},
+            env={**os.environ, "DATA_NOODLER_HOME": home},
             capture_output=True, text=True, timeout=30)
         self.assertNotEqual(p.returncode, 0)
         self.assertEqual(p.stdout, "")
@@ -111,7 +111,7 @@ class TestNoUnpinnedFallback(unittest.TestCase):
         os.chmod(uv, 0o755)
         p = subprocess.run(
             [os.path.join(BIN, "launch-analytics-mcp")],
-            env={**os.environ, "GA_HOME": ga_home, "HOME": fake_home,
+            env={**os.environ, "DATA_NOODLER_HOME": ga_home, "HOME": fake_home,
                  "PATH": bindir + os.pathsep + "/usr/bin:/bin"},
             capture_output=True, text=True, timeout=30)
         self.assertNotEqual(p.returncode, 0)
@@ -157,7 +157,7 @@ class TestNoPythonNeededToReadTheConfig(unittest.TestCase):
                        "adc_file": "~/nope/adc.json"}, f)
         p = subprocess.run(
             [os.path.join(BIN, "launch-data-noodler")],
-            env={**os.environ, "HOME": home, "GA_HOME": ga,
+            env={**os.environ, "HOME": home, "DATA_NOODLER_HOME": ga,
                  "GA_LAUNCH_CHECK": "1", "PATH": "/usr/bin:/bin"},
             capture_output=True, text=True, timeout=30)
         self.assertEqual(p.returncode, 0, p.stderr)
@@ -176,7 +176,7 @@ class TestNoPythonNeededToReadTheConfig(unittest.TestCase):
             json.dump({"adc_file": "~/cred dir/adc.json"}, f)
         p = subprocess.run(
             [os.path.join(BIN, "launch-analytics-mcp")],
-            env={**os.environ, "HOME": home, "GA_HOME": ga,
+            env={**os.environ, "HOME": home, "DATA_NOODLER_HOME": ga,
                  "GA_LAUNCH_CHECK": "1", "PATH": "/usr/bin:/bin"},
             capture_output=True, text=True, timeout=30)
         self.assertEqual(p.returncode, 0, p.stderr)
@@ -206,7 +206,7 @@ class TestTheLauncherSaysWhatIsActuallyWrong(unittest.TestCase):
             f.write(config_text)
         p = subprocess.run(
             [os.path.join(BIN, name)],
-            env={**os.environ, "GA_HOME": ga, "GA_LAUNCH_CHECK": "1",
+            env={**os.environ, "DATA_NOODLER_HOME": ga, "GA_LAUNCH_CHECK": "1",
                  "PATH": "/usr/bin:/bin", **env},
             capture_output=True, text=True, timeout=30)
         return ga, p

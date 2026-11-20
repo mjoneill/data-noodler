@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a machine's ~/.config/ga-mcp/config.json.
+"""Generate a machine's ~/.config/data-noodler/config.json.
 
 Every other module in this package reads its paths from that file, which is
 what makes them portable. Nothing until now created it — the author's was
@@ -23,6 +23,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import home as home_mod  # noqa: E402
 import safe_write  # noqa: E402
 import security_floors  # noqa: E402
 
@@ -47,10 +48,10 @@ INSTALL_HINT = (
 INSTALL_HINT_WINDOWS = (
     "Install it into a virtual environment first -- on Windows that is stock "
     "Python, not uv (see references/windows.md):\n"
-    '  python -m venv "$env:USERPROFILE\\.config\\ga-mcp\\venv"\n'
-    '  & "$env:USERPROFILE\\.config\\ga-mcp\\venv\\Scripts\\python.exe" -m pip '
+    '  python -m venv "$env:USERPROFILE\\.config\\data-noodler\\venv"\n'
+    '  & "$env:USERPROFILE\\.config\\data-noodler\\venv\\Scripts\\python.exe" -m pip '
     'install "' + security_floors.PIP_BOOTSTRAP_REQUIREMENT + '"\n'
-    '  & "$env:USERPROFILE\\.config\\ga-mcp\\venv\\Scripts\\python.exe" -m pip '
+    '  & "$env:USERPROFILE\\.config\\data-noodler\\venv\\Scripts\\python.exe" -m pip '
     "install -c <repo>\\data-noodler\\installer\\constraints.txt "
     "--upgrade analytics-mcp==1.1.0 google-auth-oauthlib\n"
     "If it IS installed somewhere this did not look, name it rather than let "
@@ -100,7 +101,11 @@ def detect_analytics_mcp(home=None, platform=None, which=None):
 
     if platform.startswith("win"):
         candidates = [
-            os.path.join(home, ".config", "ga-mcp", "venv", "Scripts",
+            os.path.join(home_mod.new_home(home), "venv", "Scripts",
+                         "analytics-mcp.exe"),
+            # #1999: migrate_home.py never moves a venv (it holds absolute
+            # paths), so an install from before the rename keeps it here.
+            os.path.join(home_mod.legacy_home(home), "venv", "Scripts",
                          "analytics-mcp.exe"),
             os.path.join(home, ".local", "bin", "analytics-mcp.exe"),
         ]
@@ -193,13 +198,13 @@ def venv_python_for(binary_path, platform=None):
 
 
 # Where install.py's payload puts the consent script: the marketplace plugin
-# copy under ~/.config/ga-mcp/. This is the only copy an install of any kind
+# copy under ~/.config/data-noodler/. This is the only copy an install of any kind
 # is guaranteed to create -- install.py's payload is exactly ("server",
 # "bin", "marketplace"), so nothing here ever writes ~/.claude/skills/, and a
 # renewal command naming a path there is a command a clean machine cannot run.
 # Kept as a relative tuple so a test can assert the same path exists inside
 # the repo's own marketplace tree, which is what the payload copies from.
-MINT_SCRIPT_PARTS = (".config", "ga-mcp", "marketplace", "plugins",
+MINT_SCRIPT_PARTS = (".config", "data-noodler", "marketplace", "plugins",
                      "data-noodler", "skills", "data-noodler", "scripts",
                      "mint_adc.py")
 
@@ -229,7 +234,10 @@ def interpreter_can_run_the_servers(interpreter, timeout=60):
 
 def mint_script_for(home):
     """Absolute path to the consent script the payload installs under home."""
-    return os.path.join(home, *MINT_SCRIPT_PARTS)
+    # An install from before the rename keeps its old home until
+    # migrate_home.py moves it (#1999), so the script is under whichever home
+    # this machine has.
+    return os.path.join(home_mod.default_home(home), *MINT_SCRIPT_PARTS[2:])
 
 
 def build_config(home, quota_project=None, binary=None, venv_python=None,
@@ -285,12 +293,12 @@ def build_config(home, quota_project=None, binary=None, venv_python=None,
 
     cfg = {
         "oauth_client_file": os.path.join(
-            home, ".config", "gcloud", "ga-mcp-client.json"),
+            home, ".config", "gcloud", "data-noodler-client.json"),
         "adc_file": os.path.join(
-            home, ".config", "gcloud", "adc-ga-personal.json"),
+            home, ".config", "gcloud", "data-noodler-credential.json"),
         "venv_python": interpreter,
         "properties_csv": os.path.join(
-            home, ".config", "ga-mcp", "properties.csv"),
+            home_mod.default_home(home), "properties.csv"),
         "mint_script": mint_script_for(home),
     }
     # Optional in config.json: the launchers fall back to searching, and on
@@ -382,7 +390,7 @@ def main():
                          "servers' dependencies (not recommended)")
     args = ap.parse_args()
 
-    path = os.path.join(args.home, ".config", "ga-mcp", "config.json")
+    path = os.path.join(home_mod.default_home(args.home), "config.json")
     try:
         cfg = build_config(args.home, args.quota_project,
                            binary=args.analytics_mcp_bin,

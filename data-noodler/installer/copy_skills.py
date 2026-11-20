@@ -31,8 +31,13 @@ import os
 import shutil
 import sys
 
-MARKER = ".ga-mcp-installed"
-MARKER_TEXT = ("Installed by the ga-mcp package. Its presence lets a later "
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import home as home_mod  # noqa: E402
+
+MARKER = ".data-noodler-installed"
+# #1999: the marker's name before the product had one name; still ours.
+LEGACY_MARKERS = (".ga-" "mcp-installed",)
+MARKER_TEXT = ("Installed by Data Noodler. Its presence lets a later "
                "install refresh this folder. Delete this file to keep your "
                "own changes from being refreshed.\n")
 
@@ -46,8 +51,13 @@ def sources(ga_home, dist):
     }
 
 
+def _is_marked(folder):
+    return any(os.path.exists(os.path.join(folder, m))
+               for m in (MARKER,) + LEGACY_MARKERS)
+
+
 def _same_tree(a, b):
-    cmp = filecmp.dircmp(a, b, ignore=[MARKER, "__pycache__"])
+    cmp = filecmp.dircmp(a, b, ignore=[MARKER, *LEGACY_MARKERS, "__pycache__"])
     if cmp.left_only or cmp.right_only or cmp.diff_files or cmp.funny_files:
         return False
     return all(_same_tree(os.path.join(a, d), os.path.join(b, d))
@@ -60,7 +70,7 @@ def _extra_files(src, dest):
         dirs[:] = [d for d in dirs if d != "__pycache__"]
         rel = os.path.relpath(root, dest)
         for f in files:
-            if f == MARKER:
+            if f == MARKER or f in LEGACY_MARKERS:
                 continue
             if not os.path.exists(os.path.join(src, rel, f)):
                 extra.append(os.path.normpath(os.path.join(rel, f)))
@@ -88,7 +98,7 @@ def install_skill(name, src, skills_dir, replace=False):
             "__pycache__", "*.pyc"))
         _mark(dest)
         return "installed", dest
-    marked = os.path.exists(os.path.join(dest, MARKER))
+    marked = _is_marked(dest)
     if not marked and not replace:
         if _same_tree(src, dest):
             return "not-ours-same", (
@@ -128,7 +138,7 @@ def retire_legacy(skills_dir, ga_home):
         old = os.path.join(skills_dir, name)
         if not os.path.isdir(old):
             continue
-        if not os.path.exists(os.path.join(old, MARKER)):
+        if not _is_marked(old):
             results.append(("legacy-not-ours", (
                 f"{old} has an old name of this package's skill but was not "
                 f"installed by it (no {MARKER}). Left in place; it now "
@@ -152,8 +162,8 @@ def main():
     here = os.path.dirname(os.path.abspath(__file__))
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawTextHelpFormatter)
-    ap.add_argument("--ga-home",
-                    default=os.path.expanduser("~/.config/ga-mcp"))
+    ap.add_argument("--home", "--ga-home", dest="ga_home",
+                    default=home_mod.default_home())
     ap.add_argument("--dist", default=os.path.dirname(here))
     ap.add_argument("--skills-dir",
                     default=os.path.expanduser("~/.claude/skills"))

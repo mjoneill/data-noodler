@@ -256,7 +256,7 @@ class TestOauthlibHintMatchesTheInstaller(unittest.TestCase):
         self.assertIn("--with google-auth-oauthlib", h)
 
     def test_a_windows_venv_gets_pip_on_its_own_interpreter(self):
-        exe = r"C:\\Users\\example\\.config\\ga-mcp\\venv\\Scripts\\python.exe"
+        exe = r"C:\\Users\\example\\.config\\data-noodler\\venv\\Scripts\\python.exe"
         h = self.hint(exe)
         self.assertNotIn("pipx", h)
         self.assertNotIn("uv tool", h)

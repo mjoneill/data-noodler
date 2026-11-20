@@ -8,7 +8,7 @@ import os
 import unittest
 
 # The repository's own copies. These once read the INSTALLED skill and
-# server (~/.claude/skills, ~/.config/ga-mcp), which on the old maintainer
+# server (~/.claude/skills, ~/.config/data-noodler), which on the old maintainer
 # machine was the master everything was built from. The repository is the
 # upstream now, so the tests protect what it ships: a fresh checkout or a CI
 # runner has nothing installed, and on a machine that has, they would test

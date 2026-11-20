@@ -22,7 +22,10 @@ _HOME_RELATIVE_DENYLIST = (
     "~/.config/gcloud",
     "~/.claude",
     "~/.codex",
-    "~/.config/ga-mcp",
+    "~/.config/data-noodler",
+    # #1999: an install from before the rename keeps its home, and the
+    # sign-in it names, here until migrate_home.py moves it.
+    "~/.config/ga-" "mcp",
     "~/Library/Application Support/Claude",
     "~/Library/Application Support/Claude-3p",
 )
@@ -55,7 +58,7 @@ def build_denylist(env=None, pathmod=None, home=None):
         base = env.get(var)
         if not base:
             continue
-        for name in ("Claude", "Claude-3p", "ga-mcp"):
+        for name in ("Claude", "Claude-3p", "data-noodler", "ga-" "mcp"):
             out.append(pathmod.normpath(pathmod.join(base, name)))
     return tuple(out)
 

@@ -39,8 +39,8 @@ class TestProbeNeverWrites(unittest.TestCase):
 
     def test_collect_changes_nothing_under_home(self):
         home = tempfile.mkdtemp()
-        os.makedirs(os.path.join(home, ".config", "ga-mcp"))
-        cfg = os.path.join(home, ".config", "ga-mcp", "config.json")
+        os.makedirs(os.path.join(home, ".config", "data-noodler"))
+        cfg = os.path.join(home, ".config", "data-noodler", "config.json")
         with open(cfg, "w", encoding="utf-8") as f:
             json.dump({"venv_python": "/x/py", "adc_file": "/x/adc.json"}, f)
 
@@ -84,7 +84,7 @@ class TestProbeShape(unittest.TestCase):
 class TestProbeReportsRatherThanFails(unittest.TestCase):
     def test_an_unparseable_config_is_a_fact_not_a_crash(self):
         home = tempfile.mkdtemp()
-        d = os.path.join(home, ".config", "ga-mcp")
+        d = os.path.join(home, ".config", "data-noodler")
         os.makedirs(d)
         with open(os.path.join(d, "config.json"), "w", encoding="utf-8") as f:
             f.write("{ not json")

@@ -26,8 +26,8 @@ sys.path.insert(0, os.path.join(REPO, "data-noodler", "installer"))
 import verify  # noqa: E402
 
 ASR_ERROR = "PermissionError: [WinError 5] Access is denied"
-EXE = r"C:\Users\example\.config\ga-mcp\venv\Scripts\analytics-mcp.exe"
-PY = r"C:\Users\example\.config\ga-mcp\venv\Scripts\python.exe"
+EXE = r"C:\Users\example\.config\data-noodler\venv\Scripts\analytics-mcp.exe"
+PY = r"C:\Users\example\.config\data-noodler\venv\Scripts\python.exe"
 
 
 class TestAccessDeniedOnWindows(unittest.TestCase):

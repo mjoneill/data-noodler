@@ -45,7 +45,7 @@ is a wall — the flow ends there and no credential file is written.
 
 Fix: the user asks the project's maintainer for exactly this — *"please add
 `<the Google account address I sign in with>` to the Test users list for the
-ga-mcp Cloud project, under Google Auth Platform → Audience → Test users."*
+Data Noodler Cloud project, under Google Auth Platform → Audience → Test users."*
 The address must be the same account that holds the GA access they want to
 read. It is one action per person, ever: not per install, not per machine, not
 per weekly renewal. Once it is done, re-run the consent command.
@@ -100,7 +100,7 @@ output to the maintainer.
 If it ends "MOST of it was put back, but not all of it", each line after that
 says exactly what is left -- usually a folder a locked file (Windows) kept in
 place. Once nothing is using it, run `upgrade.py --recover`: it finishes the
-undo from the record the run left in `~/.config/ga-mcp`. Then `verify.py`
+undo from the record the run left in `~/.config/data-noodler`. Then `verify.py`
 before reopening the apps.
 
 **The window closed, the machine restarted, or the run was killed mid-way**
@@ -154,7 +154,7 @@ Python to start; they read the config with `/usr/bin/plutil`.
 
 ## The launcher says the config "is not valid JSON", or "macOS 12 or later"
 
-Both come from `~/.config/ga-mcp/bin/launch-*` before it reads anything.
+Both come from `~/.config/data-noodler/bin/launch-*` before it reads anything.
 "Not valid JSON" names the file and the position: fix the file by hand, or
 move it aside and re-run `bootstrap_config.py`. Do not re-mint the credential;
 it is not the problem. "macOS 12 or later is required" means what it says:
@@ -169,7 +169,7 @@ broken server with no detail.
 Check: run the launcher directly and confirm stdout is empty on failure.
 
 ```bash
-~/.config/ga-mcp/bin/launch-data-noodler >/tmp/out 2>/tmp/err; echo "exit=$?"
+~/.config/data-noodler/bin/launch-data-noodler >/tmp/out 2>/tmp/err; echo "exit=$?"
 wc -c /tmp/out   # must be 0 on failure
 cat /tmp/err
 ```
@@ -218,7 +218,7 @@ codex plugin list
 grep -A2 'data-noodler' ~/.codex/config.toml
 ```
 
-The plugin's `bin/` scripts are shims that exec `~/.config/ga-mcp/bin/`. If the
+The plugin's `bin/` scripts are shims that exec `~/.config/data-noodler/bin/`. If the
 payload was never installed there, they exit non-zero with a message naming
 this skill. Run the payload step.
 

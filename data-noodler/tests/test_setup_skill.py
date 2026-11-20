@@ -45,7 +45,7 @@ class TestSetupSkillStructure(unittest.TestCase):
     def test_documents_every_install_step(self):
         # bootstrap_config.py belongs in this list: every step after it
         # substitutes <venv_python> or reads adc_file out of
-        # ~/.config/ga-mcp/config.json, and nothing else in the flow creates
+        # ~/.config/data-noodler/config.json, and nothing else in the flow creates
         # that file. Without it the skill stalls on a colleague's machine with
         # no interpreter path to put in the command.
         for step in ("uv tool install", "bootstrap_config.py", "mint_adc.py",
@@ -138,7 +138,7 @@ class TestOAuthClientFileStep(unittest.TestCase):
             self.text = f.read()
 
     def test_names_the_shared_oauth_client_file(self):
-        self.assertIn("ga-mcp-client.json", self.text,
+        self.assertIn("data-noodler-client.json", self.text,
                       "SKILL.md never names the OAuth client file, so an agent "
                       "following it has no way to know the file is required")
 
@@ -320,7 +320,7 @@ class TestClientFileIsAnnouncedNotShipped(unittest.TestCase):
             self.readme = f.read()
 
     def test_the_readme_names_the_file(self):
-        self.assertIn("ga-mcp-client.json", self.readme)
+        self.assertIn("data-noodler-client.json", self.readme)
 
     def test_the_readme_says_it_is_not_in_the_repo(self):
         self.assertIn("not in this package", self.readme,
@@ -343,7 +343,7 @@ class TestClientFileIsAnnouncedNotShipped(unittest.TestCase):
     def test_the_file_itself_is_not_in_the_tree(self):
         found = [os.path.join(d, f) for d, _, fs in os.walk(self.REPO)
                  if ".git" not in d.split(os.sep)
-                 for f in fs if "ga-mcp-client" in f and f.endswith(".json")]
+                 for f in fs if "data-noodler-client" in f and f.endswith(".json")]
         self.assertEqual(found, [], "the client file is in the working tree; "
                                     "it was decided it must not be")
 
@@ -354,10 +354,10 @@ class TestClientFileIsAnnouncedNotShipped(unittest.TestCase):
         if subprocess.run(["git", "rev-parse", "--git-dir"], cwd=self.REPO,
                           capture_output=True).returncode != 0:
             self.skipTest("not a git checkout (a shared zip)")
-        proc = subprocess.run(["git", "check-ignore", "-q", "ga-mcp-client.json"],
+        proc = subprocess.run(["git", "check-ignore", "-q", "data-noodler-client.json"],
                               cwd=self.REPO, capture_output=True)
         self.assertEqual(proc.returncode, 0,
-                         ".gitignore does not exclude ga-mcp-client.json")
+                         ".gitignore does not exclude data-noodler-client.json")
 
 
 class TestDocumentedVerifyChecksTheSkill(unittest.TestCase):
@@ -430,7 +430,7 @@ class TestSecondWindowsInstallLessons(unittest.TestCase):
         with open(os.path.join(self.REFS, "install-report.md"),
                   encoding="utf-8") as f:
             text = f.read()
-        self.assertIn("ga-mcp-client.json", text)
+        self.assertIn("data-noodler-client.json", text)
         self.assertIn("never", text.lower())
         self.assertIn("<user>", text)
         self.assertIn("workaround", text.lower())
@@ -536,7 +536,7 @@ class TestUpgradeIsSupervisedNotImprovised(unittest.TestCase):
 
     def test_no_document_copies_skills_with_cp_any_more(self):
         for text in (self.skill, self.install_md):
-            self.assertNotIn("cp -R ~/.config/ga-mcp/marketplace", text)
+            self.assertNotIn("cp -R ~/.config/data-noodler/marketplace", text)
             self.assertNotIn("Copy-Item -Recurse -Force", text)
 
 
@@ -574,7 +574,7 @@ class TestTheGoogleCloudGuideMatchesTheCode(unittest.TestCase):
     def test_it_explains_both_files_not_just_the_client(self):
         # A deployer has to understand the per-person credential too: what
         # it is, how it comes to exist, that it never moves, how to revoke.
-        for must in ("adc-ga-personal.json", "mint_adc.py", "credential_status",
+        for must in ("data-noodler-credential.json", "mint_adc.py", "credential_status",
                      "myaccount.google.com/permissions", "never"):
             self.assertIn(must, self.guide, must)
 

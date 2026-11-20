@@ -7,9 +7,9 @@ because this repository is public and cannot hold a list of what is private.
 This hook checks the private list, and the list never leaves your machine:
 
   * every GA property and account id in your property snapshot (the
-    properties_csv that ~/.config/ga-mcp/config.json names), matched as a
+    properties_csv that ~/.config/data-noodler/config.json names), matched as a
     whole number;
-  * every line of ~/.config/ga-mcp/personal-guard.txt (your institution, team
+  * every line of ~/.config/data-noodler/personal-guard.txt (your institution, team
     or colleague names, a Cloud project id...), matched anywhere, ignoring
     case. A line starting with `re:` is a regular expression instead (also
     ignoring case), for a value that needs word boundaries or variants.
@@ -24,7 +24,7 @@ With neither list present it says so loudly and lets the push through; a
 list that is named but cannot be read refuses the push.
 
 Install, once per clone:   git config core.hooksPath tools/hooks
-Test location override:    GA_MCP_PERSONAL_GUARD_CONFIG_DIR=<dir>
+Test location override:    DATA_NOODLER_PERSONAL_GUARD_CONFIG_DIR=<dir>
 """
 
 import csv
@@ -40,7 +40,21 @@ ID_TOKEN = re.compile(r"\d{6,}")
 
 
 def config_dir():
-    return os.environ.get("GA_MCP_PERSONAL_GUARD_CONFIG_DIR") or os.path.expanduser("~/.config/ga-mcp")
+    """Where the lists live: the install home, new name first.
+
+    #1999: an install from before the rename keeps its lists in the old home
+    until migrate_home.py moves them. Falling back matters here more than
+    anywhere: with no list found this guard warns and PASSES, so a home it
+    cannot find would quietly stop every check."""
+    override = os.environ.get("DATA_NOODLER_PERSONAL_GUARD_CONFIG_DIR")
+    if override:
+        return override
+    base = os.path.expanduser("~/.config")
+    new = os.path.join(base, "data-noodler")
+    old = os.path.join(base, "ga-" "mcp")
+    if not os.path.isdir(new) and os.path.isdir(old):
+        return old
+    return new
 
 
 class NotReadable(Exception):

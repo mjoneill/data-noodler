@@ -36,7 +36,7 @@ just-for-yourself setup), so do not decide by them.
 
 ## What is deliberately not in this package
 
-- **`ga-mcp-client.json`**, the Google OAuth client file. It is specific to a
+- **`data-noodler-client.json`**, the Google OAuth client file. It is specific to a
   deployment's own Google Cloud project, so it is not in this package and
   never goes into a git repository. In an existing deployment it comes from
   the maintainer named in `deployment.json`; a new deployment creates its own
@@ -103,7 +103,7 @@ Ask, and write the answers into `deployment.json`:
 
 Walk the user through `GOOGLE-CLOUD-SETUP.md`. You cannot do this for them:
 it happens in their browser, in their Google Cloud console. At the end they
-have `ga-mcp-client.json`. Check it as the guide says (a Desktop client, an
+have `data-noodler-client.json`. Check it as the guide says (a Desktop client, an
 `"installed"` key), and place it where the install expects it.
 
 ### 4. Adapt what names the original deployment
@@ -138,7 +138,7 @@ For each person who will install, the maintainer gives:
 
 - this package (as a zip, or from wherever the maintainer keeps it),
   **with the filled-in `deployment.json`**;
-- `ga-mcp-client.json`, handed over directly: password manager, a shared
+- `data-noodler-client.json`, handed over directly: password manager, a shared
   drive only the team can open, or in person. Not over chat, not to a list;
 - for an External audience, confirmation that their Google account has been
   added as a test user, *before* they install;
@@ -160,7 +160,7 @@ the docs:
 - **Exports go only to approved places**: the project folder, the sessions
   folder, or folders listed in the machine's configuration. The model never
   names an arbitrary path.
-- The `ga-mcp-client.json` exclusion in `.gitignore`.
+- The `data-noodler-client.json` exclusion in `.gitignore`.
 
 ## Who to tell when something is wrong
 

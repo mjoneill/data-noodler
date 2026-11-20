@@ -59,7 +59,7 @@ class TestPayloadCopyCharacterization(unittest.TestCase):
 
     def setUp(self):
         self.repo = make_repo()
-        self.ga_home = os.path.join(tempfile.mkdtemp(), "ga-mcp")
+        self.ga_home = os.path.join(tempfile.mkdtemp(), "data-noodler")
 
     def test_copies_every_payload_directory(self):
         written = install.install_payload(self.repo, self.ga_home)
@@ -121,7 +121,7 @@ class TestPayloadCopyRefusesDangerousDestinations(unittest.TestCase):
 
     def test_refuses_a_relative_ga_home(self):
         # Asserted from a temp cwd, and the directory is checked afterwards.
-        # Before the guard existed this test created ./relative/ga-mcp in the
+        # Before the guard existed this test created ./relative/data-noodler in the
         # repo root and it was committed by accident -- a test that litters
         # where it runs is a test nobody trusts to run twice.
         cwd = os.getcwd()
@@ -129,7 +129,7 @@ class TestPayloadCopyRefusesDangerousDestinations(unittest.TestCase):
         try:
             os.chdir(scratch)
             with self.assertRaises(install.InstallError) as caught:
-                install.install_payload(self.repo, "relative/ga-mcp")
+                install.install_payload(self.repo, "relative/data-noodler")
             self.assertIn("absolute", str(caught.exception).lower())
             self.assertEqual(os.listdir(scratch), [],
                              "a refused install still created something")
@@ -162,7 +162,7 @@ class TestPayloadCopyRefusesDangerousDestinations(unittest.TestCase):
     def test_an_install_it_did_create_is_replaceable(self):
         # The flip side: a real previous install carries the marker, so
         # reinstalling over it is allowed and does not need a human.
-        ga_home = os.path.join(tempfile.mkdtemp(), "ga-mcp")
+        ga_home = os.path.join(tempfile.mkdtemp(), "data-noodler")
         install.install_payload(self.repo, ga_home)
         install.install_payload(self.repo, ga_home)
         self.assertTrue(os.path.isfile(
@@ -172,7 +172,7 @@ class TestPayloadCopyRefusesDangerousDestinations(unittest.TestCase):
 class TestPayloadCopyLeavesARollback(unittest.TestCase):
     def setUp(self):
         self.repo = make_repo()
-        self.ga_home = os.path.join(tempfile.mkdtemp(), "ga-mcp")
+        self.ga_home = os.path.join(tempfile.mkdtemp(), "data-noodler")
 
     def test_the_previous_install_is_kept_after_a_reinstall(self):
         install.install_payload(self.repo, self.ga_home)
@@ -217,7 +217,7 @@ class TestDryRun(unittest.TestCase):
 
     def setUp(self):
         self.repo = make_repo()
-        self.ga_home = os.path.join(tempfile.mkdtemp(), "ga-mcp")
+        self.ga_home = os.path.join(tempfile.mkdtemp(), "data-noodler")
 
     def test_names_every_directory_it_would_create(self):
         plan = install.describe_payload_plan(self.repo, self.ga_home)
@@ -266,7 +266,7 @@ class TestTheInstallerNeverRemovesBackups(unittest.TestCase):
 
     def setUp(self):
         self.repo = make_repo()
-        self.ga_home = os.path.join(tempfile.mkdtemp(), "ga-mcp")
+        self.ga_home = os.path.join(tempfile.mkdtemp(), "data-noodler")
         install.install_payload(self.repo, self.ga_home)
 
     def _old(self, stamp):
@@ -291,7 +291,7 @@ class TestBackupsAreReported(unittest.TestCase):
     def setUp(self):
         self.repo = make_repo()
         self.home = tempfile.mkdtemp()
-        self.ga_home = os.path.join(self.home, ".config", "ga-mcp")
+        self.ga_home = os.path.join(self.home, ".config", "data-noodler")
         install.install_payload(self.repo, self.ga_home)
         self.code_cfg = os.path.join(self.home, ".claude.json")
         with open(self.code_cfg, "w", encoding="utf-8") as f:

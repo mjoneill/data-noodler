@@ -9,8 +9,11 @@
 # Python named in the config.
 set -eu
 
-GA_HOME="${GA_HOME:-$HOME/.config/ga-mcp}"
-CONFIG="${GA_MCP_CONFIG:-$GA_HOME/config.json}"
+# The home is the folder this launcher was installed into: bin/'s parent.
+# So a launcher runs from ~/.config/data-noodler after the move and from an
+# install that predates the rename before it, with no fallback logic (#1999).
+DN_HOME="${DATA_NOODLER_HOME:-$(cd "$(dirname "$0")/.." && pwd)}"
+CONFIG="${DATA_NOODLER_CONFIG:-$DN_HOME/config.json}"
 SETUP_HINT="Run the data-noodler-setup skill from Claude Code or Codex to finish installation."
 
 if [ ! -f "$CONFIG" ]; then
@@ -53,7 +56,7 @@ read_key() {
 
 PY=$(read_key venv_python)
 ADC=$(read_key adc_file)
-SERVER="$GA_HOME/server/data_noodler.py"
+SERVER="$DN_HOME/server/data_noodler.py"
 
 if [ ! -x "$PY" ]; then
   echo "data-noodler: interpreter not found or not executable: $PY" >&2
@@ -81,7 +84,7 @@ export GRPC_DNS_RESOLVER=native
 # exports traces, and opentelemetry-api's tracestate parser had an advisory
 # (CVE-2026-114603, fixed in the pins since #1986). Parsing stays off (#162).
 export OTEL_PROPAGATORS=none
-export GA_MCP_CONFIG="$CONFIG"
+export DATA_NOODLER_CONFIG="$CONFIG"
 
 # Test seam: verify the environment resolves without starting a server.
 if [ "${GA_LAUNCH_CHECK:-}" = "1" ]; then

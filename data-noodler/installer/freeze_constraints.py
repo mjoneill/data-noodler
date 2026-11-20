@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate constraints.txt from an interpreter where the servers work.
 
-Run with the interpreter named by venv_python in ~/.config/ga-mcp/config.json,
+Run with the interpreter named by venv_python in ~/.config/data-noodler/config.json,
 after verify.py passes against it. The point of a pin is that somebody ran it;
 capturing from a machine that has not been verified produces a guess carrying
 the authority of a fact.
