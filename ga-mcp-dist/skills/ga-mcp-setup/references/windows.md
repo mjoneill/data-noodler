@@ -188,7 +188,12 @@ So `install.py` registers analytics-mcp the way ga-companion already ran:
   "type": "stdio",
   "command": "C:\\Users\\<user>\\.config\\ga-mcp\\venv\\Scripts\\python.exe",
   "args": ["-m", "analytics_mcp.server"],
-  "env": { "GRPC_DNS_RESOLVER": "native", "GOOGLE_APPLICATION_CREDENTIALS": "..." }
+  "env": {
+    "GRPC_DNS_RESOLVER": "native",
+    "OTEL_PROPAGATORS": "none",
+    "ANALYTICS_MCP_ALLOW_WRITE": "false",
+    "GOOGLE_APPLICATION_CREDENTIALS": "..."
+  }
 }
 ```
 
