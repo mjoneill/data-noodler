@@ -15,7 +15,7 @@ import unittest
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__))))
 BIN = os.path.join(REPO, "data-noodler", "bin")
-LAUNCHERS = ["launch-ga-companion", "launch-ga-mcp"]
+LAUNCHERS = ["launch-data-noodler", "launch-analytics-mcp"]
 
 
 class TestLaunchers(unittest.TestCase):
@@ -35,17 +35,17 @@ class TestLaunchers(unittest.TestCase):
                     capture_output=True, text=True, timeout=30)
                 self.assertNotEqual(p.returncode, 0)
                 self.assertEqual(p.stdout, "")
-                self.assertIn("ga-mcp-setup", p.stderr)
+                self.assertIn("data-noodler-setup", p.stderr)
 
-    def test_absent_credential_is_not_fatal_for_the_companion(self):
+    def test_absent_credential_is_not_fatal_for_the_data_noodler_server(self):
         """credential_status must stay callable so it can explain the fix.
 
         A launcher that aborts when the credential is missing turns an
         explainable problem into an unexplained broken server.
         """
         home = tempfile.mkdtemp()
-        os.makedirs(os.path.join(home, "companion"))
-        open(os.path.join(home, "companion", "ga_companion.py"), "w").close()
+        os.makedirs(os.path.join(home, "server"))
+        open(os.path.join(home, "server", "data_noodler.py"), "w").close()
         with open(os.path.join(home, "config.json"), "w") as f:
             json.dump({
                 "oauth_client_file": "/tmp/client.json",
@@ -55,7 +55,7 @@ class TestLaunchers(unittest.TestCase):
                 "properties_csv": "/tmp/properties.csv",
             }, f)
         p = subprocess.run(
-            [os.path.join(BIN, "launch-ga-companion")],
+            [os.path.join(BIN, "launch-data-noodler")],
             env={**os.environ, "GA_HOME": home, "GA_LAUNCH_CHECK": "1"},
             capture_output=True, text=True, timeout=30)
         self.assertEqual(p.returncode, 0, p.stderr)
@@ -72,7 +72,7 @@ class TestLaunchers(unittest.TestCase):
                 "properties_csv": "/tmp/properties.csv",
             }, f)
         p = subprocess.run(
-            [os.path.join(BIN, "launch-ga-companion")],
+            [os.path.join(BIN, "launch-data-noodler")],
             env={**os.environ, "GA_HOME": home},
             capture_output=True, text=True, timeout=30)
         self.assertNotEqual(p.returncode, 0)
@@ -81,7 +81,7 @@ class TestLaunchers(unittest.TestCase):
 
 
 class TestNoUnpinnedFallback(unittest.TestCase):
-    """launch-ga-mcp must never run whatever analytics-mcp PyPI has today.
+    """launch-analytics-mcp must never run whatever analytics-mcp PyPI has today.
 
     Its last resort used to be `uv tool run analytics-mcp`: unpinned, so a
     machine that reached it resolved the newest release at every launch -- a
@@ -110,18 +110,18 @@ class TestNoUnpinnedFallback(unittest.TestCase):
             f.write("#!/bin/sh\ntouch '%s'\n" % marker)
         os.chmod(uv, 0o755)
         p = subprocess.run(
-            [os.path.join(BIN, "launch-ga-mcp")],
+            [os.path.join(BIN, "launch-analytics-mcp")],
             env={**os.environ, "GA_HOME": ga_home, "HOME": fake_home,
                  "PATH": bindir + os.pathsep + "/usr/bin:/bin"},
             capture_output=True, text=True, timeout=30)
         self.assertNotEqual(p.returncode, 0)
         self.assertEqual(p.stdout, "")
         self.assertFalse(os.path.exists(marker), "launcher ran uv")
-        self.assertIn("ga-mcp-setup", p.stderr)
+        self.assertIn("data-noodler-setup", p.stderr)
 
     def test_the_script_no_longer_contains_the_fallback(self):
         # Code lines only: the comment explaining why it is gone may name it.
-        with open(os.path.join(BIN, "launch-ga-mcp"), encoding="utf-8") as f:
+        with open(os.path.join(BIN, "launch-analytics-mcp"), encoding="utf-8") as f:
             code = [l for l in f if not l.lstrip().startswith("#")]
         self.assertFalse([l for l in code if "uv tool run" in l or "uvx" in l])
 
@@ -147,8 +147,8 @@ class TestNoPythonNeededToReadTheConfig(unittest.TestCase):
     def test_tilde_paths_and_spaces_resolve_like_expanduser(self):
         home = tempfile.mkdtemp()
         ga = os.path.join(home, "my ga")
-        os.makedirs(os.path.join(ga, "companion"))
-        open(os.path.join(ga, "companion", "ga_companion.py"), "w").close()
+        os.makedirs(os.path.join(ga, "server"))
+        open(os.path.join(ga, "server", "data_noodler.py"), "w").close()
         # A real "~/..." path, with a space in it, to the interpreter.
         os.makedirs(os.path.join(home, "py dir"))
         os.symlink(sys.executable, os.path.join(home, "py dir", "python"))
@@ -156,7 +156,7 @@ class TestNoPythonNeededToReadTheConfig(unittest.TestCase):
             json.dump({"venv_python": "~/py dir/python",
                        "adc_file": "~/nope/adc.json"}, f)
         p = subprocess.run(
-            [os.path.join(BIN, "launch-ga-companion")],
+            [os.path.join(BIN, "launch-data-noodler")],
             env={**os.environ, "HOME": home, "GA_HOME": ga,
                  "GA_LAUNCH_CHECK": "1", "PATH": "/usr/bin:/bin"},
             capture_output=True, text=True, timeout=30)
@@ -165,7 +165,7 @@ class TestNoPythonNeededToReadTheConfig(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform == "darwin", "plutil is macOS")
     def test_a_tilde_credential_path_resolves_in_launch_ga_mcp(self):
-        # launch-ga-mcp exits 1 without a credential, so exit 0 under
+        # launch-analytics-mcp exits 1 without a credential, so exit 0 under
         # GA_LAUNCH_CHECK proves its own copy of read_key expanded the path.
         home = tempfile.mkdtemp()
         ga = os.path.join(home, "ga")
@@ -175,7 +175,7 @@ class TestNoPythonNeededToReadTheConfig(unittest.TestCase):
         with open(os.path.join(ga, "config.json"), "w") as f:
             json.dump({"adc_file": "~/cred dir/adc.json"}, f)
         p = subprocess.run(
-            [os.path.join(BIN, "launch-ga-mcp")],
+            [os.path.join(BIN, "launch-analytics-mcp")],
             env={**os.environ, "HOME": home, "GA_HOME": ga,
                  "GA_LAUNCH_CHECK": "1", "PATH": "/usr/bin:/bin"},
             capture_output=True, text=True, timeout=30)

@@ -30,14 +30,14 @@ REPO_ROOT = os.path.dirname(ROOT)
 class TestServerEntries(unittest.TestCase):
     def test_both_servers_are_defined(self):
         e = register.server_entries(GA_HOME)
-        self.assertEqual(set(e), {"analytics-mcp", "ga-companion"})
+        self.assertEqual(set(e), {"analytics-mcp", "data-noodler"})
 
     def test_entries_point_at_the_launchers_not_the_binaries(self):
         e = register.server_entries(GA_HOME)
         self.assertEqual(e["analytics-mcp"]["command"],
-                         f"{GA_HOME}/bin/launch-ga-mcp")
-        self.assertEqual(e["ga-companion"]["command"],
-                         f"{GA_HOME}/bin/launch-ga-companion")
+                         f"{GA_HOME}/bin/launch-analytics-mcp")
+        self.assertEqual(e["data-noodler"]["command"],
+                         f"{GA_HOME}/bin/launch-data-noodler")
 
     def test_entries_declare_stdio_transport(self):
         for entry in register.server_entries(GA_HOME).values():
@@ -56,10 +56,10 @@ class TestRegisterJson(unittest.TestCase):
         result = register.register_json(path, register.server_entries(GA_HOME))
         self.assertTrue(result["changed"])
         self.assertEqual(sorted(result["added"]),
-                         ["analytics-mcp", "ga-companion"])
+                         ["analytics-mcp", "data-noodler"])
         data = json.load(open(path))
         self.assertEqual(set(data["mcpServers"]),
-                         {"analytics-mcp", "ga-companion"})
+                         {"analytics-mcp", "data-noodler"})
 
     def test_preserves_every_unrelated_key(self):
         path = self._copy("claude_desktop_config.json")
@@ -72,12 +72,12 @@ class TestRegisterJson(unittest.TestCase):
 
     def test_preserves_unrelated_mcp_servers(self):
         path = self._copy("claude_json.json")
-        register.register_json(path, {"ga-companion":
-                                      register.server_entries(GA_HOME)["ga-companion"]})
+        register.register_json(path, {"data-noodler":
+                                      register.server_entries(GA_HOME)["data-noodler"]})
         data = json.load(open(path))
         self.assertIn("someUnrelatedKey", data)
         self.assertIn("analytics-mcp", data["mcpServers"])
-        self.assertIn("ga-companion", data["mcpServers"])
+        self.assertIn("data-noodler", data["mcpServers"])
 
     def test_second_run_is_a_no_op(self):
         path = self._copy("claude_desktop_config.json")
@@ -93,7 +93,7 @@ class TestRegisterJson(unittest.TestCase):
         entries = register.server_entries(GA_HOME)
         result = register.register_json(path, entries)
         self.assertIn("analytics-mcp", result["updated"])
-        self.assertIn("ga-companion", result["added"])
+        self.assertIn("data-noodler", result["added"])
 
     def test_a_backup_is_written_before_any_change(self):
         path = self._copy("claude_desktop_config.json")
@@ -115,7 +115,7 @@ class TestRegisterJson(unittest.TestCase):
         result = register.register_json(path, register.server_entries(GA_HOME))
         self.assertTrue(result["changed"])
         self.assertEqual(set(json.load(open(path))["mcpServers"]),
-                         {"analytics-mcp", "ga-companion"})
+                         {"analytics-mcp", "data-noodler"})
 
     def test_malformed_existing_config_aborts_without_writing(self):
         d = tempfile.mkdtemp()
@@ -315,18 +315,18 @@ class TestServerEntriesOnWindows(unittest.TestCase):
         return register.server_entries(self.GA_HOME, platform="win32", **kw)
 
     def test_both_servers_are_still_defined(self):
-        self.assertEqual(set(self._entries()), {"analytics-mcp", "ga-companion"})
+        self.assertEqual(set(self._entries()), {"analytics-mcp", "data-noodler"})
 
     def test_nothing_points_at_a_posix_launcher(self):
         for name, entry in self._entries().items():
             self.assertNotIn("launch-ga", entry["command"], name)
             self.assertNotIn("/bin/sh", entry["command"], name)
 
-    def test_the_companion_is_spawned_as_interpreter_plus_script(self):
-        entry = self._entries()["ga-companion"]
+    def test_the_data_noodler_server_is_spawned_as_interpreter_plus_script(self):
+        entry = self._entries()["data-noodler"]
         self.assertEqual(entry["command"], self.VENV_PY)
         self.assertEqual(len(entry["args"]), 1)
-        self.assertTrue(entry["args"][0].endswith("ga_companion.py"),
+        self.assertTrue(entry["args"][0].endswith("data_noodler.py"),
                         entry["args"][0])
         self.assertIn(self.GA_HOME, entry["args"][0])
 
@@ -335,7 +335,7 @@ class TestServerEntriesOnWindows(unittest.TestCase):
         # each machine, so no other machine has ever seen it, and Defender's
         # "block low-prevalence executables" ASR rule refuses it -- measured on
         # a managed machine 2026-10-09 as "[WinError 5] Access is denied"
-        # (round 4, #139). python.exe is the interpreter ga-companion already
+        # (round 4, #139). python.exe is the interpreter data-noodler already
         # runs through, and analytics_mcp/server.py has a __main__ guard, so
         # -m starts the same server.
         entry = self._entries()["analytics-mcp"]
@@ -377,9 +377,9 @@ class TestServerEntriesOnWindows(unittest.TestCase):
         entries = register.server_entries("/Users/x/.config/ga-mcp",
                                           platform="darwin")
         self.assertEqual(entries["analytics-mcp"]["command"],
-                         "/Users/x/.config/ga-mcp/bin/launch-ga-mcp")
-        self.assertEqual(entries["ga-companion"]["command"],
-                         "/Users/x/.config/ga-mcp/bin/launch-ga-companion")
+                         "/Users/x/.config/ga-mcp/bin/launch-analytics-mcp")
+        self.assertEqual(entries["data-noodler"]["command"],
+                         "/Users/x/.config/ga-mcp/bin/launch-data-noodler")
 
     def test_omitting_platform_uses_the_running_one(self):
         self.assertEqual(register.server_entries(GA_HOME),
@@ -387,7 +387,7 @@ class TestServerEntriesOnWindows(unittest.TestCase):
 
 
 class TestWindowsEntriesHaveOneSeparator(unittest.TestCase):
-    """Round 3 nit: a registered entry read C:\\Users\\x/.config/ga-mcp\\companion.
+    """Round 3 nit: a registered entry read C:\\Users\\x/.config/ga-mcp\\server.
 
     --ga-home defaulted to expanduser("~/.config/ga-mcp"), and expanduser
     replaces only the tilde -- so the forward slashes survived into the entry.

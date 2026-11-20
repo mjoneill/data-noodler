@@ -22,8 +22,8 @@ import probe  # noqa: E402
 import security_floors  # noqa: E402
 
 DOCS = (
-    os.path.join(ROOT, "skills", "ga-mcp-setup", "references", "windows.md"),
-    os.path.join(ROOT, "skills", "ga-mcp-setup", "SKILL.md"),
+    os.path.join(ROOT, "skills", "data-noodler-setup", "references", "windows.md"),
+    os.path.join(ROOT, "skills", "data-noodler-setup", "SKILL.md"),
     os.path.join(ROOT, "INSTALL.md"),
     os.path.join(REPO, "docs", "runbooks", "INSTALL-DAY.md"),
 )

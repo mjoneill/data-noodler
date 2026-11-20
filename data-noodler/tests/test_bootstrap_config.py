@@ -113,9 +113,9 @@ class TestBuildConfig(unittest.TestCase):
 
     def test_emits_mint_script_so_the_renewal_command_names_a_real_file(self):
         # credential_status()'s renewal command is the highest-value string
-        # the companion produces, and in Claude Desktop's chat it is the only
+        # the data-noodler server produces, and in Claude Desktop's chat it is the only
         # diagnostic channel there is. Without this key the command fell back
-        # to ~/.claude/skills/google-analytics/scripts/mint_adc.py, which no
+        # to ~/.claude/skills/data-noodler/scripts/mint_adc.py, which no
         # part of this installer ever creates.
         d = tempfile.mkdtemp()
         script = _fake_console_script(d, "/opt/v/bin/python")
@@ -305,7 +305,7 @@ class TestInstallHintIsRunnable(unittest.TestCase):
     """
 
     DIST = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    SKILL = os.path.join(DIST, "skills", "ga-mcp-setup", "SKILL.md")
+    SKILL = os.path.join(DIST, "skills", "data-noodler-setup", "SKILL.md")
     INSTALL = os.path.join(DIST, "INSTALL.md")
 
     def test_the_hint_does_not_name_a_command_that_does_not_exist(self):
@@ -535,7 +535,7 @@ class TestWindowsVenvIsFound(unittest.TestCase):
 
     def test_the_windows_hint_matches_windows_md(self):
         with open(os.path.join(TestInstallHintIsRunnable.DIST, "skills",
-                               "ga-mcp-setup", "references", "windows.md"),
+                               "data-noodler-setup", "references", "windows.md"),
                   encoding="utf-8") as f:
             doc = f.read()
         for line in bootstrap_config.install_hint("win32").splitlines():

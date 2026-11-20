@@ -1,4 +1,4 @@
-"""Shared config loader for the google-analytics skill scripts.
+"""Shared config loader for the data-noodler skill scripts.
 
 All machine-specific values (paths, GCP project, venv location) live in
 ~/.config/ga-mcp/config.json so the skill itself stays portable and carries no
@@ -18,7 +18,7 @@ REQUIRED = [
     "properties_csv",
 ]
 # quota_project is deliberately absent from REQUIRED, matching the
-# companion's config.py: both GA APIs work with no quota-project header, and
+# data-noodler's config.py: both GA APIs work with no quota-project header, and
 # a colleague does not own the author's Cloud project, so requiring it here
 # would fail every install that doesn't set one. mint_adc.py reads it with
 # cfg.get("quota_project"), never cfg["quota_project"], for the same reason.
@@ -38,7 +38,7 @@ def load():
         sys.exit(
             f"No config at {CONFIG_PATH}.\n"
             "This machine has not been set up yet -- see references/setup.md "
-            "in the google-analytics skill."
+            "in the data-noodler skill."
         )
     with open(CONFIG_PATH) as f:
         cfg = json.load(f)

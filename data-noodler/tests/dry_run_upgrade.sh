@@ -94,9 +94,9 @@ DRIVER
   AFTER=$("$GA/venv/bin/python" -c "import importlib.metadata as m; print(m.version('mcp'), m.version('analytics-mcp'), m.version('pip'))")
   [ "$AFTER" = "$BEFORE" ] || fail "venv not restored: $AFTER (was $BEFORE)"
   ls -d "$GA"/venv.old-* >/dev/null 2>&1 && fail "the old venv is still aside"
-  # The restored install is the OLD release (15 companion tools too).
+  # The restored install is the OLD release (15 data-noodler tools too).
   "$GA/venv/bin/python" "$REPO/data-noodler/installer/verify.py" --config "$H/.claude.json" \
-    --require analytics-mcp=10 --require ga-companion=15 || fail "the restored install does not verify"
+    --require analytics-mcp=10 --require data-noodler=15 || fail "the restored install does not verify"
   echo "== PASS: SIG$INTERRUPT upgrade restored ($BEFORE)"
   exit 0
 fi
@@ -120,10 +120,10 @@ import sys; sys.path.insert(0, '$REPO/data-noodler/installer'); import probe
 print(probe.probe_dependencies('$GA/venv/bin/python')['below_floor'])")
 [ "$BELOW" = "{}" ] || fail "below floor: $BELOW"
 "$GA/venv/bin/python" "$REPO/data-noodler/installer/verify.py" --config "$H/.claude.json" \
-  --require analytics-mcp=10 --require ga-companion=15 || fail "verify"
+  --require analytics-mcp=10 --require data-noodler=15 || fail "verify"
 grep -q someone-else "$H/.claude.json" || fail "the user's other server was lost"
 [ "$(stat -f %Lp "$H/.claude.json" 2>/dev/null || stat -c %a "$H/.claude.json")" = 600 ] || fail ".claude.json permissions changed"
 ls -d "$GA"/venv.old-* >/dev/null 2>&1 || fail "the old venv was removed -- only the user may"
-[ -f "$H/.claude/skills/google-analytics/.ga-mcp-installed" ] || fail "skills not installed with their marker"
+[ -f "$H/.claude/skills/data-noodler/.ga-mcp-installed" ] || fail "skills not installed with their marker"
 grep -q OTEL_PROPAGATORS "$H/.claude.json" || fail "entries lack OTEL_PROPAGATORS"
 echo "== PASS: upgrade rehearsal ($OLD_COMMIT -> working tree)"

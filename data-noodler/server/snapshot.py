@@ -3,7 +3,7 @@
 The single deliberate Admin API call in this system: one enumeration
 maintained on purpose, instead of a 20k-token enumeration on every question.
 
-Lives in the companion rather than the skill because a shell-less harness has
+Lives in the data-noodler server rather than the skill because a shell-less harness has
 no other way to fix a stale snapshot.
 """
 

@@ -1,0 +1,32 @@
+{
+  "name": "data-noodler",
+  "version": "0.8.0",
+  "description": "Data Noodler: ask about your Google Analytics 4 and Search Console data, read-only, with reporting discipline and credential self-service.",
+  "author": {
+    "name": "Data Noodler maintainers (see deployment.json)"
+  },
+  "license": "MIT",
+  "keywords": [
+    "analytics",
+    "ga4",
+    "data-noodler",
+    "reporting"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Data Noodler",
+    "shortDescription": "Ask about your Google Analytics and Search Console data",
+    "longDescription": "Data Noodler: read-only access to the Google Analytics 4 and Search Console properties your own Google account can already see. Includes cheap property lookup, reporting discipline that keeps metric and date-range choices explicit, and a credential status tool that explains the weekly reauth rather than failing silently.",
+    "developerName": "Data Noodler",
+    "category": "Productivity",
+    "capabilities": [
+      "Read"
+    ],
+    "defaultPrompt": [
+      "How much traffic did admissions.example.edu get last month?",
+      "Which of our sites send the most traffic to admissions.example.edu?",
+      "Is my Google Analytics credential still valid?"
+    ]
+  }
+}

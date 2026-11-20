@@ -41,7 +41,7 @@ class SensitiveFileNames(unittest.TestCase):
                      "client_secret_12345.json",
                      "credentials.json",
                      "config.json",
-                     "data-noodler/companion/config.json"):
+                     "data-noodler/server/config.json"):
             with self.subTest(path=path):
                 self.assertIn("sensitive-file", rules({path: "{}"}))
 

@@ -16,7 +16,7 @@ import unittest
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__))))
-SERVER = os.path.join(REPO, "data-noodler", "companion", "ga_companion.py")
+SERVER = os.path.join(REPO, "data-noodler", "server", "data_noodler.py")
 FIXTURE_CSV = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            "fixtures", "properties.csv")
 
@@ -295,7 +295,7 @@ class TestVerify(unittest.TestCase):
         with open(path, "w") as f:
             json.dump({
                 "mcpServers": {
-                    "stringy": "launch-ga-companion",
+                    "stringy": "launch-data-noodler",
                     "good": {
                         "command": sys.executable,
                         "args": [SERVER],
@@ -419,57 +419,57 @@ class TestRequireContracts(unittest.TestCase):
         self.verify = verify
 
     def test_a_requirement_is_parsed_into_a_name_and_a_count(self):
-        self.assertEqual(self.verify.parse_requirements(["ga-companion=9"]),
-                         {"ga-companion": 9})
+        self.assertEqual(self.verify.parse_requirements(["data-noodler=9"]),
+                         {"data-noodler": 9})
 
     def test_several_requirements_accumulate(self):
-        got = self.verify.parse_requirements(["analytics-mcp=9", "ga-companion=9"])
-        self.assertEqual(got, {"analytics-mcp": 9, "ga-companion": 9})
+        got = self.verify.parse_requirements(["analytics-mcp=9", "data-noodler=9"])
+        self.assertEqual(got, {"analytics-mcp": 9, "data-noodler": 9})
 
     def test_a_malformed_requirement_is_refused_with_the_expected_form(self):
-        for bad in ("ga-companion", "ga-companion=", "=9", "ga-companion=many"):
+        for bad in ("data-noodler", "data-noodler=", "=9", "data-noodler=many"):
             with self.assertRaises(self.verify.VerifyError, msg=bad) as caught:
                 self.verify.parse_requirements([bad])
             self.assertIn("name=count", str(caught.exception))
 
     def test_meeting_every_requirement_reports_no_failures(self):
-        results = {"ga-companion": {"ok": True, "tools": [f"t{i}" for i in range(9)]}}
-        problems = self.verify.unmet_requirements(results, {"ga-companion": 9})
+        results = {"data-noodler": {"ok": True, "tools": [f"t{i}" for i in range(9)]}}
+        problems = self.verify.unmet_requirements(results, {"data-noodler": 9})
         self.assertEqual(problems, [])
 
     def test_a_server_that_is_required_but_absent_is_a_failure(self):
-        problems = self.verify.unmet_requirements({}, {"ga-companion": 9})
+        problems = self.verify.unmet_requirements({}, {"data-noodler": 9})
         self.assertEqual(len(problems), 1)
-        self.assertIn("ga-companion", problems[0])
+        self.assertIn("data-noodler", problems[0])
         self.assertIn("not", problems[0].lower())
 
     def test_too_few_tools_is_a_failure_even_though_the_server_started(self):
         # The case this exists for. The server connects, the handshake
         # succeeds, and half the surface is missing -- which reads as success
         # in every check that stops at "did it start".
-        results = {"ga-companion": {"ok": True, "tools": ["a", "b"]}}
-        problems = self.verify.unmet_requirements(results, {"ga-companion": 9})
+        results = {"data-noodler": {"ok": True, "tools": ["a", "b"]}}
+        problems = self.verify.unmet_requirements(results, {"data-noodler": 9})
         self.assertEqual(len(problems), 1)
         self.assertIn("2", problems[0])
         self.assertIn("9", problems[0])
 
     def test_a_server_that_failed_to_start_is_reported_once_not_twice(self):
-        results = {"ga-companion": {"ok": False, "error": "boom", "tools": []}}
-        problems = self.verify.unmet_requirements(results, {"ga-companion": 9})
+        results = {"data-noodler": {"ok": False, "error": "boom", "tools": []}}
+        problems = self.verify.unmet_requirements(results, {"data-noodler": 9})
         self.assertEqual(len(problems), 1)
 
     def test_extra_servers_beyond_the_requirements_are_not_failures(self):
-        results = {"ga-companion": {"ok": True, "tools": ["x"] * 9},
+        results = {"data-noodler": {"ok": True, "tools": ["x"] * 9},
                    "something-else": {"ok": True, "tools": ["y"]}}
         self.assertEqual(
-            self.verify.unmet_requirements(results, {"ga-companion": 9}), [])
+            self.verify.unmet_requirements(results, {"data-noodler": 9}), [])
 
 
 class TestRequireSkill(unittest.TestCase):
     """Issue #5: verify passed with the Claude Code skill missing.
 
     An install skipped INSTALL.md's step 6, "Install the skills for Claude
-    Code". verify.py --require analytics-mcp=9 --require ga-companion=9 exited
+    Code". verify.py --require analytics-mcp=9 --require data-noodler=9 exited
     0, because it only counts MCP tools. Claude Code then had the tools all day
     but not the skill that says which tool to use -- which fed straight into
     the truncated-report near miss in #1.
@@ -490,28 +490,28 @@ class TestRequireSkill(unittest.TestCase):
             f.write(body.format(name=name))
 
     def test_a_missing_skill_is_reported_with_where_it_was_expected(self):
-        problems = self.verify.missing_skills(["google-analytics"], self.skills)
+        problems = self.verify.missing_skills(["data-noodler"], self.skills)
         self.assertEqual(len(problems), 1)
-        self.assertIn("google-analytics", problems[0])
+        self.assertIn("data-noodler", problems[0])
         self.assertIn(self.skills, problems[0],
                       "say where it was looked for, or the reader cannot tell "
                       "a missing skill from a wrong skills directory")
 
     def test_an_installed_skill_passes(self):
-        self._install("google-analytics")
+        self._install("data-noodler")
         self.assertEqual(
-            self.verify.missing_skills(["google-analytics"], self.skills), [])
+            self.verify.missing_skills(["data-noodler"], self.skills), [])
 
     def test_an_empty_skill_file_is_not_an_installed_skill(self):
-        self._install("google-analytics", body="")
+        self._install("data-noodler", body="")
         self.assertEqual(
-            len(self.verify.missing_skills(["google-analytics"], self.skills)), 1)
+            len(self.verify.missing_skills(["data-noodler"], self.skills)), 1)
 
     def test_a_skill_whose_frontmatter_names_something_else_fails(self):
         # A directory named right holding the wrong skill would otherwise pass.
-        self._install("google-analytics",
+        self._install("data-noodler",
                       body="---\nname: something-else\n---\n# x\n")
-        problems = self.verify.missing_skills(["google-analytics"], self.skills)
+        problems = self.verify.missing_skills(["data-noodler"], self.skills)
         self.assertEqual(len(problems), 1)
         self.assertIn("something-else", problems[0])
 

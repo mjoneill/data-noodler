@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "analytics-mcp": {
+      "command": "/bin/sh",
+      "args": [
+        "-c",
+        "T=\"${GA_HOME:-$HOME/.config/ga-mcp}/bin/launch-analytics-mcp\"; [ -x \"$T\" ] || { echo \"data-noodler: $T is missing or not executable. Run the data-noodler-setup skill from Claude Code or Codex.\" >&2; exit 1; }; exec \"$T\""
+      ],
+      "env_vars": [
+        "HOME",
+        "GA_HOME",
+        "GA_MCP_CONFIG"
+      ],
+      "startup_timeout_sec": 120
+    },
+    "data-noodler": {
+      "command": "/bin/sh",
+      "args": [
+        "-c",
+        "T=\"${GA_HOME:-$HOME/.config/ga-mcp}/bin/launch-data-noodler\"; [ -x \"$T\" ] || { echo \"data-noodler: $T is missing or not executable. Run the data-noodler-setup skill from Claude Code or Codex.\" >&2; exit 1; }; exec \"$T\""
+      ],
+      "env_vars": [
+        "HOME",
+        "GA_HOME",
+        "GA_MCP_CONFIG"
+      ],
+      "startup_timeout_sec": 60
+    }
+  }
+}

@@ -11,7 +11,7 @@ import sys
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SKILL_DIR = os.path.join(ROOT, "skills", "ga-mcp-setup")
+SKILL_DIR = os.path.join(ROOT, "skills", "data-noodler-setup")
 SKILL_MD = os.path.join(SKILL_DIR, "SKILL.md")
 
 # Repo-relative paths the document's commands reference, e.g.
@@ -19,7 +19,11 @@ SKILL_MD = os.path.join(SKILL_DIR, "SKILL.md")
 # parse shell, only to pull out path-shaped tokens rooted at data-noodler/ so
 # that a stale or wrong path (like the bug this test was added to catch) is
 # caught mechanically rather than by a human re-reading the prose.
-REPO_PATH_RE = re.compile(r"data-noodler/[A-Za-z0-9_./-]+\.(?:py|md|sh)")
+# A repo path starts the token or follows "<repo>/". Since #1999 the skill is
+# also called data-noodler, so ".../skills/data-noodler/scripts/x.py" and
+# "~/.claude/skills/data-noodler/..." are installed paths, not repo paths.
+REPO_PATH_RE = re.compile(
+    r"(?:(?<=<repo>/)|(?<![\w/.~-]))data-noodler/[A-Za-z0-9_./-]+\.(?:py|md|sh)")
 
 
 class TestSetupSkillStructure(unittest.TestCase):
@@ -231,7 +235,7 @@ class TestSkillUsesTheToolsItShips(unittest.TestCase):
     def test_verification_demands_an_exit_code_not_a_reading(self):
         self.assertIn("--require analytics-mcp=10", self.text)
         # The number itself is checked against the server by the test below.
-        self.assertIn("--require ga-companion=", self.text)
+        self.assertIn("--require data-noodler=", self.text)
 
     def test_every_documented_tool_count_matches_the_server(self):
         # Card #130 added a tenth tool. A verify command still demanding nine
@@ -252,9 +256,9 @@ class TestSkillUsesTheToolsItShips(unittest.TestCase):
                 + glob.glob(os.path.join(repo, "docs", "runbooks", "*.md")))
         for path in docs:
             with open(path, encoding="utf-8") as f:
-                for n in re.findall(r"--require ga-companion=(\d+)", f.read()):
+                for n in re.findall(r"--require data-noodler=(\d+)", f.read()):
                     self.assertEqual(int(n), expected,
-                                     f"{path} demands {n} companion tools")
+                                     f"{path} demands {n} data-noodler tools")
 
 
 class TestConstraintsFile(unittest.TestCase):
@@ -368,10 +372,10 @@ class TestDocumentedVerifyChecksTheSkill(unittest.TestCase):
             return f.read()
 
     def test_skill_md_verifies_the_claude_code_skill(self):
-        self.assertIn("--require-skill google-analytics", self._text(SKILL_MD))
+        self.assertIn("--require-skill data-noodler", self._text(SKILL_MD))
 
     def test_install_md_verifies_the_claude_code_skill(self):
-        self.assertIn("--require-skill google-analytics",
+        self.assertIn("--require-skill data-noodler",
                       self._text(ROOT, "INSTALL.md"))
 
     def test_install_md_verify_uses_require_at_all(self):
@@ -460,13 +464,13 @@ class TestSecondWindowsInstallLessons(unittest.TestCase):
     # -- skills are installed by the flow that verifies them -------------
 
     def test_the_skill_installs_the_skill_its_verify_step_requires(self):
-        # Step 8 runs --require-skill google-analytics; until 2026-10-09
+        # Step 8 runs --require-skill data-noodler; until 2026-10-09
         # nothing in SKILL.md put it there, and the agent borrowed the step
         # from INSTALL.md.
-        self.assertIn("--require-skill google-analytics", self.skill)
+        self.assertIn("--require-skill data-noodler", self.skill)
         step6 = self._step(6)
         self.assertIn(".claude/skills", step6)
-        self.assertIn("google-analytics", step6)
+        self.assertIn("data-noodler", step6)
 
     # -- the Desktop container (#140, #141) ------------------------------
 
@@ -474,7 +478,7 @@ class TestSecondWindowsInstallLessons(unittest.TestCase):
         step = self._step(7)
         self.assertIn("running inside Claude Desktop", step)
         self.assertIn("--targets claude_desktop", step)
-        self.assertIn("--require ga-companion=", step)
+        self.assertIn("--require data-noodler=", step)
 
     def test_windows_page_checks_for_the_store_stub(self):
         self.assertIn("WindowsApps", self.windows)
@@ -521,7 +525,7 @@ class TestUpgradeIsSupervisedNotImprovised(unittest.TestCase):
 
     def test_app_specific_steps_belong_to_the_agent_after_the_run(self):
         after = self.skill[self.skill.index("**After -- you"):]
-        self.assertIn("codex plugin add ga-analytics@ga-tools", after)
+        self.assertIn("codex plugin add data-noodler@data-noodler", after)
         self.assertIn("copy_skills.py", after)
         self.assertIn("--replace", after)
 
@@ -548,7 +552,7 @@ class TestTheGoogleCloudGuideMatchesTheCode(unittest.TestCase):
     def test_it_names_every_google_service_the_code_calls(self):
         import glob
         hosts = set()
-        for path in glob.glob(os.path.join(ROOT, "companion", "*.py")):
+        for path in glob.glob(os.path.join(ROOT, "server", "*.py")):
             with open(path, encoding="utf-8") as f:
                 hosts |= set(re.findall(r"https://([a-z]+)\.googleapis\.com",
                                         f.read()))
@@ -558,8 +562,8 @@ class TestTheGoogleCloudGuideMatchesTheCode(unittest.TestCase):
             self.assertIn(f"{host}.googleapis.com", self.guide, host)
 
     def test_the_scopes_it_mentions_are_the_ones_consent_requests(self):
-        mint = os.path.join(ROOT, "marketplace", "plugins", "ga-analytics",
-                            "skills", "google-analytics", "scripts",
+        mint = os.path.join(ROOT, "marketplace", "plugins", "data-noodler",
+                            "skills", "data-noodler", "scripts",
                             "mint_adc.py")
         with open(mint, encoding="utf-8") as f:
             scopes = set(re.findall(r"auth/([a-z.]+)\"", f.read()))

@@ -1,14 +1,14 @@
 {
-  "name": "ga-tools",
+  "name": "data-noodler",
   "interface": {
-    "displayName": "Google Analytics Tools"
+    "displayName": "Data Noodler"
   },
   "plugins": [
     {
-      "name": "ga-analytics",
+      "name": "data-noodler",
       "source": {
         "source": "local",
-        "path": "./plugins/ga-analytics"
+        "path": "./plugins/data-noodler"
       },
       "policy": {
         "installation": "AVAILABLE"

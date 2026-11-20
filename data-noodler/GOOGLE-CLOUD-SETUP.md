@@ -206,7 +206,7 @@ for that person.
 ## 7. Try it yourself first
 
 Install the tools on your own machine. Follow `INSTALL.md`, or point Claude
-Code or Codex at `skills/ga-mcp-setup/SKILL.md`. At the sign-in step:
+Code or Codex at `skills/data-noodler-setup/SKILL.md`. At the sign-in step:
 
 1. A browser opens with your app name. **External/Testing:** expect
    "Google hasn't verified this app". Click **Advanced → Go to … (unsafe)**,

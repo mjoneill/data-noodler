@@ -1,27 +1,21 @@
 #!/bin/sh
-# Launch the upstream analytics-mcp server with the environment it needs.
+# Launch the data-noodler MCP server with the environment it needs.
 #
-# Binary resolution order, so the same artifact works on a machine set up with
-# pipx (Michael's) and one set up with uv (a colleague's):
-#   1. analytics_mcp_bin in config.json, if set
-#   2. ~/.local/bin/analytics-mcp
+# stdout is the MCP protocol channel: every diagnostic here goes to stderr,
+# and any failure exits non-zero rather than printing to stdout.
 #
-# There is deliberately no third step. It used to be `uv tool run
-# analytics-mcp`, which is unpinned: it resolved whatever PyPI had that day on
-# every launch -- an untested version and a supply-chain exposure (#153). An
-# install that gets this far is not one the docs describe, so fail and say so.
-#
-# stdout is the MCP protocol channel: diagnostics to stderr, failures exit
-# non-zero.
+# The config is read with /usr/bin/plutil, which every Mac has; Python is not
+# guaranteed (see read_key). The server itself runs on the analytics-mcp venv
+# Python named in the config.
 set -eu
 
 GA_HOME="${GA_HOME:-$HOME/.config/ga-mcp}"
 CONFIG="${GA_MCP_CONFIG:-$GA_HOME/config.json}"
-SETUP_HINT="Run the ga-mcp-setup skill from Claude Code or Codex to finish installation."
+SETUP_HINT="Run the data-noodler-setup skill from Claude Code or Codex to finish installation."
 
 if [ ! -f "$CONFIG" ]; then
-  echo "launch-ga-mcp: no configuration at $CONFIG" >&2
-  echo "launch-ga-mcp: $SETUP_HINT" >&2
+  echo "data-noodler: no configuration at $CONFIG" >&2
+  echo "data-noodler: $SETUP_HINT" >&2
   exit 1
 fi
 
@@ -32,14 +26,14 @@ fi
 OS_MAJOR="${GA_TEST_OS_MAJOR:-$(/usr/bin/sw_vers -productVersion 2>/dev/null | cut -d. -f1)}"
 case "$OS_MAJOR" in ''|*[!0-9]*) OS_MAJOR=99 ;; esac
 if [ "$OS_MAJOR" -lt 12 ]; then
-  echo "launch-ga-mcp: macOS 12 or later is required (this Mac reports $OS_MAJOR)." >&2
+  echo "data-noodler: macOS 12 or later is required (this Mac reports $OS_MAJOR)." >&2
   exit 1
 fi
 
 if ! PARSE_ERR=$(/usr/bin/plutil -convert json -o /dev/null "$CONFIG" 2>&1); then
-  echo "launch-ga-mcp: $CONFIG is not valid JSON:" >&2
+  echo "data-noodler: $CONFIG is not valid JSON:" >&2
   echo "  $PARSE_ERR" >&2
-  echo "launch-ga-mcp: fix the file, or move it aside and run setup again." >&2
+  echo "data-noodler: fix the file, or move it aside and run setup again." >&2
   exit 1
 fi
 
@@ -57,16 +51,29 @@ read_key() {
   printf '%s\n' "$v"
 }
 
+PY=$(read_key venv_python)
 ADC=$(read_key adc_file)
-CONFIGURED_BIN=$(read_key analytics_mcp_bin)
+SERVER="$GA_HOME/server/data_noodler.py"
 
+if [ ! -x "$PY" ]; then
+  echo "data-noodler: interpreter not found or not executable: $PY" >&2
+  echo "data-noodler: $SETUP_HINT" >&2
+  exit 1
+fi
+
+if [ ! -f "$SERVER" ]; then
+  echo "data-noodler: server not installed at $SERVER" >&2
+  echo "data-noodler: $SETUP_HINT" >&2
+  exit 1
+fi
+
+# Absent credential is NOT fatal: credential_status must still be callable so
+# the model can tell the user how to fix it. Written as an if-block rather
+# than an `&&` chain because under `set -e` a chain whose test fails aborts
+# the whole script.
 if [ -f "$ADC" ]; then
   GOOGLE_APPLICATION_CREDENTIALS="$ADC"
   export GOOGLE_APPLICATION_CREDENTIALS
-else
-  echo "launch-ga-mcp: no credential at $ADC" >&2
-  echo "launch-ga-mcp: $SETUP_HINT" >&2
-  exit 1
 fi
 
 export GRPC_DNS_RESOLVER=native
@@ -74,24 +81,11 @@ export GRPC_DNS_RESOLVER=native
 # exports traces, and opentelemetry-api's tracestate parser had an advisory
 # (CVE-2026-114603, fixed in the pins since #1986). Parsing stays off (#162).
 export OTEL_PROPAGATORS=none
-# analytics-mcp 1.0+ turns its write tools on when this is truthy; this
-# package is read-only, so an inherited value must not do that (#1986).
-export ANALYTICS_MCP_ALLOW_WRITE=false
+export GA_MCP_CONFIG="$CONFIG"
 
 # Test seam: verify the environment resolves without starting a server.
 if [ "${GA_LAUNCH_CHECK:-}" = "1" ]; then
   exit 0
 fi
 
-if [ -n "$CONFIGURED_BIN" ] && [ -x "$CONFIGURED_BIN" ]; then
-  exec "$CONFIGURED_BIN"
-fi
-
-if [ -x "$HOME/.local/bin/analytics-mcp" ]; then
-  exec "$HOME/.local/bin/analytics-mcp"
-fi
-
-echo "launch-ga-mcp: analytics-mcp not found. Looked at analytics_mcp_bin in" >&2
-echo "  $CONFIG, then ~/.local/bin/analytics-mcp." >&2
-echo "launch-ga-mcp: $SETUP_HINT" >&2
-exit 1
+exec "$PY" "$SERVER"

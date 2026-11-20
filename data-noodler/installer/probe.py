@@ -25,7 +25,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))), "companion"))
+    os.path.abspath(__file__))), "server"))
 
 import subprocess
 
@@ -33,7 +33,7 @@ import bootstrap_config
 import harness_paths
 import security_floors
 
-GA_SERVERS = ("analytics-mcp", "ga-companion")
+GA_SERVERS = ("analytics-mcp", "data-noodler")
 
 
 def _read_json(path):
@@ -168,7 +168,7 @@ def probe_config(home=None):
 def probe_credential(adc_file):
     """Days remaining, without interpreting what should be done about it.
 
-    Reuses the companion's own reader so the installer and the running server
+    Reuses data-noodler's own reader so the installer and the running server
     can never disagree about whether a credential is alive.
     """
     out = {"path": adc_file, "exists": bool(adc_file)
@@ -215,7 +215,7 @@ def probe_payload(home=None):
     home = os.path.expanduser("~") if home is None else home
     ga_home = os.path.join(home, ".config", "ga-mcp")
     out = {"ga_home": ga_home, "directories": {}}
-    for name in ("companion", "bin", "marketplace"):
+    for name in ("server", "bin", "marketplace"):
         d = os.path.join(ga_home, name)
         out["directories"][name] = {
             "present": os.path.isdir(d),

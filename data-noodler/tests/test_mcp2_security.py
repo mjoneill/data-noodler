@@ -20,8 +20,8 @@ import uuid
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO = os.path.dirname(ROOT)
-COMPANION = os.path.join(ROOT, "companion")
-SERVER = os.path.join(COMPANION, "ga_companion.py")
+SERVER_DIR = os.path.join(ROOT, "server")
+SERVER = os.path.join(SERVER_DIR, "data_noodler.py")
 sys.path.insert(0, os.path.join(ROOT, "installer"))
 
 import register  # noqa: E402
@@ -84,8 +84,8 @@ class TestToolAnnotations(unittest.TestCase):
                 self.assertTrue(_ann(tool, "destructive_hint"), name)
 
     def test_the_server_reports_a_version(self):
-        import ga_companion  # noqa: F401  (imported for SERVER_VERSION)
-        self.assertTrue(ga_companion.SERVER_VERSION)
+        import data_noodler  # noqa: F401  (imported for SERVER_VERSION)
+        self.assertTrue(data_noodler.SERVER_VERSION)
 
 
 @unittest.skipUnless(MCP2, "the shipped server targets mcp 2.x")
@@ -93,7 +93,7 @@ class TestTraceContextParsingIsOff(unittest.TestCase):
 
     def test_the_server_drops_the_tracing_middleware_and_propagators(self):
         code = ("import os,sys; os.environ.pop('OTEL_PROPAGATORS', None);"
-                f"sys.path.insert(0, {COMPANION!r}); import ga_companion as g;"
+                f"sys.path.insert(0, {SERVER_DIR!r}); import data_noodler as g;"
                 "from opentelemetry.propagate import get_global_textmap as t;"
                 "print([type(m).__name__ for m in g.mcp._lowlevel_server.middleware]);"
                 "print(len(t()._propagators))")
@@ -123,7 +123,7 @@ class TestEntriesAndLaunchers(unittest.TestCase):
             self.assertEqual(entry["env"].get("OTEL_PROPAGATORS"), "none", name)
 
     def test_both_launchers_switch_trace_parsing_off(self):
-        for name in ("launch-ga-mcp", "launch-ga-companion"):
+        for name in ("launch-analytics-mcp", "launch-data-noodler"):
             with open(os.path.join(ROOT, "bin", name), encoding="utf-8") as f:
                 self.assertIn("export OTEL_PROPAGATORS=none", f.read(), name)
 
@@ -137,7 +137,7 @@ class TestEntriesAndLaunchers(unittest.TestCase):
                              "false", name)
 
     def test_the_analytics_launcher_pins_writes_off(self):
-        with open(os.path.join(ROOT, "bin", "launch-ga-mcp"),
+        with open(os.path.join(ROOT, "bin", "launch-analytics-mcp"),
                   encoding="utf-8") as f:
             self.assertIn("export ANALYTICS_MCP_ALLOW_WRITE=false", f.read())
 
@@ -151,7 +151,7 @@ class TestEntriesAndLaunchers(unittest.TestCase):
         # --allow-write. This package is read-only by design.
         for name, entry in self._all_entries():
             self.assertNotIn("--allow-write", entry.get("args", []), name)
-        for name in ("launch-ga-mcp",):
+        for name in ("launch-analytics-mcp",):
             with open(os.path.join(ROOT, "bin", name), encoding="utf-8") as f:
                 code = [l for l in f if not l.lstrip().startswith("#")]
             self.assertFalse([l for l in code if "allow-write" in l])
@@ -169,7 +169,7 @@ class TestAProbeLeavesNoServerBehind(unittest.TestCase):
                 if marker in l and "ps eww" not in l]
 
     @unittest.skipIf(sys.platform.startswith("win"), "uses ps")
-    def test_verify_probe_leaves_no_companion_process(self):
+    def test_verify_probe_leaves_no_data_noodler_process(self):
         import time
         import verify
         marker = "GA_PROBE_MARKER=" + uuid.uuid4().hex

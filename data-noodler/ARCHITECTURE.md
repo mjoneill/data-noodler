@@ -8,15 +8,15 @@ checkable in the code and tests it names.
 | Piece | Where | What it is |
 |---|---|---|
 | `analytics-mcp` | installed from PyPI (Google's own server) | 10 tools for GA4 reports, property details, realtime, funnels, key events. Pinned to one version. Its optional write tools are never enabled. |
-| `ga-companion` | `companion/` | 15 tools built here: cheap property lookup from a local snapshot, credential status, a reporting guide, exports to CSV (GA4 reports, cohorts, realtime, funnels), two GA4 read-only checks, and four Search Console tools (sites, URL inspection, search analytics, sitemaps). |
+| `data-noodler` | `server/` | 15 tools built here: cheap property lookup from a local snapshot, credential status, a reporting guide, exports to CSV (GA4 reports, cohorts, realtime, funnels), two GA4 read-only checks, and four Search Console tools (sites, URL inspection, search analytics, sitemaps). |
 | Launchers | `bin/` (macOS) | Two `/bin/sh` scripts that set the environment and start each server. On Windows there are no launchers; the registered entry names the interpreter directly. |
 | Installer | `installer/` | `probe.py` (read-only facts about the machine), `bootstrap_config.py` (writes the machine's config), `install.py` (copies the payload, registers the apps), `verify.py` (proves each registered server starts and serves the expected tools), `upgrade.py` (replaces an existing install, with rollback), `copy_skills.py`. |
-| Skills | `skills/ga-mcp-setup/` (the install), and `google-analytics` inside the Codex plugin | Instructions an agent follows: how to install, and how to query well. |
+| Skills | `skills/data-noodler-setup/` (the install), and `data-noodler` inside the Codex plugin | Instructions an agent follows: how to install, and how to query well. |
 | Codex plugin | `marketplace/` | Packages the servers and the query skill for Codex and the ChatGPT desktop app's Work and Codex modes (its Chat mode is hosted and cannot reach local servers). |
 
 Why a second server exists: Claude Desktop's chat has MCP tools but no shell
 and no skills, so anything the query skill's scripts did had to become a
-tool. The companion re-exposes that capability and extends it.
+tool. The data-noodler server re-exposes that capability and extends it.
 
 ## Why the install is split the way it is
 
@@ -93,9 +93,9 @@ its servers through `/bin/sh`); install paths containing spaces on Windows;
 | Question | File |
 |---|---|
 | How do I install by hand? | `INSTALL.md` |
-| How does an agent install or upgrade? | `skills/ga-mcp-setup/SKILL.md` |
-| Windows differences, each with its measured reason | `skills/ga-mcp-setup/references/windows.md` |
-| Something failed | `skills/ga-mcp-setup/references/troubleshooting.md` |
+| How does an agent install or upgrade? | `skills/data-noodler-setup/SKILL.md` |
+| Windows differences, each with its measured reason | `skills/data-noodler-setup/references/windows.md` |
+| Something failed | `skills/data-noodler-setup/references/troubleshooting.md` |
 | How do I get my own Google sign-in? | `GOOGLE-CLOUD-SETUP.md` |
-| What does the model get told about querying well? | `companion/guidance.py` |
+| What does the model get told about querying well? | `server/guidance.py` |
 | Why is a dependency pinned at that version? | `installer/constraints.txt` header, `installer/security_floors.py` |

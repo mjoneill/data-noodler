@@ -33,7 +33,7 @@ To install by hand instead, follow `INSTALL.md`.
 | | |
 |---|---|
 | `analytics-mcp` | Google's own GA4 server, installed from PyPI at a pinned version. 10 tools. Its optional write tools are never enabled. |
-| `companion/` | A second server built here. 15 tools: property lookup, credential status, a reporting guide, exports to CSV, and Search Console. |
+| `server/` | A second server built here. 15 tools: property lookup, credential status, a reporting guide, exports to CSV, and Search Console. |
 | `installer/` | Scripts the agent runs: probe the machine, write its config, register the apps, verify, upgrade with rollback. |
 | `skills/` | The instructions an agent follows to install. |
 | `marketplace/` | A Codex plugin that packages both servers and the query skill. |

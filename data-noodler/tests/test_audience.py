@@ -27,7 +27,7 @@ FIRST_RUN_DOCS = (
     ("README.md",),
     ("INSTALL.md",),
     ("GOOGLE-CLOUD-SETUP.md",),
-    ("skills", "ga-mcp-setup", "SKILL.md"),
+    ("skills", "data-noodler-setup", "SKILL.md"),
 )
 
 AUDIENCE_ALTERNATIVES = re.compile(r"individual|just (?:you|me|for yourself)|yourself", re.I)
@@ -94,7 +94,7 @@ class TestTheInstallerAcceptsBlankTeamFields(unittest.TestCase):
     """
 
     def test_no_installer_code_requires_the_team_fields(self):
-        for sub in ("installer", "companion", "bin"):
+        for sub in ("installer", "server", "bin"):
             for base, _, files in os.walk(os.path.join(ROOT, sub)):
                 for name in files:
                     if not name.endswith(".py") and sub != "bin":
@@ -132,7 +132,7 @@ class TestTheInstallerAcceptsBlankTeamFields(unittest.TestCase):
                  "--repo-root", repo, "--ga-home", ga_home, "--payload-only"],
                 env=env, capture_output=True, text=True, timeout=120)
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-            for part in ("companion", "bin", "marketplace"):
+            for part in ("server", "bin", "marketplace"):
                 self.assertTrue(os.path.isdir(os.path.join(ga_home, part)),
                                 f"{part} was not installed")
 
@@ -148,12 +148,12 @@ class TestBlankTeamFieldsAreAFinishedSetup(unittest.TestCase):
         self.assertNotIn("fill every blank", text)
 
     def test_the_skill_routes_on_the_maintainer_field(self):
-        text = read("skills", "ga-mcp-setup", "SKILL.md")
+        text = read("skills", "data-noodler-setup", "SKILL.md")
         self.assertIn("If its `maintainer` is blank", text)
         self.assertNotIn("If its values are blank", text)
 
     def test_the_skill_skips_sending_the_report_when_no_one_receives_it(self):
-        text = read("skills", "ga-mcp-setup", "SKILL.md")
+        text = read("skills", "data-noodler-setup", "SKILL.md")
         self.assertRegex(text, r"(?is)if `install_reports_to` is blank.{0,200}skip sending")
 
     def test_the_manual_install_skips_sending_when_just_you(self):

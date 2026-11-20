@@ -14,7 +14,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))), "companion"))
+    os.path.abspath(__file__))), "server"))
 
 import sessions
 
@@ -272,7 +272,7 @@ class TestRelativeOutFileLandsUnderTheSessionsRoot(unittest.TestCase):
     """Issue #2: a relative out_file landed relative to the server's cwd.
 
     os.path.abspath resolves against the server PROCESS's working directory.
-    Measured on a running ga-companion with lsof: it was the Claude Code
+    Measured on a running data-noodler with lsof: it was the Claude Code
     session's project folder, a git working tree. The same relative path would
     have landed somewhere else entirely when launched from Desktop or Codex.
 

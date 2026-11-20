@@ -114,7 +114,7 @@ class TestRequireScopesTheCheckToOurServers(unittest.TestCase):
         path = os.path.join(d, "config.json")
         with open(path, "w", encoding="utf-8") as f:
             json.dump({"mcpServers": {
-                "ga-companion": {"command": "a"},
+                "data-noodler": {"command": "a"},
                 "someone-else": {"command": "b"}}}, f)
         probed = []
 
@@ -123,7 +123,7 @@ class TestRequireScopesTheCheckToOurServers(unittest.TestCase):
             return {"ok": True, "tools": [f"t{i}" for i in range(15)],
                     "error": None}
 
-        argv = ["verify.py", "--config", path, "--require", "ga-companion=15"]
+        argv = ["verify.py", "--config", path, "--require", "data-noodler=15"]
         with mock.patch.object(verify, "probe", fake_probe), \
                 mock.patch.object(sys, "argv", argv), \
                 mock.patch("builtins.print"):
@@ -135,9 +135,9 @@ class TestRequireScopesTheCheckToOurServers(unittest.TestCase):
         d = tempfile.mkdtemp()
         path = os.path.join(d, "config.json")
         with open(path, "w", encoding="utf-8") as f:
-            json.dump({"mcpServers": {"ga-companion": {"command": "a"}}}, f)
+            json.dump({"mcpServers": {"data-noodler": {"command": "a"}}}, f)
         ok = {"ok": True, "tools": ["t"] * 15, "error": None}
-        argv = ["verify.py", "--config", path, "--require", "ga-companion=15",
+        argv = ["verify.py", "--config", path, "--require", "data-noodler=15",
                 "--require", "analytics-mcp=9"]
         with mock.patch.object(verify, "probe", return_value=ok), \
                 mock.patch.object(sys, "argv", argv), \

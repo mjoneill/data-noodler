@@ -1,6 +1,6 @@
 """Skills are refreshed only where this package put them (2026-10-25).
 
-On the maintainer's machine ~/.claude/skills/google-analytics is the MASTER
+On the maintainer's machine ~/.claude/skills/data-noodler is the MASTER
 copy the plugin is built from; an upgrade that overwrote it would silently
 replace unbuilt edits. A marker file inside each folder the package installs
 is what permits a later refresh. Nothing is ever deleted.
@@ -18,9 +18,9 @@ sys.path.insert(0, os.path.join(ROOT, "installer"))
 import copy_skills  # noqa: E402
 
 SHIPPED_SKILLS = (
-    os.path.join(ROOT, "marketplace", "plugins", "ga-analytics", "skills",
-                 "google-analytics"),
-    os.path.join(ROOT, "skills", "ga-mcp-setup"),
+    os.path.join(ROOT, "marketplace", "plugins", "data-noodler", "skills",
+                 "data-noodler"),
+    os.path.join(ROOT, "skills", "data-noodler-setup"),
 )
 
 
@@ -33,10 +33,10 @@ class TestInstallSkill(unittest.TestCase):
         with open(os.path.join(self.src, copy_skills.MARKER), "w") as f:
             f.write(copy_skills.MARKER_TEXT)
         self.skills = tempfile.mkdtemp()
-        self.dest = os.path.join(self.skills, "google-analytics")
+        self.dest = os.path.join(self.skills, "data-noodler")
 
     def _install(self, **kw):
-        return copy_skills.install_skill("google-analytics", self.src,
+        return copy_skills.install_skill("data-noodler", self.src,
                                          self.skills, **kw)
 
     def _read(self):
@@ -87,8 +87,8 @@ class TestInstallSkill(unittest.TestCase):
 
     def test_the_command_exits_2_when_a_decision_is_needed(self):
         ga_home = ROOT  # holds marketplace/..., like an installed payload
-        os.makedirs(os.path.join(self.skills, "ga-mcp-setup"))
-        with open(os.path.join(self.skills, "ga-mcp-setup", "SKILL.md"),
+        os.makedirs(os.path.join(self.skills, "data-noodler-setup"))
+        with open(os.path.join(self.skills, "data-noodler-setup", "SKILL.md"),
                   "w") as f:
             f.write("someone's own")
         p = subprocess.run(
@@ -111,13 +111,13 @@ class TestExitCodesNeverSayDoneWhenItIsNot(unittest.TestCase):
 
     def test_a_file_in_the_way_is_a_failure(self):
         skills = tempfile.mkdtemp()
-        open(os.path.join(skills, "ga-mcp-setup"), "w").close()
+        open(os.path.join(skills, "data-noodler-setup"), "w").close()
         p = self._run(skills, tempfile.mkdtemp())
         self.assertEqual(p.returncode, 1, p.stdout)
         self.assertIn("blocked", p.stdout)
 
     def test_a_missing_source_is_a_failure(self):
-        # ga_home without a payload: the google-analytics source is absent.
+        # ga_home without a payload: the data-noodler source is absent.
         p = self._run(tempfile.mkdtemp(), tempfile.mkdtemp())
         self.assertEqual(p.returncode, 1, p.stdout)
         self.assertIn("missing-source", p.stdout)
@@ -125,11 +125,11 @@ class TestExitCodesNeverSayDoneWhenItIsNot(unittest.TestCase):
     def test_an_identical_unmarked_folder_is_fine(self):
         skills = tempfile.mkdtemp()
         import shutil
-        shutil.copytree(os.path.join(ROOT, "skills", "ga-mcp-setup"),
-                        os.path.join(skills, "ga-mcp-setup"))
-        os.remove(os.path.join(skills, "ga-mcp-setup", copy_skills.MARKER))
+        shutil.copytree(os.path.join(ROOT, "skills", "data-noodler-setup"),
+                        os.path.join(skills, "data-noodler-setup"))
+        os.remove(os.path.join(skills, "data-noodler-setup", copy_skills.MARKER))
         status, _ = copy_skills.install_skill(
-            "ga-mcp-setup", os.path.join(ROOT, "skills", "ga-mcp-setup"),
+            "data-noodler-setup", os.path.join(ROOT, "skills", "data-noodler-setup"),
             skills)
         self.assertEqual(status, "not-ours-same")
         self.assertIn(status, copy_skills.DONE)

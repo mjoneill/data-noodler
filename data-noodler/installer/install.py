@@ -18,7 +18,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import harness_paths
 import register
 
-PAYLOAD = ("companion", "bin", "marketplace")
+PAYLOAD = ("server", "bin", "marketplace")
+# #1999: the server folder's name before the product had one name. An install
+# of ours under that name is moved aside (never deleted) by install_payload.
+LEGACY_PAYLOAD = ("companion",)
 
 
 class InstallError(Exception):
@@ -48,7 +51,7 @@ def _validated_ga_home(ga_home, home=None):
     if ga_home == os.path.abspath(os.path.expanduser(home)):
         raise InstallError(
             f"refusing to install into the home directory itself ({ga_home}). "
-            "That would put companion/, bin/ and marketplace/ directly in "
+            "That would put server/, bin/ and marketplace/ directly in "
             "your home and replace anything already using those names.")
     return ga_home
 
@@ -106,7 +109,8 @@ def find_backups(ga_home, config_paths):
     business of removing something like that via script." The installer used
     to prune payload rollbacks to the three most recent; that code is gone.
     """
-    patterns = [os.path.join(ga_home, f"{name}.ga-old-*") for name in PAYLOAD]
+    patterns = [os.path.join(ga_home, f"{name}.ga-old-*")
+                for name in PAYLOAD + LEGACY_PAYLOAD]
     patterns.append(os.path.join(ga_home, "config.json.ga-backup-*"))
     for path in config_paths or []:
         if path:
@@ -170,7 +174,7 @@ def describe_payload_plan(repo_root, ga_home, home=None):
 
 
 def install_payload(repo_root, ga_home, home=None, platform=None):
-    """Copy companion/, bin/ and marketplace/ into ga_home. Returns paths.
+    """Copy server/, bin/ and marketplace/ into ga_home. Returns paths.
 
     Staged rather than destructive. Each directory is built alongside the
     live one, the live one is RENAMED aside rather than deleted, and only
@@ -242,6 +246,21 @@ def install_payload(repo_root, ga_home, home=None, platform=None):
 
         written.append(dest)
 
+    # #1999: retire the payload folders this package used to install under
+    # old names, so nothing is left running from them. Ours only (the marker,
+    # or every entry also in the folder that replaced it); renamed aside with
+    # the same .ga-old-<stamp> suffix, so backups and upgrade's undo find it.
+    for name in LEGACY_PAYLOAD:
+        old = os.path.join(ga_home, name)
+        if os.path.isdir(old) and _is_previous_payload(
+                old, os.path.join(src_root, "server")):
+            try:
+                os.replace(old, f"{old}.ga-old-{stamp}")
+            except OSError as exc:
+                raise InstallError(
+                    f"installed, but could not move the old {old} aside "
+                    f"({exc}). Quit every app using it and re-run.")
+
     # copytree preserves mode, but check it rather than trust it: a
     # non-executable launcher presents as an unexplained broken server.
     # A real raised exception rather than `assert`, so the check cannot be
@@ -251,7 +270,7 @@ def install_payload(repo_root, ga_home, home=None, platform=None):
     # os.access(X_OK) returns True for any existing file -- a check that
     # always passes is worse than none, because it reads as verification.
     if not platform.startswith("win"):
-        for name in ("launch-ga-mcp", "launch-ga-companion"):
+        for name in ("launch-analytics-mcp", "launch-data-noodler"):
             path = os.path.join(ga_home, "bin", name)
             try:
                 os.chmod(path, 0o755)
@@ -277,17 +296,17 @@ def resolve_sessions_root(repo_root, config_path=None):
     than failing the install: this function always returns a path, never
     raises.
     """
-    companion_dir = os.path.join(repo_root, "data-noodler", "companion")
-    if companion_dir not in sys.path:
-        sys.path.insert(0, companion_dir)
-    import config as companion_config
+    server_dir = os.path.join(repo_root, "data-noodler", "server")
+    if server_dir not in sys.path:
+        sys.path.insert(0, server_dir)
+    import config as server_config
     import sessions
 
     try:
-        cfg = companion_config.load(config_path)
-    except companion_config.ConfigError:
+        cfg = server_config.load(config_path)
+    except server_config.ConfigError:
         return os.path.expanduser(sessions.DEFAULT_SESSIONS_ROOT)
-    return companion_config.sessions_root(cfg)
+    return server_config.sessions_root(cfg)
 
 
 def registration_inputs(config_path=None, platform=None):
@@ -301,10 +320,10 @@ def registration_inputs(config_path=None, platform=None):
     platform = sys.platform if platform is None else platform
     if not platform.startswith("win"):
         return {}
-    import config as companion_config
+    import config as server_config
     try:
-        cfg = companion_config.load(config_path)
-    except companion_config.ConfigError as exc:
+        cfg = server_config.load(config_path)
+    except server_config.ConfigError as exc:
         raise InstallError(
             f"cannot register on Windows without the machine config ({exc}). "
             "Run bootstrap_config.py first -- it writes the interpreter and "
@@ -488,7 +507,9 @@ def main():
             raise SystemExit(f"{target}: {exc}")
         if result["changed"]:
             print(f"{target}: added={result['added']} "
-                  f"updated={result['updated']} backup={result['backup']}")
+                  f"updated={result['updated']} "
+                  f"removed_old_names={result['removed']} "
+                  f"backup={result['backup']}")
         else:
             print(f"{target}: already registered, no change")
 

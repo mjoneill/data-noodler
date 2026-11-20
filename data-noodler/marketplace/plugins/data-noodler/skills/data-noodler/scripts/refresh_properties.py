@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rebuild the local GA property snapshot.
 
-Thin CLI wrapper. The Admin API enumeration itself lives in the companion
+Thin CLI wrapper. The Admin API enumeration itself lives in the data-noodler server
 server's snapshot module, so the MCP tool and this command cannot drift --
 they are the same code. This wrapper exists because a shell-having harness can
 run it directly, which is faster than a tool round-trip.
@@ -19,11 +19,11 @@ import ga_config
 cfg = ga_config.load()
 ga_config.require_adc(cfg)
 
-COMPANION = os.path.expanduser("~/.config/ga-mcp/companion")
-if not os.path.isdir(COMPANION):
-    sys.exit(f"Companion not installed at {COMPANION}. "
-             "Run the ga-mcp-setup skill.")
-sys.path.insert(0, COMPANION)
+SERVER_DIR = os.path.expanduser("~/.config/ga-mcp/server")
+if not os.path.isdir(SERVER_DIR):
+    sys.exit(f"data-noodler not installed at {SERVER_DIR}. "
+             "Run the data-noodler-setup skill.")
+sys.path.insert(0, SERVER_DIR)
 
 try:
     import snapshot

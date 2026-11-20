@@ -12,7 +12,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))), "companion"))
+    os.path.abspath(__file__))), "server"))
 
 import matching
 
@@ -98,7 +98,7 @@ class TestShortRows(unittest.TestCase):
     csv.DictReader fills the missing fields of a short row with None -- a
     truncated final line, a hand edit, a paste that lost a column. Rendering
     None against the id's width spec used to raise TypeError, which the
-    companion's guard does not catch, so the user saw "unsupported format
+    data-noodler's guard does not catch, so the user saw "unsupported format
     string passed to NoneType.__format__" instead of an instruction.
     """
 

@@ -1,4 +1,4 @@
-"""The companion loads its own config so it can run with no skill installed.
+"""The data-noodler server loads its own config so it can run with no skill installed.
 
 Errors must be actionable strings rather than tracebacks: in a shell-less
 harness the message is the only thing the user will see.
@@ -11,7 +11,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))), "companion"))
+    os.path.abspath(__file__))), "server"))
 
 import config
 
@@ -46,7 +46,7 @@ class TestLoad(unittest.TestCase):
     def test_missing_file_names_the_setup_skill(self):
         with self.assertRaises(config.ConfigError) as ctx:
             config.load("/nonexistent/ga-mcp/config.json")
-        self.assertIn("ga-mcp-setup", str(ctx.exception))
+        self.assertIn("data-noodler-setup", str(ctx.exception))
 
     def test_missing_key_says_which_key(self):
         partial = {k: v for k, v in GOOD.items() if k != "adc_file"}
@@ -124,12 +124,12 @@ class TestRenewalCommand(unittest.TestCase):
         cfg.pop("mint_script", None)
         cmd = config.renewal_command(cfg)
         self.assertIn("mint_adc.py", cmd)
-        # The install payload is ("companion", "bin", "marketplace"), so the
+        # The install payload is ("server", "bin", "marketplace"), so the
         # marketplace copy under ~/.config/ga-mcp is the only one any install
         # creates. ~/.claude/skills/ is never written by anything here, so a
         # command naming it would point at nothing on a clean machine.
-        self.assertIn(".config/ga-mcp/marketplace/plugins/ga-analytics"
-                      "/skills/google-analytics/scripts/mint_adc.py", cmd)
+        self.assertIn(".config/ga-mcp/marketplace/plugins/data-noodler"
+                      "/skills/data-noodler/scripts/mint_adc.py", cmd)
         self.assertNotIn(".claude/skills", cmd)
 
     def test_the_fallback_path_is_the_one_bootstrap_config_writes(self):

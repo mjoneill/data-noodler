@@ -1,6 +1,6 @@
 ---
-name: google-analytics
-description: Query Google Analytics 4 data through the analytics-mcp MCP server — traffic reports, users, sessions, pageviews, conversions, realtime, funnels — plus resolving property names to IDs cheaply and fixing expired credentials. Also covers Google Search Console — indexed, indexing, coverage, crawl, canonical, sitemap, impressions, clicks, average position, "showing up in Google", "why isn't this page ranking" — and exporting either source's results to a file. Use this skill whenever the user asks about Google Analytics, GA4, website traffic, visitors, sessions, pageviews, bounce rate, or analytics for any specific site or property, even if they don't mention GA by name. Also use it when GA tools fail with invalid_grant or "token expired", when the user needs to set up or re-authenticate the GA MCP server, or when a question mentions a domain or subdomain whose analytics they want.
+name: data-noodler
+description: Data Noodler. Query Google Analytics 4 data through the analytics-mcp and data-noodler MCP servers — traffic reports, users, sessions, pageviews, conversions, realtime, funnels — plus resolving property names to IDs cheaply and fixing expired credentials. Also covers Google Search Console — indexed, indexing, coverage, crawl, canonical, sitemap, impressions, clicks, average position, "showing up in Google", "why isn't this page ranking" — and exporting either source's results to a file. Use this skill whenever the user asks about Google Analytics, GA4, website traffic, visitors, sessions, pageviews, bounce rate, or analytics for any specific site or property, even if they don't mention GA by name. Also use it when GA tools fail with invalid_grant or "token expired", when the user needs to set up or re-authenticate Data Noodler, or when a question mentions a domain or subdomain whose analytics they want.
 ---
 
 # Google Analytics via MCP
@@ -45,9 +45,9 @@ Reading the whole snapshot file is a poor substitute for searching it — the fi
 is thousands of tokens and the model then has to scan 
 hundreds of rows to find one. Search it.
 
-## The companion server, and harnesses with no shell
+## The data-noodler server, and harnesses with no shell
 
-Alongside `analytics-mcp` there is a second MCP server, `ga-companion`, which
+Alongside `analytics-mcp` there is a second MCP server, `data-noodler`, which
 exposes fifteen tools. Four of them cover GA4 property lookup and
 credentials: `lookup_property`, `credential_status`,
 `refresh_property_snapshot`, and `reporting_guide`. Two are read-only GA4
@@ -62,13 +62,13 @@ documented under "Search Console, and exporting to a file" below:
 
 It exists because Claude Desktop's normal chat has MCP tools but **no shell**
 and no skill mechanism, so the scripts this skill documents cannot run there
-at all. The companion carries the same capability as tools, which is the only
+at all. The data-noodler server carries the same capability as tools, which is the only
 form that reaches every harness.
 
 **Prefer the tools when they are available**, and fall back to the scripts
 otherwise:
 
-| Need | With companion | Shell only |
+| Need | With data-noodler | Shell only |
 |---|---|---|
 | Resolve a property | `lookup_property` | `lookup_property.py` |
 | Check credential expiry | `credential_status` | inspect the ADC file's mtime |
@@ -79,7 +79,7 @@ otherwise:
 `refresh_properties.py` calls the same `snapshot.rebuild` the tool does — so
 those two cannot give different answers.
 
-**The lookup row does not.** `lookup_property` (the tool, in the companion's
+**The lookup row does not.** `lookup_property` (the tool, in data-noodler's
 `matching.py`) and `lookup_property.py` (this skill's script) are two copies of
 the same matching logic, pending consolidation. They agree on a well-formed
 snapshot. They differ on a malformed one: given a row with fewer fields than
@@ -94,7 +94,7 @@ consent. `credential_status` returns the exact command for the user to run.
 
 ## Search Console, and exporting to a file
 
-The same `ga-companion` server also covers Google Search Console — "is this
+The same `data-noodler` server also covers Google Search Console — "is this
 page indexed", "why did impressions drop", "what's our average position for
 this query" — and gives GA4 itself a way to write large results to a file
 instead of the conversation. Nine tools:

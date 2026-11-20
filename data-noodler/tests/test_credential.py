@@ -16,7 +16,7 @@ from unittest import mock
 from unittest.mock import patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))), "companion"))
+    os.path.abspath(__file__))), "server"))
 
 import credential
 
@@ -164,8 +164,8 @@ class TestWindowsCredentialAclHardening(unittest.TestCase):
     def setUpClass(cls):
         import types
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        path = os.path.join(root, "marketplace", "plugins", "ga-analytics",
-                            "skills", "google-analytics", "scripts",
+        path = os.path.join(root, "marketplace", "plugins", "data-noodler",
+                            "skills", "data-noodler", "scripts",
                             "mint_adc.py")
         with open(path, encoding="utf-8") as f:
             source = f.read()
@@ -233,8 +233,8 @@ class TestOauthlibHintMatchesTheInstaller(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        path = os.path.join(root, "marketplace", "plugins", "ga-analytics",
-                            "skills", "google-analytics", "scripts",
+        path = os.path.join(root, "marketplace", "plugins", "data-noodler",
+                            "skills", "data-noodler", "scripts",
                             "mint_adc.py")
         with open(path, encoding="utf-8") as f:
             tree = ast.parse(f.read())

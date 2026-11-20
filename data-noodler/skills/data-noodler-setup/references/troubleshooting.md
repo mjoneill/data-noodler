@@ -81,7 +81,7 @@ Event 1121 naming the `.exe` is the proof.
 
 Fix: re-run `install.py` from a current package. It registers
 `<venv>\Scripts\python.exe -m analytics_mcp.server` on Windows, which starts
-the same server through the interpreter ga-companion already uses. An older
+the same server through the interpreter data-noodler already uses. An older
 install whose entry names the `.exe` gets the new entry on that re-run. Then
 re-run `verify.py`.
 
@@ -169,7 +169,7 @@ broken server with no detail.
 Check: run the launcher directly and confirm stdout is empty on failure.
 
 ```bash
-~/.config/ga-mcp/bin/launch-ga-companion >/tmp/out 2>/tmp/err; echo "exit=$?"
+~/.config/ga-mcp/bin/launch-data-noodler >/tmp/out 2>/tmp/err; echo "exit=$?"
 wc -c /tmp/out   # must be 0 on failure
 cat /tmp/err
 ```
@@ -194,12 +194,12 @@ config files this install writes, and a running app's later flush can drop
 entries that were just added. Quit first, register, then reopen — and verify
 again after it reopens.
 
-## Codex says `codex plugin add ga-analytics` failed
+## Codex says `codex plugin add data-noodler` failed
 
 Use the marketplace-qualified name instead:
 
 ```bash
-codex plugin add ga-analytics@ga-tools
+codex plugin add data-noodler@data-noodler
 ```
 
 The bare name is rejected; the qualified form is what actually works.
@@ -215,7 +215,7 @@ Confirm the plugin is enabled:
 
 ```bash
 codex plugin list
-grep -A2 'ga-analytics' ~/.codex/config.toml
+grep -A2 'data-noodler' ~/.codex/config.toml
 ```
 
 The plugin's `bin/` scripts are shims that exec `~/.config/ga-mcp/bin/`. If the

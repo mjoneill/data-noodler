@@ -1,6 +1,6 @@
 ---
-name: ga-mcp-setup
-description: Install or repair Google Analytics MCP access across local LLM harnesses — Claude Code, Claude Desktop, Codex TUI, and the ChatGPT desktop app's Work and Codex modes. Use when the user wants to set up GA access, add GA to another app, says GA tools are missing or a connector is broken, or when analytics tools fail in a way that is not a simple credential expiry. Also use for first-time setup on a new machine.
+name: data-noodler-setup
+description: Install or repair Data Noodler (Google Analytics and Search Console tools) across local LLM harnesses — Claude Code, Claude Desktop, Codex TUI, and the ChatGPT desktop app's Work and Codex modes. Use when the user wants to set up GA access, add GA to another app, says GA tools are missing or a connector is broken, or when analytics tools fail in a way that is not a simple credential expiry. Also use for first-time setup on a new machine.
 ---
 
 # Installing GA access into local harnesses
@@ -126,7 +126,7 @@ What to read in the output:
 - `harnesses.*.other_servers` — MCP servers that are not ours. You are writing
   into a config someone else's tools also live in; mention it.
 
-`installer/` is never copied to `~/.config/ga-mcp/` — only `companion/`, `bin/`
+`installer/` is never copied to `~/.config/ga-mcp/` — only `server/`, `bin/`
 and `marketplace/` are (see Step 6) — so this and Step 8 both run from the repo
 checkout. A path under `~/.config/ga-mcp/` will never exist and would silently
 prove nothing.
@@ -222,8 +222,12 @@ or undo an upgrade by hand.
 **After -- you, in a reopened app:**
 
 1. `probe.py` again: `dependencies.below_floor` must be empty.
-2. **Codex installed?** `codex plugin add ga-analytics@ga-tools`. Codex caches
-   plugins by version; without this it keeps the old plugin.
+2. **Codex installed?** `codex plugin add data-noodler@data-noodler`. Codex caches
+   plugins by version; without this it keeps the old plugin. If
+   `codex plugin marketplace list` still shows `ga-tools`, first run
+   `codex plugin remove ga-analytics@ga-tools` and `codex plugin marketplace remove ga-tools`,
+   then `codex plugin marketplace add ~/.config/ga-mcp/marketplace`, so only
+   Data Noodler remains.
 3. **Claude Code used?** `<venv_python> <package>/data-noodler/installer/copy_skills.py`.
    It refreshes only skill folders this package installed (they carry a
    `.ga-mcp-installed` marker). It prints one line per skill; read every
@@ -385,7 +389,7 @@ prevent.
 
 If a credential exists with time remaining, leave it alone. Re-running consent
 would replace a working setup for no reason. You can also check via the
-companion server's `credential_status` tool if it is already registered
+data-noodler server's `credential_status` tool if it is already registered
 somewhere — do not re-mint just because a different harness lacks the
 credential file; the file is shared across every harness.
 
@@ -393,16 +397,16 @@ If it is missing or expired, give the user this command to run themselves — it
 opens a browser and you cannot click through it for them:
 
 ```bash
-"<venv_python from ~/.config/ga-mcp/config.json>" <repo>/data-noodler/marketplace/plugins/ga-analytics/skills/google-analytics/scripts/mint_adc.py --force
+"<venv_python from ~/.config/ga-mcp/config.json>" <repo>/data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py --force
 ```
 
 Run the copy in the repo checkout, because at this point in the flow the
 payload step has not run yet, so no copy exists under `~/.config/ga-mcp/`.
 Once the payload is installed, the equivalent installed copy is
-`~/.config/ga-mcp/marketplace/plugins/ga-analytics/skills/google-analytics/scripts/mint_adc.py`
+`~/.config/ga-mcp/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py`
 — which is what `config.json`'s `mint_script` names and what
 `credential_status` hands the user for weekly renewal. Do not point anyone at
-`~/.claude/skills/google-analytics/scripts/mint_adc.py`: nothing in this
+`~/.claude/skills/data-noodler/scripts/mint_adc.py`: nothing in this
 install creates that path.
 
 Expect a "Google hasn't verified this app" warning: it is the OAuth client in
@@ -431,10 +435,10 @@ not come up.) The list caps at 100 test users.
 "<venv_python>" <repo>/data-noodler/installer/install.py --payload-only
 ```
 
-Copies `companion/`, `bin/` and `marketplace/` into `~/.config/ga-mcp/`. Safe
+Copies `server/`, `bin/` and `marketplace/` into `~/.config/ga-mcp/`. Safe
 to re-run.
 
-Then install the `google-analytics` skill for Claude Code, plus this setup
+Then install the `data-noodler` skill for Claude Code, plus this setup
 skill so a later upgrade can be driven the same way. Step 8 checks the first
 one is there. (Codex gets its skill inside the plugin in Step 7; Claude
 Desktop chat has no skill mechanism.)
@@ -487,7 +491,7 @@ names the Desktop config path. On Windows:
 #    Closing the window is not enough.
 # 2. Then run:
 & "<venv_python>" "<repo>\data-noodler\installer\install.py" --targets claude_desktop
-& "<venv_python>" "<repo>\data-noodler\installer\verify.py" --config "<Desktop config path>" --require analytics-mcp=10 --require ga-companion=15
+& "<venv_python>" "<repo>\data-noodler\installer\verify.py" --config "<Desktop config path>" --require analytics-mcp=10 --require data-noodler=15
 # 3. Reopen Claude Desktop and paste both outputs back into this chat.
 ```
 
@@ -513,18 +517,28 @@ plugins and marketplaces). Use it in place of `codex` in the commands below:
 
 ```bash
 codex plugin marketplace add ~/.config/ga-mcp/marketplace
-codex plugin add ga-analytics
+codex plugin add data-noodler
 ```
 
-The bare name `ga-analytics` is rejected once the marketplace is registered
+**Installed before the product had one name?** If `codex plugin marketplace
+list` shows a marketplace called `ga-tools`, Codex still has the old plugin
+under the old name. Remove both first, then add as above, so Codex shows
+only Data Noodler:
+
+```bash
+codex plugin remove ga-analytics@ga-tools
+codex plugin marketplace remove ga-tools
+```
+
+The bare name `data-noodler` is rejected once the marketplace is registered
 more than once, or ambiguously named — Codex wants the marketplace-qualified
 form:
 
 ```bash
-codex plugin add ga-analytics@ga-tools
+codex plugin add data-noodler@data-noodler
 ```
 
-If the bare `codex plugin add ga-analytics` fails, use the qualified form
+If the bare `codex plugin add data-noodler` fails, use the qualified form
 above; it is what actually works.
 
 Let the codex CLI write `~/.codex/config.toml`. **Never edit that file
@@ -535,10 +549,10 @@ live plugin state.
 
 ```bash
 "<venv_python>" <repo>/data-noodler/installer/verify.py --config ~/.claude.json \
-    --require analytics-mcp=10 --require ga-companion=15 \
-    --require-skill google-analytics
+    --require analytics-mcp=10 --require data-noodler=15 \
+    --require-skill data-noodler
 "<venv_python>" <repo>/data-noodler/installer/verify.py --config "<claude desktop config path>" \
-    --require analytics-mcp=10 --require ga-companion=15
+    --require analytics-mcp=10 --require data-noodler=15
 ```
 
 **Use `--require`, and treat the exit code as the answer.** Without it success
@@ -592,7 +606,7 @@ iCloud) or shared. Offer to delete each one.
   have one beside the venv, e.g. in pipx's `venvs` folder. Nothing uses
   it once the upgrade verified; it is only the undo. Offer to delete it --
   after the user has used the upgraded tools once is a sensible time.
-- **Older payload copies** (`~/.config/ga-mcp/{companion,bin,marketplace}.ga-old-<stamp>`).
+- **Older payload copies** (`~/.config/ga-mcp/{server,bin,marketplace}.ga-old-<stamp>`, and `companion.ga-old-<stamp>` (the server folder's old name)).
   `install.py` keeps one per run and never removes them. Offer to delete all
   but the newest. Likewise any `*.failed-<stamp>` folder a rolled-back
   upgrade had to move aside.
@@ -642,7 +656,7 @@ did it.
 
 In Claude Desktop chat there is no shell, so `lookup_property`,
 `credential_status` and `refresh_property_snapshot` are the only route to that
-capability. That is what the companion server is for.
+capability. That is what the data-noodler server is for.
 
 A local install does not serve ChatGPT's Chat mode (desktop or browser), or
 claude.ai in a browser. Those run tools on the vendor's servers and cannot reach anything on

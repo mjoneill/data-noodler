@@ -21,9 +21,9 @@ import unittest
 from unittest import mock
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-COMPANION = os.path.join(ROOT, "companion")
-SERVER = os.path.join(COMPANION, "ga_companion.py")
-sys.path.insert(0, COMPANION)
+SERVER_DIR = os.path.join(ROOT, "server")
+SERVER = os.path.join(SERVER_DIR, "data_noodler.py")
+sys.path.insert(0, SERVER_DIR)
 
 import sessions  # noqa: E402
 
@@ -193,14 +193,14 @@ class TestResolveInsideApprovedPlaces(unittest.TestCase):
 class TestTheToolsSayWhereTheyWrote(unittest.TestCase):
 
     def setUp(self):
-        import ga_companion
-        self.mod = ga_companion
+        import data_noodler
+        self.mod = data_noodler
         self.home = os.path.realpath(tempfile.mkdtemp())
         self.project = os.path.join(self.home, "proj")
         os.makedirs(os.path.join(self.project, "_outputs"))
         places = sessions.build_places(
             sessions_root=os.path.join(self.home, "s"), project=self.project)
-        p = mock.patch.object(ga_companion, "_places", return_value=(
+        p = mock.patch.object(data_noodler, "_places", return_value=(
             places, "the folder the app started this server in"))
         p.start()
         self.addCleanup(p.stop)

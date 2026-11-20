@@ -9,7 +9,7 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))), "companion"))
+    os.path.abspath(__file__))), "server"))
 
 import guidance
 
@@ -346,7 +346,7 @@ class TestRoutingRuleIsWhereClaudeCodeLooks(unittest.TestCase):
     agent did exactly that, got 200 of 354 rows, and nearly reported from it.
 
     Corroborated independently: the agent that fixed this saw the same thing in
-    its own session -- ga-companion's full server instructions at start-up, and
+    its own session -- data-noodler's full server instructions at start-up, and
     its tools listed as names only.
     """
 
@@ -395,7 +395,7 @@ class TestNoInventedCutoffs(unittest.TestCase):
 
 SKILL_MD = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "marketplace", "plugins", "ga-analytics", "skills", "google-analytics",
+    "marketplace", "plugins", "data-noodler", "skills", "data-noodler",
     "SKILL.md")
 
 

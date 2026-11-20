@@ -11,7 +11,7 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))), "companion"))
+    os.path.abspath(__file__))), "server"))
 
 import gsc
 
@@ -218,13 +218,13 @@ class TestGscSearchAnalyticsToolClampsRowLimit(unittest.TestCase):
         import tempfile
 
         sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-            os.path.abspath(__file__))), "companion"))
-        import ga_companion
-        self.mod = ga_companion
+            os.path.abspath(__file__))), "server"))
+        import data_noodler
+        self.mod = data_noodler
         self.d = tempfile.mkdtemp()
         # Exports only go to approved places (#156); approve this temp folder.
         from unittest import mock as _mock
-        _p = _mock.patch.object(ga_companion, "_places", return_value=(
+        _p = _mock.patch.object(data_noodler, "_places", return_value=(
             {"sessions": self.d}, "test: sessions folder only"))
         _p.start()
         self.addCleanup(_p.stop)
@@ -246,8 +246,8 @@ class TestGscSearchAnalyticsToolClampsRowLimit(unittest.TestCase):
                     "sampled": False, "stopped_reason": None}
             return columns, rows, meta
 
-        self._real_search_analytics = ga_companion.gsc.search_analytics
-        ga_companion.gsc.search_analytics = fake_search_analytics
+        self._real_search_analytics = data_noodler.gsc.search_analytics
+        data_noodler.gsc.search_analytics = fake_search_analytics
 
     def tearDown(self):
         self.mod.gsc.search_analytics = self._real_search_analytics

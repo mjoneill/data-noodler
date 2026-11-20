@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ga-companion: the skill's shell-dependent capability, as MCP tools.
+"""data-noodler: the skill's shell-dependent capability, as MCP tools.
 
 Claude Desktop's normal chat has MCP tools but no shell and no skill
 mechanism, so lookup_property.py and mint_adc.py are unreachable there. This
@@ -53,7 +53,7 @@ os.environ.setdefault("GRPC_DNS_RESOLVER", "native")
 # which mcp 2.x leaves empty unless it is given.
 SERVER_VERSION = "2026.10.25"
 
-mcp = MCPServer("ga-companion", instructions=guidance.SERVER_INSTRUCTIONS,
+mcp = MCPServer("data-noodler", instructions=guidance.SERVER_INSTRUCTIONS,
                 version=SERVER_VERSION)
 
 # The SDK wraps every inbound message in an OpenTelemetry span, and that

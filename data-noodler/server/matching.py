@@ -1,6 +1,6 @@
 """Pure property-matching logic, free of MCP and config concerns.
 
-Mirrors the behaviour of the google-analytics skill's lookup_property.py so
+Mirrors the behaviour of the data-noodler skill's lookup_property.py so
 that the MCP tool and the CLI answer identically. Kept pure so it can be
 tested against a fixture CSV with no credential and no network.
 """
@@ -61,9 +61,9 @@ def property_id(row):
     return value if isinstance(value, str) and value.strip() else None
 
 
-# NOTE: skills/google-analytics/scripts/lookup_property.py -- shipped in
-# marketplace/plugins/ga-analytics/ and installed at
-# ~/.claude/skills/google-analytics/scripts/ -- carries a duplicate of this
+# NOTE: skills/data-noodler/scripts/lookup_property.py -- shipped in
+# marketplace/plugins/data-noodler/ and installed at
+# ~/.claude/skills/data-noodler/scripts/ -- carries a duplicate of this
 # rendering logic and still formats r['property_id'] directly, so it keeps the
 # TypeError this module no longer has. Consolidating the two is tracked
 # separately; whoever next touches either copy should fix or delete the other.

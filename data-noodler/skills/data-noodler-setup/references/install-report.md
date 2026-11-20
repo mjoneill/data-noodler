@@ -38,7 +38,7 @@ Show the user the finished report before they send it.
 ## Summary
 
 <Two or three sentences: did it work, where, and what it took.>
-verify.py: <Claude Code: exit N, analytics-mcp = N tools, ga-companion = N>;
+verify.py: <Claude Code: exit N, analytics-mcp = N tools, data-noodler = N>;
 <Claude Desktop: ...>; <Codex: ...>.
 Workarounds needed: <none | one line each>.
 

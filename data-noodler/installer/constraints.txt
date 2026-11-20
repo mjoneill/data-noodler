@@ -44,7 +44,7 @@
 # opentelemetry at <=1.44; google-adk 2.15.0 allows 1.45.2, which fixes it.
 # The parsing stays switched off anyway, as defence in depth: nothing here
 # exports traces, so parsing them buys nothing. OTEL_PROPAGATORS=none is set
-# in the launchers and the Windows entries, and ga-companion drops the SDK's
+# in the launchers and the Windows entries, and data-noodler drops the SDK's
 # tracing middleware. tests/test_mcp2_security.py holds the switch-off.
 #
 # pip is pinned too, so the venv's own pip is upgraded with -c: pip below

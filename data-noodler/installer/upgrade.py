@@ -64,9 +64,9 @@ sys.path.insert(0, HERE)
 import safe_write  # noqa: E402
 import security_floors  # noqa: E402
 
-PAYLOAD = ("companion", "bin", "marketplace")
+PAYLOAD = ("server", "bin", "marketplace")
 ANALYTICS_MCP = "analytics-mcp==1.1.0"
-TOOL_COUNTS = {"analytics-mcp": 10, "ga-companion": 15}
+TOOL_COUNTS = {"analytics-mcp": 10, "data-noodler": 15}
 # Tool-manager bookkeeping a rebuilt venv should keep, so `uv tool list` or
 # `pipx list` still recognise it.
 TOOL_RECEIPTS = ("uv-receipt.toml", "pipx_metadata.json")
@@ -162,7 +162,7 @@ def make_plan(repo_root=None, ga_home=None, config_path=None,
     except (OSError, ValueError) as exc:
         raise UpgradeError(
             f"Could not read {config_path} ({exc}). This upgrades an existing "
-            "install; for a new one, follow the ga-mcp-setup skill.")
+            "install; for a new one, follow the data-noodler-setup skill.")
     venv_python = os.path.expanduser(cfg.get("venv_python") or "")
     if not venv_python or not os.path.exists(venv_python):
         raise UpgradeError(
@@ -217,7 +217,7 @@ def running_servers(venv_dir, ga_home, platform, run_ps=None):
     # match .../venvs/analytics-mcp-dev or a kept analytics-mcp.old-<stamp>
     # (code review #8). Either separator: Windows command lines use both.
     roots = [venv_dir, os.path.join(ga_home, "bin"),
-             os.path.join(ga_home, "companion")]
+             os.path.join(ga_home, "server")]
     # Also the venv path itself followed by a quote, a space or the end of
     # the line: `python -m venv <venv_dir>` names it with no separator after
     # it (code review round 4).
@@ -295,7 +295,8 @@ def preflight(plan, config_paths, running=None):
         add(None, "Claude config", "none found -- the shared servers are "
             "still verified")
     codex = shutil.which("codex")
-    add(None, "Codex", f"installed ({codex}) -- refresh its plugin after"
+    add(None, "Codex", f"installed ({codex}) -- refresh its plugin after "
+        "(and retire the old-named one; see INSTALL.md section 8)"
         if codex else "not installed")
 
     hits = (running_servers(plan.venv_dir, plan.ga_home, plan.platform)
@@ -377,7 +378,7 @@ def prove_venv(plan, log):
     log("Checking the new venv imports what the servers need")
     _check("Import check", run([plan.venv_python, "-c",
                                 bootstrap_config.IMPORT_PROBE]))
-    companion = os.path.join(plan.dist, "companion", "ga_companion.py")
+    server_py = os.path.join(plan.dist, "server", "data_noodler.py")
     code = (
         "import json, os, sys\n"
         f"sys.path.insert(0, {os.path.join(plan.dist, 'installer')!r})\n"
@@ -387,13 +388,13 @@ def prove_venv(plan, log):
         " GA_MCP_CONFIG=sys.argv[1])\n"
         "out = {}\n"
         "for name, args in (('analytics-mcp', ['-m', 'analytics_mcp.server']),"
-        " ('ga-companion', [sys.argv[2]])):\n"
+        " ('data-noodler', [sys.argv[2]])):\n"
         "    r = verify.probe(sys.executable, args, env)\n"
         "    out[name] = len(r['tools']) if r['ok'] else r['error']\n"
         "print(json.dumps(out))\n")
     log("Starting both servers from the new package")
     out = _check("Server check", run([plan.venv_python, "-c", code,
-                                      plan.config_path, companion]))
+                                      plan.config_path, server_py]))
     # stdout and stderr arrive together; the servers log to stderr, so take
     # the one line that is the JSON result.
     counts = None
@@ -476,7 +477,7 @@ def verify_registered(plan, log, config_paths):
         _verify(plan, path, f"verify.py on {path}", names=True)
 
 
-OUR_SERVERS = ("analytics-mcp", "ga-companion")
+OUR_SERVERS = ("analytics-mcp", "data-noodler")
 STATE_FILE = ".upgrade-in-progress.json"
 
 
@@ -521,7 +522,9 @@ def _read_entries(path):
             servers = (json.load(f) or {}).get("mcpServers") or {}
     except (OSError, ValueError, AttributeError):
         servers = {}
-    return {name: servers.get(name) for name in OUR_SERVERS}
+    import register
+    return {name: servers.get(name)
+            for name in OUR_SERVERS + register.LEGACY_SERVERS}
 
 
 def new_state(plan, candidate_configs):
@@ -544,7 +547,7 @@ def new_state(plan, candidate_configs):
             "existed": os.path.exists(os.path.join(plan.ga_home, name)),
             "backups_before": sorted(glob.glob(
                 os.path.join(plan.ga_home, name) + ".ga-old-*"))}
-            for name in PAYLOAD},
+            for name in PAYLOAD + install.LEGACY_PAYLOAD},
         "sessions_root": {"path": sessions_root,
                           "existed": os.path.exists(sessions_root)},
         # Only OUR entries are recorded and put back: a config holds the
@@ -660,7 +663,10 @@ def _restore_config(path, info, stamp, log):
         servers = {}
     before = info.get("entries") or {}
     changed = False
-    for name in OUR_SERVERS:
+    import register
+    # #1999: the retired names are restored too, or an undone upgrade would
+    # leave an app with neither the old server nor the new one.
+    for name in OUR_SERVERS + register.LEGACY_SERVERS:
         old = before.get(name)
         if old is None and name in servers:
             del servers[name]

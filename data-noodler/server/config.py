@@ -1,7 +1,7 @@
-"""Config loader for the companion server.
+"""Config loader for the data-noodler server.
 
-Deliberately duplicates ~30 lines of the google-analytics skill's
-ga_config.py. The companion has to run in Claude Desktop's normal chat, where
+Deliberately duplicates ~30 lines of the data-noodler skill's
+ga_config.py. The data-noodler server has to run in Claude Desktop's normal chat, where
 no skill is installed and the skill's module is not importable, so it cannot
 depend on it. The two loaders read the same file and must stay compatible.
 """
@@ -14,7 +14,7 @@ CONFIG_PATH = os.path.expanduser("~/.config/ga-mcp/config.json")
 PATH_KEYS = ("oauth_client_file", "adc_file", "venv_python", "properties_csv")
 REQUIRED = PATH_KEYS
 
-SETUP_HINT = ("Run the ga-mcp-setup skill from Claude Code or Codex to finish "
+SETUP_HINT = ("Run the data-noodler-setup skill from Claude Code or Codex to finish "
               "installation.")
 
 
@@ -55,13 +55,13 @@ def load(path=None):
 # ~/.config/ga-mcp/. bootstrap_config.build_config writes this same path into
 # config.json as `mint_script`; this is the fallback for a config written
 # before that key existed. It deliberately does NOT name
-# ~/.claude/skills/google-analytics/scripts/mint_adc.py: nothing in the
-# install payload ("companion", "bin", "marketplace") creates ~/.claude/skills,
+# ~/.claude/skills/data-noodler/scripts/mint_adc.py: nothing in the
+# install payload ("server", "bin", "marketplace") creates ~/.claude/skills,
 # so on a clean machine that path does not exist and the renewal command --
 # the highest-value string this server produces, and the only diagnostic
 # channel Claude Desktop's chat has -- would point at nothing.
-DEFAULT_MINT_SCRIPT = ("~/.config/ga-mcp/marketplace/plugins/ga-analytics"
-                       "/skills/google-analytics/scripts/mint_adc.py")
+DEFAULT_MINT_SCRIPT = ("~/.config/ga-mcp/marketplace/plugins/data-noodler"
+                       "/skills/data-noodler/scripts/mint_adc.py")
 
 
 def renewal_command(cfg):

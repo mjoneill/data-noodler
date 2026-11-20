@@ -23,7 +23,7 @@ just-for-yourself setup), so do not decide by them.
 - **`maintainer` is filled in** → someone already set this package up, for
   themselves or for their team, organization or institution. You are
   installing or upgrading one more machine in that deployment. Go to
-  `skills/ga-mcp-setup/SKILL.md` and follow it; it reads `deployment.json` as
+  `skills/data-noodler-setup/SKILL.md` and follow it; it reads `deployment.json` as
   it goes.
 - **`maintainer` is blank** → nobody has set it up for this user yet. They may
   be an individual setting it up just for themselves, or someone setting it
@@ -70,9 +70,9 @@ Read, in this order, and summarize each for the user in a few sentences:
    an agent and tested code, and what the security posture is.
 2. `GOOGLE-CLOUD-SETUP.md`: how a deployment gets its own Google sign-in.
 3. `INSTALL.md`: the by-hand install, which is what the skill automates.
-4. `skills/ga-mcp-setup/SKILL.md`, and `references/windows.md` if any
+4. `skills/data-noodler-setup/SKILL.md`, and `references/windows.md` if any
    Windows machines are involved.
-5. `skills/ga-mcp-setup/references/troubleshooting.md`.
+5. `skills/data-noodler-setup/references/troubleshooting.md`.
 
 Say plainly what you found: what this package does well, what it assumes,
 and anything that does not fit the user's situation. It was first built and
@@ -112,19 +112,19 @@ have `ga-mcp-client.json`. Check it as the guide says (a Desktop client, an
   setup leaves `maintainer_contact` and `install_reports_to` blank on
   purpose. Blank team fields are a finished just-me setup, not an unfinished
   one.
-- `marketplace/plugins/ga-analytics/.codex-plugin/plugin.json`: the
+- `marketplace/plugins/data-noodler/.codex-plugin/plugin.json`: the
   `author`, `developerName` and the example prompts (`defaultPrompt`). Give
   them the user's own name, or their team's or organization's, and a real
   site of theirs. If you change
   anything in that plugin folder, bump its `version`; Codex caches by
   version.
-- The reporting guide (`companion/guidance.py`) uses `example.edu` sites as
+- The reporting guide (`server/guidance.py`) uses `example.edu` sites as
   illustrations. They work as they are; swapping in a real site of theirs is
   optional.
 
 ### 5. Install on the user's own machine
 
-Follow `skills/ga-mcp-setup/SKILL.md` from Step 1. It ends with `verify.py`
+Follow `skills/data-noodler-setup/SKILL.md` from Step 1. It ends with `verify.py`
 exiting 0 for every registered app, a live question answered in each app, and
 an install report (Step 10). This is the first install in the new deployment,
 so the report is worth keeping: it is the start of their own records.

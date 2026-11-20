@@ -111,11 +111,11 @@ class TestProbeReportsRatherThanFails(unittest.TestCase):
         home = tempfile.mkdtemp()
         with open(os.path.join(home, ".claude.json"), "w",
                   encoding="utf-8") as f:
-            json.dump({"mcpServers": {"ga-companion": {}, "some-other": {}}}, f)
+            json.dump({"mcpServers": {"data-noodler": {}, "some-other": {}}}, f)
         facts = probe.collect(home=home, env={}, platform=DARWIN,
                               check_imports=False)
         code = facts["harnesses"]["claude_code"]
-        self.assertEqual(code["ga_servers_registered"], ["ga-companion"])
+        self.assertEqual(code["ga_servers_registered"], ["data-noodler"])
         self.assertEqual(code["other_servers"], ["some-other"])
 
 

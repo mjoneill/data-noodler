@@ -121,9 +121,9 @@ class TestUpgrade(unittest.TestCase):
         self.assertEqual(self._marker(self.venv), "new")
         with open(self.claude_json) as f:
             servers = json.load(f)["mcpServers"]
-        self.assertIn("ga-companion", servers)
+        self.assertIn("data-noodler", servers)
         self.assertIn("someone-else", servers, "an unrelated server was lost")
-        self.assertTrue(os.path.isdir(os.path.join(self.ga_home, "companion")))
+        self.assertTrue(os.path.isdir(os.path.join(self.ga_home, "server")))
         self.assertEqual(os.stat(self.claude_json).st_mode & 0o777, 0o600)
         self.assertEqual(os.stat(self.config).st_mode & 0o777, 0o600)
 
@@ -139,7 +139,7 @@ class TestUpgrade(unittest.TestCase):
         # Skills are the agent's step (copy_skills.py), which protects a
         # master copy; the script must not overwrite them.
         skills = os.path.join(self.home, ".claude", "skills")
-        mine = os.path.join(skills, "google-analytics")
+        mine = os.path.join(skills, "data-noodler")
         os.makedirs(mine)
         with open(os.path.join(mine, "SKILL.md"), "w") as f:
             f.write("my unbuilt edits")
@@ -158,7 +158,7 @@ class TestUpgrade(unittest.TestCase):
                             for line in self.log))
 
     def test_a_running_app_stops_it_before_anything_changes(self):
-        plan, ok = self._upgrade(running=["python .../ga-mcp/companion/x"])
+        plan, ok = self._upgrade(running=["python .../ga-mcp/server/x"])
         self.assertFalse(ok)
         self.assertEqual(self._marker(self.venv), "old")
         self.assertFalse(os.path.exists(plan.old_venv))
@@ -178,7 +178,7 @@ class TestUpgrade(unittest.TestCase):
         self.assertEqual(self._marker(self.venv), "old")
         self.assertFalse(os.path.exists(plan.old_venv))
         self.assertFalse(os.path.exists(os.path.join(self.ga_home,
-                                                     "companion")))
+                                                     "server")))
 
     def test_a_failed_verify_restores_venv_and_previous_payload(self):
         # A previous payload, made by a real install, with a sentinel in it.
@@ -188,7 +188,7 @@ class TestUpgrade(unittest.TestCase):
                             "--payload-only"], env=self.env,
                            capture_output=True, text=True)
         self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
-        sentinel = os.path.join(self.ga_home, "companion", "PREVIOUS")
+        sentinel = os.path.join(self.ga_home, "server", "PREVIOUS")
         with open(sentinel, "w") as f:
             f.write("previous payload")
         self.fail_on = "claude.json"
@@ -278,11 +278,11 @@ class TestUpgrade(unittest.TestCase):
         ancient = os.path.join(self.ga_home, "companion.ga-old-20200101-000000")
         os.makedirs(ancient)
         open(os.path.join(ancient, "ANCIENT"), "w").close()
-        open(os.path.join(self.ga_home, "companion", "PREVIOUS"), "w").close()
+        open(os.path.join(self.ga_home, "server", "PREVIOUS"), "w").close()
         self.fail_on = "claude.json"
         plan, ok = self._upgrade()
         self.assertFalse(ok)
-        self.assertTrue(os.path.exists(os.path.join(self.ga_home, "companion",
+        self.assertTrue(os.path.exists(os.path.join(self.ga_home, "server",
                                                     "PREVIOUS")))
         self.assertTrue(os.path.exists(os.path.join(ancient, "ANCIENT")),
                         "an older backup was used or touched")
@@ -326,7 +326,7 @@ class TestUpgrade(unittest.TestCase):
         with open(self.claude_json) as f:
             data = json.load(f)
         self.assertEqual(data["projects"], {"/x": {"saved": "by the app"}})
-        self.assertNotIn("ga-companion", data["mcpServers"])
+        self.assertNotIn("data-noodler", data["mcpServers"])
         self.assertIn("someone-else", data["mcpServers"])
 
     def test_the_undo_never_loosens_a_config_back_to_0644(self):
@@ -441,7 +441,7 @@ class TestUpgrade(unittest.TestCase):
         self.assertFalse(ok)
         self.assertEqual(self._marker(self.venv), "old")
         with open(self.claude_json) as f:
-            self.assertNotIn("ga-companion", json.load(f)["mcpServers"])
+            self.assertNotIn("data-noodler", json.load(f)["mcpServers"])
         self.assertIsNone(upgrade.load_state(self.ga_home))
 
     def test_a_second_ctrl_c_while_reporting_does_not_stop_the_undo(self):
@@ -464,7 +464,7 @@ class TestUpgrade(unittest.TestCase):
             upgrade.make_plan(repo_root=REPO, ga_home=self.ga_home,
                               config_path=self.config), []))
         ok = upgrade.recover(self.ga_home, log=self.log.append,
-                             running=["python /x/ga-mcp/companion/y"])
+                             running=["python /x/ga-mcp/server/y"])
         self.assertFalse(ok)
         self.assertIsNotNone(upgrade.load_state(self.ga_home))
 

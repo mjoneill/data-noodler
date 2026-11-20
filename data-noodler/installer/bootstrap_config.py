@@ -194,13 +194,13 @@ def venv_python_for(binary_path, platform=None):
 
 # Where install.py's payload puts the consent script: the marketplace plugin
 # copy under ~/.config/ga-mcp/. This is the only copy an install of any kind
-# is guaranteed to create -- install.py's payload is exactly ("companion",
+# is guaranteed to create -- install.py's payload is exactly ("server",
 # "bin", "marketplace"), so nothing here ever writes ~/.claude/skills/, and a
 # renewal command naming a path there is a command a clean machine cannot run.
 # Kept as a relative tuple so a test can assert the same path exists inside
 # the repo's own marketplace tree, which is what the payload copies from.
 MINT_SCRIPT_PARTS = (".config", "ga-mcp", "marketplace", "plugins",
-                     "ga-analytics", "skills", "google-analytics", "scripts",
+                     "data-noodler", "skills", "data-noodler", "scripts",
                      "mint_adc.py")
 
 

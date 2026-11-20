@@ -12,7 +12,7 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))), "companion"))
+    os.path.abspath(__file__))), "server"))
 
 import gsc
 
@@ -164,7 +164,7 @@ class TestInspectUrls(unittest.TestCase):
         self.assertIn("stopped_reason", meta)
 
     def test_the_module_records_site_type_not_just_the_tool_layer(self):
-        # site_type used to be attached in ga_companion, so a direct caller
+        # site_type used to be attached in data_noodler, so a direct caller
         # got a sidecar with no record of what the site_url covers -- while
         # search_analytics recorded it here all along.
         s = _SeqSession([_payload()])

@@ -5,15 +5,15 @@
 #
 # Cannot test the consent flow (that needs a browser and a human) or the real
 # apps (they read the real HOME). What it does prove:
-#   - the payload (companion/, bin/, marketplace/) installs into a bare
+#   - the payload (server/, bin/, marketplace/) installs into a bare
 #     .config/ga-mcp with no prior state;
-#   - launch-ga-companion exits non-zero, writes nothing to stdout, and names
+#   - launch-data-noodler exits non-zero, writes nothing to stdout, and names
 #     the setup skill on stderr when no config.json exists at all -- this is
 #     the "nothing installed yet" case, not a credential case: this launcher's
 #     own absent-credential path is deliberately non-fatal (see below), so it
 #     is never exercised here;
-#   - launch-ga-mcp's absent-credential path IS fatal, unlike
-#     launch-ga-companion's -- that asymmetry gets its own check further down;
+#   - launch-analytics-mcp's absent-credential path IS fatal, unlike
+#     launch-data-noodler's -- that asymmetry gets its own check further down;
 #   - registration creates Claude Code and Claude Desktop configs from
 #     nothing and is idempotent;
 #   - bootstrap_config.py generates a config anchored to the fake home and
@@ -36,16 +36,16 @@ echo "== payload installs into a clean home"
 "$VENV_PY" "$REPO/data-noodler/installer/install.py" \
   --repo-root "$REPO" --ga-home "$FAKE_HOME/.config/ga-mcp" --payload-only
 
-echo "== launch-ga-companion fails cleanly with no config at all"
+echo "== launch-data-noodler fails cleanly with no config at all"
 set +e
 GA_HOME="$FAKE_HOME/.config/ga-mcp" \
-  "$FAKE_HOME/.config/ga-mcp/bin/launch-ga-companion" \
+  "$FAKE_HOME/.config/ga-mcp/bin/launch-data-noodler" \
   >"$FAKE_HOME/out" 2>"$FAKE_HOME/err"
 CODE=$?
 set -e
 [ "$CODE" -ne 0 ] || { echo "FAIL: launcher exited 0 with no config"; exit 1; }
 [ ! -s "$FAKE_HOME/out" ] || { echo "FAIL: launcher wrote to stdout"; exit 1; }
-grep -q "ga-mcp-setup" "$FAKE_HOME/err" || {
+grep -q "data-noodler-setup" "$FAKE_HOME/err" || {
   echo "FAIL: error does not name the setup skill"; exit 1; }
 echo "   ok: exit=$CODE, stdout empty, stderr names the skill"
 
@@ -90,7 +90,7 @@ echo "== the renewal command names a file that actually exists"
 # author's machine. Checking inside the throwaway home is what catches that.
 "$VENV_PY" - <<PY
 import os, sys
-sys.path.insert(0, "$REPO/data-noodler/companion")
+sys.path.insert(0, "$REPO/data-noodler/server")
 import config
 cfg = config.load("$CFG")
 script = cfg["mint_script"]
@@ -109,27 +109,27 @@ echo "== a second run refuses to overwrite"
   || { echo "FAIL: second run did not refuse"; exit 1; }
 echo "   ok: refused to overwrite"
 
-echo "== launch-ga-mcp fails fatally with a config present but no credential"
-# Asymmetric by design, and worth spelling out: launch-ga-companion's
+echo "== launch-analytics-mcp fails fatally with a config present but no credential"
+# Asymmetric by design, and worth spelling out: launch-data-noodler's
 # absent-credential path checked above is NOT fatal, because
 # credential_status must stay callable so the model can explain the fix.
-# launch-ga-mcp execs the real upstream analytics-mcp server instead, which
-# cannot do anything useful without a credential, so for launch-ga-mcp an
+# launch-analytics-mcp execs the real upstream analytics-mcp server instead, which
+# cannot do anything useful without a credential, so for launch-analytics-mcp an
 # absent credential IS fatal. bootstrap_config.py above never ran consent in
 # this fake home, so the config it just wrote already names an adc_file that
 # does not exist -- exactly the case this exercises.
 set +e
 GA_HOME="$FAKE_HOME/.config/ga-mcp" \
-  "$FAKE_HOME/.config/ga-mcp/bin/launch-ga-mcp" \
+  "$FAKE_HOME/.config/ga-mcp/bin/launch-analytics-mcp" \
   >"$FAKE_HOME/out2" 2>"$FAKE_HOME/err2"
 CODE=$?
 set -e
 [ "$CODE" -ne 0 ] || {
-  echo "FAIL: launch-ga-mcp exited 0 with no credential"; exit 1; }
+  echo "FAIL: launch-analytics-mcp exited 0 with no credential"; exit 1; }
 [ ! -s "$FAKE_HOME/out2" ] || {
-  echo "FAIL: launch-ga-mcp wrote to stdout"; exit 1; }
-grep -q "ga-mcp-setup" "$FAKE_HOME/err2" || {
-  echo "FAIL: launch-ga-mcp error does not name the setup skill"; exit 1; }
+  echo "FAIL: launch-analytics-mcp wrote to stdout"; exit 1; }
+grep -q "data-noodler-setup" "$FAKE_HOME/err2" || {
+  echo "FAIL: launch-analytics-mcp error does not name the setup skill"; exit 1; }
 echo "   ok: exit=$CODE, stdout empty, stderr names the skill"
 
 echo "== PASS: clean-home dry run"

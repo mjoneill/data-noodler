@@ -25,13 +25,13 @@ this document is what those installs taught.
  Each AI app (Claude Code, Claude Desktop, Codex, ...)
    │  starts as child processes, over stdio:
    ├── analytics-mcp     Google's own GA4 MCP server, unmodified, pinned
-   └── companion server  yours: lookup, credential check, exports, Search Console
+   └── data-noodler server  yours: lookup, credential check, exports, Search Console
           │
           ▼  both read:
    ~/.config/<yourtool>/
        config.json        this machine's paths (credential, venv python, snapshot)
        properties.csv     local snapshot of every GA property the user can see
-       companion/         the companion's code (a copy, made by the installer)
+       server/         data-noodler's code (a copy, made by the installer)
        bin/               launcher scripts that set the environment, then exec
        marketplace/       the Codex plugin (optional)
    ~/.config/gcloud/
@@ -60,18 +60,18 @@ Google publishes `analytics-mcp` on PyPI (about 9 tools: reports, realtime,
 funnels, property details, custom dimensions). Use it unmodified and **pin an
 exact version**. Never enable its optional write tool.
 
-Then build a second server, the "companion", for everything Google's server
+Then build a second server, the "server", for everything Google's server
 doesn't do. Don't fork Google's server. A fork has to be maintained, while a
 sibling server only has to keep working.
 
-### Why the companion exists: some apps have tools but no shell
+### Why the data-noodler server exists: some apps have tools but no shell
 
 Claude Desktop's normal chat can call MCP tools, but it has **no shell and no
 skill mechanism**. Anything you would normally do with a helper script, such
 as looking up a property ID, checking whether the credential has expired or
 renewing a stale snapshot, can't happen there unless it is an MCP tool. That
 single fact drove the design. If every app your users run has a shell, you
-need less of the companion. Most people's apps don't.
+need less of the data-noodler server. Most people's apps don't.
 
 ### Each person signs in with their own Google account
 
@@ -209,7 +209,7 @@ in both. The rules we found necessary:
 An organization's GA account can hold hundreds of properties.
 `get_account_summaries` returns all of them, about 20k tokens, to answer
 "what's the ID for site X". Instead, keep a local `properties.csv` snapshot
-built from the Admin API, and give the companion a `lookup_property` tool that
+built from the Admin API, and give the data-noodler server a `lookup_property` tool that
 returns only matches, at about 300 tokens. Report exact matches separately
 from partial ones, because a substring like `example.org` matches every
 subdomain property while exactly one is the parent site. Provide
@@ -354,7 +354,7 @@ Google's `analytics-mcp`: `get_account_summaries`, `get_property_details`,
 `run_funnel_report`, `run_conversions_report` (the set varies by version, so
 pin it).
 
-Companion (15):
+data-noodler (15):
 
 | Tool | What it does |
 |---|---|
@@ -534,7 +534,7 @@ Each step ends verified before the next begins.
 1. Cloud project, Desktop OAuth client, mint script, with exactly two
    scopes printed back. Ask one question through Google's `analytics-mcp` in
    Claude Code.
-2. Companion with `lookup_property`, `credential_status`,
+2. data-noodler with `lookup_property`, `credential_status`,
    `refresh_property_snapshot`, `reporting_guide`. Unit tests, plus a real
    MCP handshake test asserting the tool names.
 3. Launchers and `config.json`. Test that a missing credential gives a stderr

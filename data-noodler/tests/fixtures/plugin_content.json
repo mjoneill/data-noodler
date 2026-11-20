@@ -1,5 +1,5 @@
 {
-  "version": "0.7.5",
-  "sha256": "41c34fd6d9fe1a846ae78e12be48a78fde7d03ea4cb344cd4821215d4006ff27",
-  "recorded_from": "the repo at release, 2026-11-20 (package folder renamed to data-noodler/, plugin developer name Data Noodler; #1998)"
+  "version": "0.8.0",
+  "sha256": "3ccc61dae11e4495d70e1abc4009b22950f52930b8fe61634758a19eb2a82cf8",
+  "recorded_from": "the repo at release, 2026-11-20 (one product name: plugin, skill and marketplace are all data-noodler, display name Data Noodler; #1999)"
 }

@@ -135,7 +135,7 @@ command can end up with different trees.
 
 ## Why there is no launcher
 
-`bin/launch-ga-mcp` and `bin/launch-ga-companion` are `/bin/sh` scripts that
+`bin/launch-analytics-mcp` and `bin/launch-data-noodler` are `/bin/sh` scripts that
 use `/usr/bin/plutil` to read config.json. Neither exists on Windows.
 
 They were not ported, and the alternatives were rejected for measured reasons:
@@ -156,10 +156,10 @@ Instead the registered entry names the interpreter directly. This shape was
 `claude mcp add` and Claude Code reported ✓ Connected.
 
 ```json
-"ga-companion": {
+"data-noodler": {
   "type": "stdio",
   "command": "C:\\Users\\<user>\\.config\\ga-mcp\\venv\\Scripts\\python.exe",
-  "args": ["C:\\Users\\<user>\\.config\\ga-mcp\\companion\\ga_companion.py"],
+  "args": ["C:\\Users\\<user>\\.config\\ga-mcp\\server\\data_noodler.py"],
   "env": {
     "GRPC_DNS_RESOLVER": "native",
     "GOOGLE_APPLICATION_CREDENTIALS": "C:\\Users\\<user>\\.config\\gcloud\\adc-ga-personal.json"
@@ -181,7 +181,7 @@ denied`, and the Defender Operational log held event 1121 naming the file.
 On the 2026-10-05 machine the same `.exe` ran, so the rule varies by machine
 and can arrive later with an IT policy push.
 
-So `install.py` registers analytics-mcp the way ga-companion already ran:
+So `install.py` registers analytics-mcp the way data-noodler already ran:
 
 ```json
 "analytics-mcp": {
@@ -275,7 +275,7 @@ use `[System.IO.File]::WriteAllText`, or PowerShell 7's `-Encoding utf8NoBOM`.
 | OAuth client | `%USERPROFILE%\.config\gcloud\ga-mcp-client.json` — **not in the package**; get it from your maintainer directly (`deployment.json`), or make your own: `GOOGLE-CLOUD-SETUP.md` |
 
 `~/.config/ga-mcp` is not idiomatic Windows — `%LOCALAPPDATA%` would be — but
-it is deliberate. The companion's config loader and the export denylist both
+it is deliberate. data-noodler's config loader and the export denylist both
 encode that path already, and one fewer divergence between platforms is worth
 more than matching convention. Do not "fix" it.
 

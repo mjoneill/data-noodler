@@ -13,7 +13,7 @@ import types
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))), "companion"))
+    os.path.abspath(__file__))), "server"))
 
 import ga_export
 
@@ -364,13 +364,13 @@ class TestExportReportToolWiring(unittest.TestCase):
         import tempfile
 
         sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-            os.path.abspath(__file__))), "companion"))
-        import ga_companion
-        self.mod = ga_companion
+            os.path.abspath(__file__))), "server"))
+        import data_noodler
+        self.mod = data_noodler
         self.d = tempfile.mkdtemp()
         # Exports only go to approved places (#156); approve this temp folder.
         from unittest import mock as _mock
-        _p = _mock.patch.object(ga_companion, "_places", return_value=(
+        _p = _mock.patch.object(data_noodler, "_places", return_value=(
             {"sessions": self.d}, "test: sessions folder only"))
         _p.start()
         self.addCleanup(_p.stop)
@@ -387,10 +387,10 @@ class TestExportReportToolWiring(unittest.TestCase):
                          dimension_filter),
                      "sampled": False, "row_limit_hit": False})
 
-        self._real_run = ga_companion.ga_export.run
-        self._real_cfg = ga_companion._cfg
-        ga_companion.ga_export.run = fake_run
-        ga_companion._cfg = lambda: {}
+        self._real_run = data_noodler.ga_export.run
+        self._real_cfg = data_noodler._cfg
+        data_noodler.ga_export.run = fake_run
+        data_noodler._cfg = lambda: {}
 
     def tearDown(self):
         self.mod.ga_export.run = self._real_run
@@ -489,13 +489,13 @@ class TestExportReportToolLayerWithTheRealReportCode(unittest.TestCase):
         import tempfile
 
         sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-            os.path.abspath(__file__))), "companion"))
-        import ga_companion
-        self.mod = ga_companion
+            os.path.abspath(__file__))), "server"))
+        import data_noodler
+        self.mod = data_noodler
         self.d = tempfile.mkdtemp()
         # Exports only go to approved places (#156); approve this temp folder.
         from unittest import mock as _mock
-        _p = _mock.patch.object(ga_companion, "_places", return_value=(
+        _p = _mock.patch.object(data_noodler, "_places", return_value=(
             {"sessions": self.d}, "test: sessions folder only"))
         _p.start()
         self.addCleanup(_p.stop)
@@ -504,9 +504,9 @@ class TestExportReportToolLayerWithTheRealReportCode(unittest.TestCase):
         self.client = _FakeClient(resp)
 
         self._real_client_factory = ga_export._client
-        self._real_cfg = ga_companion._cfg
+        self._real_cfg = data_noodler._cfg
         ga_export._client = lambda: self.client
-        ga_companion._cfg = lambda: {}
+        data_noodler._cfg = lambda: {}
 
     def tearDown(self):
         ga_export._client = self._real_client_factory
@@ -873,7 +873,7 @@ class TestTheExportToolTellsTheAgentAboutRepeats(unittest.TestCase):
 
     def test_the_tool_doc_names_duplicate_rows_and_forbids_analysis(self):
         sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-            os.path.abspath(__file__))), "companion"))
+            os.path.abspath(__file__))), "server"))
         import guidance
         doc = " ".join(guidance.GSC_TOOL_DOCS["export_report"].split())
         self.assertIn("duplicate_rows is above 0", doc)

@@ -135,7 +135,7 @@ class TestEveryInstallPathUsesThePins(unittest.TestCase):
                 if l.strip().startswith("uv tool install analytics-mcp")]
 
     def test_every_macos_install_command_names_the_constraints(self):
-        for doc in (("INSTALL.md",), ("skills", "ga-mcp-setup", "SKILL.md")):
+        for doc in (("INSTALL.md",), ("skills", "data-noodler-setup", "SKILL.md")):
             lines = self._uv_install_lines(self._read(self.DIST, *doc))
             self.assertTrue(lines, doc)
             for line in lines:
@@ -143,7 +143,7 @@ class TestEveryInstallPathUsesThePins(unittest.TestCase):
                 self.assertIn("constraints.txt", line, f"{doc}: {line}")
 
     def test_the_windows_pip_upgrade_is_pinned_too(self):
-        text = self._read(self.DIST, "skills", "ga-mcp-setup", "references",
+        text = self._read(self.DIST, "skills", "data-noodler-setup", "references",
                           "windows.md")
         pip_lines = [l for l in text.splitlines() if "-m pip install" in l]
         self.assertTrue(pip_lines)
@@ -158,7 +158,7 @@ class TestEveryInstallPathUsesThePins(unittest.TestCase):
         self.assertTrue(any('"pip @ ' in l for l in pip_lines))
 
     def test_the_skill_refreshes_libraries_on_upgrade(self):
-        text = self._read(self.DIST, "skills", "ga-mcp-setup", "SKILL.md")
+        text = self._read(self.DIST, "skills", "data-noodler-setup", "SKILL.md")
         self.assertIn("On an upgrade: refresh the libraries", text)
         self.assertIn("below_floor", text)
         self.assertIn("installer/upgrade.py", text)

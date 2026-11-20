@@ -1,4 +1,4 @@
-"""The skill must document the companion tools and not duplicate their logic.
+"""The skill must document the data-noodler server tools and not duplicate their logic.
 
 One implementation of property lookup and snapshot refresh, or the two drift
 and a colleague gets different answers depending on which harness they used.
@@ -8,22 +8,22 @@ import os
 import unittest
 
 # The repository's own copies. These once read the INSTALLED skill and
-# companion (~/.claude/skills, ~/.config/ga-mcp), which on the old maintainer
+# server (~/.claude/skills, ~/.config/ga-mcp), which on the old maintainer
 # machine was the master everything was built from. The repository is the
 # upstream now, so the tests protect what it ships: a fresh checkout or a CI
 # runner has nothing installed, and on a machine that has, they would test
 # whatever version happened to be there.
 DIST = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SKILL = os.path.join(DIST, "marketplace", "plugins", "ga-analytics", "skills",
-                     "google-analytics")
+SKILL = os.path.join(DIST, "marketplace", "plugins", "data-noodler", "skills",
+                     "data-noodler")
 
 
-class TestSkillDocumentsCompanion(unittest.TestCase):
+class TestSkillDocumentsTheDataNoodlerServer(unittest.TestCase):
     def setUp(self):
         with open(os.path.join(SKILL, "SKILL.md")) as f:
             self.text = f.read()
 
-    def test_mentions_each_companion_tool(self):
+    def test_mentions_each_data_noodler_tool(self):
         for tool in ("lookup_property", "credential_status",
                      "refresh_property_snapshot", "reporting_guide"):
             self.assertIn(tool, self.text, tool)
@@ -47,7 +47,7 @@ class TestRefreshDelegates(unittest.TestCase):
         # the script must actually call the shared function.
         self.assertIn("snapshot.rebuild(", body)
         # The Admin API enumeration must exist in exactly one place now: the
-        # companion's snapshot module. Any independent enumeration here would
+        # data-noodler's snapshot module. Any independent enumeration here would
         # have to import analytics_mcp to talk to the Admin API at all, under
         # whatever method name, so ruling out the import -- not just the one
         # method name -- catches a differently-named duplicate too.
@@ -55,12 +55,12 @@ class TestRefreshDelegates(unittest.TestCase):
         self.assertNotIn("analytics_mcp", body)
         self.assertNotIn("create_admin_api_client", body)
 
-    def test_companion_tool_calls_the_same_shared_rebuild(self):
+    def test_the_server_tool_calls_the_same_shared_rebuild(self):
         # Makes the "one implementation, two front ends" property explicit:
-        # the companion's own MCP tool handler goes through snapshot.rebuild
+        # data-noodler's own MCP tool handler goes through snapshot.rebuild
         # too, not a second copy of the enumeration.
-        companion_source = os.path.join(DIST, "companion", "ga_companion.py")
-        with open(companion_source) as f:
+        server_source = os.path.join(DIST, "server", "data_noodler.py")
+        with open(server_source) as f:
             body = f.read()
         self.assertIn("snapshot.rebuild(", body)
 

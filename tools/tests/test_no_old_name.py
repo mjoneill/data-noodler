@@ -1,23 +1,76 @@
-"""#1998: the package folder was renamed from its working name to
-data-noodler/ before strangers started installing. Nothing tracked may
-send a reader or a script to the old folder."""
+"""#1998 and #1999: one name for everything that is ours.
+
+The package folder was renamed from its working name to data-noodler/ (#1998),
+then every product name followed (#1999). Michael, 2026-11-20: "we can't have
+multiple different names for the same thing. Google names their piece...we
+won't touch that." So analytics-mcp, Google's server, keeps its name, and
+nothing tracked may use one of our old names, except where it names them to
+retire them from an existing install.
+"""
 
 import os
+import re
 import subprocess
 import unittest
 
 TOP = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OLD = "ga-mcp" + "-dist"
+
+# Built from parts so this file does not match its own check.
+OLD_FOLDER = "ga-mcp" + "-dist"
+OLD_NAMES = [
+    "ga-" + "companion", "ga_" + "companion", "com" + "panion",
+    "ga-mcp" + "-setup", "ga-" + "analytics", "ga-" + "tools",
+    "launch-" + "ga-",
+    # google-analytics, except Google's own packages of that name.
+    r"google-" + r"analytics(?!-(?:admin|data))",
+]
+
+# The only places an old name may appear: the code that retires it from an
+# existing install, the tests of that code, and the history notes beside them.
+RETIREMENT = {
+    "data-noodler/installer/install.py",
+    "data-noodler/installer/register.py",
+    "data-noodler/installer/copy_skills.py",
+    "data-noodler/skills/data-noodler-setup/SKILL.md",
+    "data-noodler/INSTALL.md",
+    "data-noodler/tests/test_one_name.py",
+    "data-noodler/tests/test_install_payload.py",
+    "data-noodler/tests/test_upgrade.py",
+    "data-noodler/tests/test_register.py",
+    "tools/tests/test_no_old_name.py",  # this check names what it forbids
+}
 
 
-class TestTheOldFolderNameIsGone(unittest.TestCase):
+def _grep(pattern):
+    r = subprocess.run(["git", "grep", "-n", "-I", "-P", pattern], cwd=TOP,
+                       capture_output=True, text=True)
+    return [line for line in r.stdout.splitlines() if line]
+
+
+class TestTheOldNamesAreGone(unittest.TestCase):
     def test_the_package_folder_is_data_noodler(self):
         self.assertTrue(os.path.isfile(os.path.join(TOP, "data-noodler", "START-HERE.md")))
-        self.assertFalse(os.path.exists(os.path.join(TOP, OLD)))
+        self.assertFalse(os.path.exists(os.path.join(TOP, OLD_FOLDER)))
 
     def test_no_tracked_file_names_the_old_folder(self):
-        r = subprocess.run(["git", "grep", "-l", OLD], cwd=TOP, capture_output=True, text=True)
-        self.assertEqual(r.stdout.strip(), "", "still names the old folder:\n" + r.stdout)
+        self.assertEqual(_grep(re.escape(OLD_FOLDER)), [])
+
+    def test_old_product_names_appear_only_where_they_are_retired(self):
+        stray = []
+        for pattern in OLD_NAMES:
+            for line in _grep("(?i)" + pattern):
+                path = line.split(":", 1)[0]
+                if path not in RETIREMENT:
+                    stray.append(line[:160])
+        self.assertEqual(stray, [], "an old name outside the retirement code:\n"
+                         + "\n".join(stray))
+
+    def test_no_tracked_path_uses_an_old_name(self):
+        r = subprocess.run(["git", "ls-files"], cwd=TOP, capture_output=True,
+                           text=True)
+        stray = [p for p in r.stdout.splitlines()
+                 if any(re.search("(?i)" + n, p) for n in OLD_NAMES)]
+        self.assertEqual(stray, [])
 
 
 if __name__ == "__main__":

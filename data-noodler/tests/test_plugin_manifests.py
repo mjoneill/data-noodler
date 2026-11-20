@@ -13,7 +13,7 @@ import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MKT = os.path.join(ROOT, "marketplace")
-PLUGIN = os.path.join(MKT, "plugins", "ga-analytics")
+PLUGIN = os.path.join(MKT, "plugins", "data-noodler")
 
 
 class TestMarketplaceIndex(unittest.TestCase):
@@ -26,10 +26,10 @@ class TestMarketplaceIndex(unittest.TestCase):
                                "marketplace.json")) as f:
             data = json.load(f)
         names = [p["name"] for p in data["plugins"]]
-        self.assertIn("ga-analytics", names)
-        entry = next(p for p in data["plugins"] if p["name"] == "ga-analytics")
+        self.assertIn("data-noodler", names)
+        entry = next(p for p in data["plugins"] if p["name"] == "data-noodler")
         self.assertEqual(entry["source"]["source"], "local")
-        self.assertEqual(entry["source"]["path"], "./plugins/ga-analytics")
+        self.assertEqual(entry["source"]["path"], "./plugins/data-noodler")
         # Verify the path it names actually exists on disk relative to marketplace
         resolved_path = os.path.join(MKT, entry["source"]["path"])
         self.assertTrue(os.path.isdir(resolved_path),
@@ -47,7 +47,7 @@ class TestPluginManifest(unittest.TestCase):
         with open(os.path.join(MKT, ".agents", "plugins",
                                "marketplace.json")) as f:
             marketplace = json.load(f)
-        entry = next(p for p in marketplace["plugins"] if p["name"] == "ga-analytics")
+        entry = next(p for p in marketplace["plugins"] if p["name"] == "data-noodler")
         self.assertEqual(self.manifest["name"], entry["name"])
 
     def test_declares_a_skills_directory(self):
@@ -74,11 +74,11 @@ class TestMcpManifest(unittest.TestCase):
 
     def test_declares_both_servers(self):
         self.assertEqual(set(self.mcp["mcpServers"]),
-                         {"analytics-mcp", "ga-companion"})
+                         {"analytics-mcp", "data-noodler"})
 
     def test_servers_start_in_the_project_not_the_plugin_folder(self):
         # With "cwd": "." Codex started our servers in its plugin cache, so
-        # ga-companion could never see the project (#165, measured
+        # data-noodler could never see the project (#165, measured
         # 2026-10-25). A plugin server WITHOUT cwd starts in the folder Codex
         # was opened in -- measured with a probe plugin the same day.
         for name, entry in self.mcp["mcpServers"].items():
@@ -88,8 +88,8 @@ class TestMcpManifest(unittest.TestCase):
                 self.assertFalse(any(a.startswith("./") for a in entry["args"]))
 
     def test_servers_run_the_installed_launchers(self):
-        launchers = {"analytics-mcp": "launch-ga-mcp",
-                     "ga-companion": "launch-ga-companion"}
+        launchers = {"analytics-mcp": "launch-analytics-mcp",
+                     "data-noodler": "launch-data-noodler"}
         for name, entry in self.mcp["mcpServers"].items():
             with self.subTest(server=name):
                 self.assertEqual(entry["command"], "/bin/sh")
@@ -122,21 +122,21 @@ class TestTheEntriesActuallyRun(unittest.TestCase):
 
     def test_a_missing_launcher_fails_loudly_on_stderr(self):
         import tempfile
-        p, _ = self._run("ga-companion", tempfile.mkdtemp())
+        p, _ = self._run("data-noodler", tempfile.mkdtemp())
         self.assertNotEqual(p.returncode, 0)
         self.assertEqual(p.stdout, "")
-        self.assertIn("ga-mcp-setup", p.stderr)
+        self.assertIn("data-noodler-setup", p.stderr)
 
     def test_the_launcher_runs_in_the_project_folder(self):
         import tempfile
         ga_home = tempfile.mkdtemp()
         os.makedirs(os.path.join(ga_home, "bin"))
-        for launcher in ("launch-ga-mcp", "launch-ga-companion"):
+        for launcher in ("launch-analytics-mcp", "launch-data-noodler"):
             path = os.path.join(ga_home, "bin", launcher)
             with open(path, "w") as f:
                 f.write("#!/bin/sh\npwd -P\n")
             os.chmod(path, 0o755)
-        for name in ("analytics-mcp", "ga-companion"):
+        for name in ("analytics-mcp", "data-noodler"):
             p, project = self._run(name, ga_home)
             self.assertEqual(p.returncode, 0, p.stderr)
             self.assertEqual(p.stdout.strip(), os.path.realpath(project))
@@ -166,7 +166,7 @@ class TestPluginVersionMovesWithItsContents(unittest.TestCase):
     """The plugin's version must change whenever what it ships changes.
 
     Found 2026-10-06. Codex caches an installed plugin under a directory named
-    for its version -- ~/.codex/plugins/cache/ga-tools/ga-analytics/0.2.0/ --
+    for its version -- ~/.codex/plugins/cache/data-noodler/data-noodler/0.2.0/ --
     so a reinstall at the same version has nothing telling it to look again.
     mint_adc.py, ga_config.py and setup.md had all changed since 0.2.0 shipped
     on 2026-09-04, and the version was still 0.2.0: every Codex install
@@ -178,7 +178,7 @@ class TestPluginVersionMovesWithItsContents(unittest.TestCase):
     recorded. Both steps are deliberate acts, which is the point.
     """
 
-    PLUGIN = os.path.join(ROOT, "marketplace", "plugins", "ga-analytics")
+    PLUGIN = os.path.join(ROOT, "marketplace", "plugins", "data-noodler")
     FIXTURE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            "fixtures", "plugin_content.json")
 

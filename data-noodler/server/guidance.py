@@ -134,7 +134,7 @@ failing in a way that looks like the renewal did not work.
 
 There is no separate connector process to restart. Both MCP servers are
 stdio child processes of whichever client launched them -- analytics-mcp and
-ga-companion start when the client starts and die when it exits. There is
+data-noodler start when the client starts and die when it exits. There is
 nothing running in between that could have stalled or crashed on its own.
 
 Measured cold and warm timings, so "slow" has a number attached: ~0.6s to

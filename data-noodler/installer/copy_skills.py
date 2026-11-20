@@ -8,7 +8,7 @@ not upgrade.py: skills are per app, and only Claude Code reads
 The rule (decided 2026-10-25): a skill folder is refreshed only when this
 package put it there, which the marker file inside it records. A folder
 without the marker is someone's own -- on the maintainer's machine,
-~/.claude/skills/google-analytics is the MASTER copy everything is built
+~/.claude/skills/data-noodler is the MASTER copy everything is built
 from, and an upgrade that overwrote it would silently replace unbuilt edits.
 Those are reported, never touched; the agent tells the user and, only on a
 yes, re-runs with --replace NAME.
@@ -20,7 +20,7 @@ not removed.
                             exit 2: a folder this package did not install
                                     differs -- the user decides (--replace)
                             exit 1: a skill could not be installed at all
-    python copy_skills.py --replace google-analytics
+    python copy_skills.py --replace data-noodler
 
 Standard library only.
 """
@@ -39,10 +39,10 @@ MARKER_TEXT = ("Installed by the ga-mcp package. Its presence lets a later "
 
 def sources(ga_home, dist):
     return {
-        "google-analytics": os.path.join(
-            ga_home, "marketplace", "plugins", "ga-analytics", "skills",
-            "google-analytics"),
-        "ga-mcp-setup": os.path.join(dist, "skills", "ga-mcp-setup"),
+        "data-noodler": os.path.join(
+            ga_home, "marketplace", "plugins", "data-noodler", "skills",
+            "data-noodler"),
+        "data-noodler-setup": os.path.join(dist, "skills", "data-noodler-setup"),
     }
 
 
@@ -70,7 +70,7 @@ def _extra_files(src, dest):
 # Statuses, and what each means for the exit code. Structured rather than
 # read out of the message text (code review #6).
 DONE = ("installed", "refreshed", "unchanged", "not-ours-same")
-DECIDE = ("not-ours-differs",)
+DECIDE = ("not-ours-differs", "legacy-not-ours")
 FAILED = ("missing-source", "blocked")
 
 
@@ -109,6 +109,40 @@ def install_skill(name, src, skills_dir, replace=False):
         else "")
 
 
+# #1999: skill names this package used before the product had one name.
+LEGACY_SKILLS = ("google-analytics", "ga-mcp-setup")
+
+
+def retire_legacy(skills_dir, ga_home):
+    """Move this package's old-named skills out of the skills folder.
+
+    [(status, detail)]. Moved to <ga_home>/retired-skills/, never deleted,
+    and never beside the skills: any folder there registers as a skill, so a
+    renamed copy would still show up. A folder without the marker is
+    someone's own and is only reported (status legacy-not-ours, a DECIDE).
+    """
+    import datetime
+    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    results = []
+    for name in LEGACY_SKILLS:
+        old = os.path.join(skills_dir, name)
+        if not os.path.isdir(old):
+            continue
+        if not os.path.exists(os.path.join(old, MARKER)):
+            results.append(("legacy-not-ours", (
+                f"{old} has an old name of this package's skill but was not "
+                f"installed by it (no {MARKER}). Left in place; it now "
+                "duplicates the data-noodler skill. Ask the user whether to "
+                "remove it.")))
+            continue
+        retired = os.path.join(ga_home, "retired-skills")
+        os.makedirs(retired, exist_ok=True)
+        dest = os.path.join(retired, f"{name}.ga-old-{stamp}")
+        shutil.move(old, dest)
+        results.append(("retired", f"{old} -> {dest}"))
+    return results
+
+
 def _mark(dest):
     with open(os.path.join(dest, MARKER), "w", encoding="utf-8") as f:
         f.write(MARKER_TEXT)
@@ -135,6 +169,10 @@ def main():
         status, detail = install_skill(name, src, args.skills_dir,
                                        replace=name in args.replace)
         print(f"{status:<16} {name}: {detail}")
+        statuses.append(status)
+    for status, detail in retire_legacy(args.skills_dir,
+                                        os.path.normpath(args.ga_home)):
+        print(f"{status:<16} {detail}")
         statuses.append(status)
     if any(s in FAILED for s in statuses):
         return 1

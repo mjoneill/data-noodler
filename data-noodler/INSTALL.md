@@ -33,7 +33,8 @@ new package say what changes.
    backslashes. "Upgrade complete" means every check passed; "UPGRADE
    FAILED" means it already put everything back -- send the output to
    your maintainer (named in `deployment.json`).
-3. Reopen your apps. If you use Codex: `codex plugin add ga-analytics@ga-tools`.
+3. Reopen your apps. If you use Codex: `codex plugin add data-noodler@data-noodler`
+   (first time after the rename to Data Noodler: see section 8's "Installed before").
    If you use Claude Code: `"<venv_python>" <repo>/data-noodler/installer/copy_skills.py`.
 4. The previous setup is left in place as the undo, at the path the upgrade
    printed. Delete it once you've used the upgraded tools.
@@ -46,7 +47,7 @@ written lives under your home directory.
 **Platform: the commands below are macOS.** They assume `sh`,
 `~/Library/Application Support`, and the paths pipx/uv use there.
 
-**On Windows, read `skills/ga-mcp-setup/references/windows.md` first.** The
+**On Windows, read `skills/data-noodler-setup/references/windows.md` first.** The
 steps and their order are the same; the differences were each measured on a
 real Windows machine: you may need to install Python first (from an ordinary
 PowerShell window); stock `python -m venv` instead of `uv`; no launchers (the
@@ -61,7 +62,7 @@ questions. Paths containing spaces, and Codex on Windows, are still unproven;
 that page says which is which.
 
 **If you'd rather have an agent do this instead:** Claude Code or Codex can
-run the `ga-mcp-setup` skill for you once the plugin/skill is installed. This
+run the `data-noodler-setup` skill for you once the plugin/skill is installed. This
 document is for the case where you don't want that, or want to understand
 what the agent-driven path actually does.
 
@@ -249,7 +250,7 @@ This is the one step that needs your input: it opens a browser and asks you
 to sign in with your own Google account.
 
 ```bash
-"<venv_python from config.json>" <repo>/data-noodler/marketplace/plugins/ga-analytics/skills/google-analytics/scripts/mint_adc.py
+"<venv_python from config.json>" <repo>/data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py
 ```
 
 Read `venv_python` out of the `config.json` step 3 just wrote (it's the
@@ -284,13 +285,13 @@ again.
 "<venv_python>" <repo>/data-noodler/installer/install.py --payload-only
 ```
 
-Copies the companion server, launcher scripts, and the Codex plugin
+Copies the data-noodler server, launcher scripts, and the Codex plugin
 directory into `~/.config/ga-mcp/`. Safe to re-run any time you update the
 repo.
 
 ## 6. Install the skills for Claude Code
 
-Codex gets the `google-analytics` skill automatically — it travels inside the
+Codex gets the `data-noodler` skill automatically — it travels inside the
 plugin you install in step 8. Claude Code reads skills from your home
 directory instead, so it needs its own copy:
 
@@ -298,7 +299,7 @@ directory instead, so it needs its own copy:
 "<venv_python>" <repo>/data-noodler/installer/copy_skills.py
 ```
 
-That installs the `google-analytics` skill and the `ga-mcp-setup` skill (so a
+That installs the `data-noodler` skill and the `data-noodler-setup` skill (so a
 later upgrade can be driven by asking an agent) into `~/.claude/skills/`,
 marked so a later upgrade can refresh them. It never overwrites a skill
 folder it didn't install, and never deletes anything. It prints a line per
@@ -315,12 +316,12 @@ otherwise.
 
 **One trap worth naming.** `~/.claude/skills/` is scanned, so anything you put
 there becomes a live skill. Do not park a backup copy inside it — a
-`google-analytics.backup/` directory gets registered as a second skill with an
+`data-noodler.backup/` directory gets registered as a second skill with an
 identical description, and the two then compete. Keep backups somewhere else,
 such as `~/.claude/skill-backups/`.
 
 Claude Desktop's normal chat appears nowhere in this step: it has no skill
-mechanism at all. That absence is the reason the companion server exists.
+mechanism at all. That absence is the reason the data-noodler server exists.
 
 ## 7. Register Claude Code and Claude Desktop
 
@@ -360,13 +361,23 @@ plugins and marketplaces). Use it in place of `codex` in the commands below:
 
 ```bash
 codex plugin marketplace add ~/.config/ga-mcp/marketplace
-codex plugin add ga-analytics@ga-tools
+codex plugin add data-noodler@data-noodler
 ```
 
-Use the marketplace-qualified name, `ga-analytics@ga-tools`, not the bare
-`ga-analytics` — the bare form is rejected by the Codex CLI once a
+**Installed before the product had one name?** If `codex plugin marketplace
+list` shows a marketplace called `ga-tools`, Codex still has the old plugin
+under the old name. Remove both first, then add as above, so Codex shows
+only Data Noodler:
+
+```bash
+codex plugin remove ga-analytics@ga-tools
+codex plugin marketplace remove ga-tools
+```
+
+Use the marketplace-qualified name, `data-noodler@data-noodler`, not the bare
+`data-noodler` — the bare form is rejected by the Codex CLI once a
 marketplace is registered. (You may see this documented elsewhere as just
-`ga-analytics`; on this install, the bare form failed and the qualified
+`data-noodler`; on this install, the bare form failed and the qualified
 form is what worked.)
 
 Do not edit `~/.codex/config.toml` by hand — it holds trust levels for
@@ -377,14 +388,14 @@ own that file.
 
 ```bash
 "<venv_python>" <repo>/data-noodler/installer/verify.py --config ~/.claude.json \
-    --require analytics-mcp=10 --require ga-companion=15 \
-    --require-skill google-analytics
+    --require analytics-mcp=10 --require data-noodler=15 \
+    --require-skill data-noodler
 "<venv_python>" <repo>/data-noodler/installer/verify.py --config "<claude desktop config path from step 7>" \
-    --require analytics-mcp=10 --require ga-companion=15
-codex plugin list   # expect ga-analytics@ga-tools: installed, enabled
+    --require analytics-mcp=10 --require data-noodler=15
+codex plugin list   # expect data-noodler@data-noodler: installed, enabled
 ```
 
-Expect `analytics-mcp` with 9 tools and `ga-companion` with 15 tools. This
+Expect `analytics-mcp` with 9 tools and `data-noodler` with 15 tools. This
 proves each entry actually launches and answers the MCP handshake — it
 cannot prove the tools show up in an app's UI.
 
@@ -416,7 +427,7 @@ Otherwise, send your deployment's maintainer (named in `deployment.json`) a shor
 registered, and anything that did not work exactly as written here, with the
 error text if there was one. Something you had to work around is the most
 useful thing you can send, because it is the next person's wall. An agent
-following the `ga-mcp-setup` skill writes a fuller report for you at this
+following the `data-noodler-setup` skill writes a fuller report for you at this
 point; by hand, a few lines is plenty. Never include the contents of
 `ga-mcp-client.json` or of the credential file.
 
@@ -430,7 +441,7 @@ project needing no per-user setup on our end. When it happens, any GA tool
 call will say so; ask the model, or run the renewal command yourself:
 
 ```bash
-"<venv_python>" ~/.config/ga-mcp/marketplace/plugins/ga-analytics/skills/google-analytics/scripts/mint_adc.py --force
+"<venv_python>" ~/.config/ga-mcp/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py --force
 ```
 
 This is the copy of `mint_adc.py` that Step 5 installed under
@@ -442,7 +453,7 @@ browser session with you signed in.
 
 ## If something goes wrong
 
-Read `<repo>/data-noodler/skills/ga-mcp-setup/references/troubleshooting.md`.
+Read `<repo>/data-noodler/skills/data-noodler-setup/references/troubleshooting.md`.
 Match the exact error text before assuming it's a credential problem — an
 expired credential is the most-documented failure and therefore the easiest
 wrong guess.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Copy the live google-analytics skill into the plugin before distribution.
+"""Copy the live data-noodler skill into the plugin before distribution.
 
-The skill is authored once, at ~/.claude/skills/google-analytics, and copied
+The skill is authored once, at ~/.claude/skills/data-noodler, and copied
 here so the plugin is self-contained for Codex. Copying rather than
 symlinking because the plugin may be installed from a git checkout on another
 machine, where a symlink would dangle.
@@ -15,10 +15,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-SOURCE = os.path.expanduser("~/.claude/skills/google-analytics")
+SOURCE = os.path.expanduser("~/.claude/skills/data-noodler")
 DEST = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "marketplace", "plugins", "ga-analytics", "skills", "google-analytics")
+    "marketplace", "plugins", "data-noodler", "skills", "data-noodler")
 
 
 def main():
@@ -42,7 +42,7 @@ def main():
     # until the version is bumped and the new fingerprint recorded; saying so
     # here puts the reminder at the moment the change is made.
     print("If that changed anything, bump the version in "
-          "marketplace/plugins/ga-analytics/.codex-plugin/plugin.json -- "
+          "marketplace/plugins/data-noodler/.codex-plugin/plugin.json -- "
           "the test suite will insist.")
 
 

@@ -183,8 +183,23 @@ def probe_config(config_path, names=None):
     return results
 
 
+def legacy_entries(config_path):
+    """#1999: a server still registered under a name this package retired.
+
+    An app would show it beside the new name, and it may run old code."""
+    import register
+    try:
+        with open(config_path, encoding="utf-8") as f:
+            servers = (json.load(f) or {}).get("mcpServers") or {}
+    except (OSError, ValueError, AttributeError):
+        return []
+    return [f"{name}: an old name for data-noodler is still registered in "
+            f"{config_path}. Re-run install.py to retire it."
+            for name in register.LEGACY_SERVERS if name in servers]
+
+
 def parse_requirements(specs):
-    """["ga-companion=9", ...] -> {"ga-companion": 9}.
+    """["data-noodler=9", ...] -> {"data-noodler": 9}.
 
     Refuses anything it cannot read rather than silently ignoring it. A
     requirement that is quietly dropped turns the strictest check in the
@@ -197,7 +212,7 @@ def parse_requirements(specs):
         if not sep or not name.strip() or not count.strip().isdigit():
             raise VerifyError(
                 f"could not read the requirement {spec!r}. Expected "
-                "name=count, for example: --require ga-companion=9")
+                "name=count, for example: --require data-noodler=9")
         out[name.strip()] = int(count.strip())
     return out
 
@@ -267,7 +282,7 @@ def missing_skills(names, skills_dir=None):
         except OSError:
             problems.append(
                 f"skill {name}: not installed -- expected {path}. Copy it from "
-                "the package's marketplace/plugins/ga-analytics/skills/ "
+                "the package's marketplace/plugins/data-noodler/skills/ "
                 "(INSTALL.md, the Claude Code skills step).")
             continue
         if not text.strip():
@@ -319,6 +334,7 @@ def main():
 
     unmet = unmet_requirements(results, requirements)
     unmet += missing_skills(args.skills, args.skills_dir)
+    unmet += legacy_entries(args.config)
 
     failed = 0
     for name, r in sorted(results.items()):

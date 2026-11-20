@@ -33,17 +33,17 @@ def make_repo(root=None, extra=None):
         with open(os.path.join(d, f"{name}.txt"), "w", encoding="utf-8") as f:
             f.write(name)
     bindir = os.path.join(dist, "bin")
-    for launcher in ("launch-ga-mcp", "launch-ga-companion"):
+    for launcher in ("launch-analytics-mcp", "launch-data-noodler"):
         p = os.path.join(bindir, launcher)
         with open(p, "w", encoding="utf-8") as f:
             f.write("#!/bin/sh\nexit 0\n")
         os.chmod(p, 0o755)
     # noise that must not be copied
-    junk = os.path.join(dist, "companion", "__pycache__")
+    junk = os.path.join(dist, "server", "__pycache__")
     os.makedirs(junk, exist_ok=True)
     with open(os.path.join(junk, "x.pyc"), "w", encoding="utf-8") as f:
         f.write("junk")
-    with open(os.path.join(dist, "companion", "stale.pyc"), "w",
+    with open(os.path.join(dist, "server", "stale.pyc"), "w",
               encoding="utf-8") as f:
         f.write("junk")
     for rel, body in (extra or {}).items():
@@ -71,13 +71,13 @@ class TestPayloadCopyCharacterization(unittest.TestCase):
 
     def test_does_not_copy_bytecode(self):
         install.install_payload(self.repo, self.ga_home)
-        companion = os.path.join(self.ga_home, "companion")
-        self.assertFalse(os.path.exists(os.path.join(companion, "__pycache__")))
-        self.assertFalse(os.path.exists(os.path.join(companion, "stale.pyc")))
+        server = os.path.join(self.ga_home, "server")
+        self.assertFalse(os.path.exists(os.path.join(server, "__pycache__")))
+        self.assertFalse(os.path.exists(os.path.join(server, "stale.pyc")))
 
     def test_launchers_are_executable_afterwards(self):
         install.install_payload(self.repo, self.ga_home)
-        for launcher in ("launch-ga-mcp", "launch-ga-companion"):
+        for launcher in ("launch-analytics-mcp", "launch-data-noodler"):
             p = os.path.join(self.ga_home, "bin", launcher)
             self.assertTrue(os.stat(p).st_mode & stat.S_IXUSR, launcher)
 
@@ -90,7 +90,7 @@ class TestPayloadCopyCharacterization(unittest.TestCase):
 
     def test_reinstalling_replaces_rather_than_merges(self):
         install.install_payload(self.repo, self.ga_home)
-        orphan = os.path.join(self.ga_home, "companion", "removed_upstream.py")
+        orphan = os.path.join(self.ga_home, "server", "removed_upstream.py")
         with open(orphan, "w", encoding="utf-8") as f:
             f.write("x")
         install.install_payload(self.repo, self.ga_home)
@@ -101,10 +101,10 @@ class TestPayloadCopyCharacterization(unittest.TestCase):
 
     def test_reinstalling_is_idempotent(self):
         install.install_payload(self.repo, self.ga_home)
-        first = sorted(os.listdir(os.path.join(self.ga_home, "companion")))
+        first = sorted(os.listdir(os.path.join(self.ga_home, "server")))
         install.install_payload(self.repo, self.ga_home)
         self.assertEqual(
-            sorted(os.listdir(os.path.join(self.ga_home, "companion"))), first)
+            sorted(os.listdir(os.path.join(self.ga_home, "server"))), first)
 
 
 class TestPayloadCopyRefusesDangerousDestinations(unittest.TestCase):
@@ -148,7 +148,7 @@ class TestPayloadCopyRefusesDangerousDestinations(unittest.TestCase):
     def test_refuses_to_replace_a_directory_it_did_not_create(self):
         # Someone else's ~/bin, or a mistyped --ga-home landing on real files.
         ga_home = tempfile.mkdtemp()
-        foreign = os.path.join(ga_home, "companion")
+        foreign = os.path.join(ga_home, "server")
         os.makedirs(foreign)
         precious = os.path.join(foreign, "someone-elses-work.txt")
         with open(precious, "w", encoding="utf-8") as f:
@@ -166,7 +166,7 @@ class TestPayloadCopyRefusesDangerousDestinations(unittest.TestCase):
         install.install_payload(self.repo, ga_home)
         install.install_payload(self.repo, ga_home)
         self.assertTrue(os.path.isfile(
-            os.path.join(ga_home, "companion", "companion.txt")))
+            os.path.join(ga_home, "server", "server.txt")))
 
 
 class TestPayloadCopyLeavesARollback(unittest.TestCase):
@@ -176,13 +176,13 @@ class TestPayloadCopyLeavesARollback(unittest.TestCase):
 
     def test_the_previous_install_is_kept_after_a_reinstall(self):
         install.install_payload(self.repo, self.ga_home)
-        marker = os.path.join(self.ga_home, "companion", "from-first-install.txt")
+        marker = os.path.join(self.ga_home, "server", "from-first-install.txt")
         with open(marker, "w", encoding="utf-8") as f:
             f.write("v1")
         install.install_payload(self.repo, self.ga_home)
 
         parent = self.ga_home
-        kept = [n for n in os.listdir(parent) if n.startswith("companion.ga-old-")]
+        kept = [n for n in os.listdir(parent) if n.startswith("server.ga-old-")]
         self.assertTrue(kept, "no rollback copy of the previous install exists")
         self.assertTrue(
             os.path.isfile(os.path.join(parent, kept[0],
@@ -191,10 +191,10 @@ class TestPayloadCopyLeavesARollback(unittest.TestCase):
 
     def test_a_failed_copy_leaves_the_existing_install_in_place(self):
         install.install_payload(self.repo, self.ga_home)
-        good = os.path.join(self.ga_home, "companion", "companion.txt")
+        good = os.path.join(self.ga_home, "server", "server.txt")
         self.assertTrue(os.path.isfile(good))
 
-        # marketplace disappears midway through a second run: companion has
+        # marketplace disappears midway through a second run: server/ has
         # already been dealt with by then.
         import shutil
         shutil.rmtree(os.path.join(self.repo, "data-noodler", "marketplace"))
@@ -241,7 +241,7 @@ class TestDryRun(unittest.TestCase):
 
     def test_applies_the_same_refusals_as_a_real_run(self):
         ga_home = tempfile.mkdtemp()
-        foreign = os.path.join(ga_home, "companion")
+        foreign = os.path.join(ga_home, "server")
         os.makedirs(foreign)
         with open(os.path.join(foreign, "someone-elses.txt"), "w",
                   encoding="utf-8") as f:

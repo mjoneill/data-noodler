@@ -94,10 +94,10 @@ def _windows_entries(ga_home, venv_python, adc_file):
             "args": ["-m", "analytics_mcp.server"],
             "env": dict(env),
         },
-        "ga-companion": {
+        "data-noodler": {
             "type": "stdio",
             "command": venv_python,
-            "args": [ntpath.join(ga_home, "companion", "ga_companion.py")],
+            "args": [ntpath.join(ga_home, "server", "data_noodler.py")],
             "env": dict(env),
         },
     }
@@ -115,15 +115,15 @@ def _posix_entries(ga_home):
     return {
         "analytics-mcp": {
             "type": "stdio",
-            "command": f"{ga_home}/bin/launch-ga-mcp",
+            "command": f"{ga_home}/bin/launch-analytics-mcp",
             "args": [],
             "env": {"GRPC_DNS_RESOLVER": GRPC_RESOLVER,
                     "OTEL_PROPAGATORS": OTEL_PROPAGATORS,
                     "ANALYTICS_MCP_ALLOW_WRITE": ANALYTICS_MCP_ALLOW_WRITE},
         },
-        "ga-companion": {
+        "data-noodler": {
             "type": "stdio",
-            "command": f"{ga_home}/bin/launch-ga-companion",
+            "command": f"{ga_home}/bin/launch-data-noodler",
             "args": [],
             "env": {"GRPC_DNS_RESOLVER": GRPC_RESOLVER,
                     "OTEL_PROPAGATORS": OTEL_PROPAGATORS,
@@ -171,6 +171,11 @@ def _backup(path):
     return dest
 
 
+# #1999: names this package used to register under. Each install removes
+# them, so an app never shows the old name beside the new one.
+LEGACY_SERVERS = ("ga-companion",)
+
+
 def register_json(config_path, servers):
     """Merge `servers` into the `mcpServers` object of a JSON config.
 
@@ -204,16 +209,20 @@ def register_json(config_path, servers):
     updated = [name for name in servers
                if name in current and current[name] != servers[name]]
 
-    if not added and not updated:
+    removed = [name for name in LEGACY_SERVERS if name in current]
+
+    if not added and not updated and not removed:
         # Nothing to write -- but still undo what earlier versions did: their
         # plain open() left this file readable by every account (#157).
         _make_private(config_path)
-        return {"changed": False, "backup": None, "added": [], "updated": []}
+        return {"changed": False, "backup": None, "added": [], "updated": [],
+                "removed": []}
 
     backup = _backup(config_path) if os.path.exists(config_path) else None
 
     merged = dict(existing)
-    merged["mcpServers"] = {**current, **servers}
+    kept = {k: v for k, v in current.items() if k not in LEGACY_SERVERS}
+    merged["mcpServers"] = {**kept, **servers}
 
     text = json.dumps(merged, indent=2) + "\n"
     # Prove the result parses before it replaces the original.
@@ -231,4 +240,4 @@ def register_json(config_path, servers):
         raise RegisterError(
             str(exc) + (f" Backup at {backup}." if backup else ""))
     return {"changed": True, "backup": backup, "added": added,
-            "updated": updated}
+            "updated": updated, "removed": removed}
