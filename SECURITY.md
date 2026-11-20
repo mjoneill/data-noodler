@@ -7,8 +7,8 @@ Please report security problems privately, not in a public issue: use
 private advisory that only the maintainers can see.
 
 Include what you found, how to reproduce it, and what it could expose. This
-project is shared as-is with no support commitment (see README.md), but
-security reports are read.
+project is shared as-is with no support commitment (see README.md's Status),
+but security reports are read.
 
 ## What this package is designed to protect
 
@@ -19,7 +19,8 @@ security reports are read.
 - **Credentials stay on the machine.** The sign-in token is written to the
   user's own config folder and is never copied, shared or committed.
 - **Exports go only to approved folders.** Text inside analytics data can
-  steer a model, so the model never chooses where a file is written.
+  steer a model, so a file is only ever written inside the approved folders,
+  wherever the model asks.
 - **Pinned and scanned dependencies.** Every package version is pinned and
   checked against published advisories in CI; a known vulnerability fails
   the build.

@@ -12,15 +12,16 @@ It is for anyone who looks after websites: an individual, a team, an organizatio
 
 ## Status
 
-Early and private. The setup guide is being reworked for individuals as well as teams.
+Public since 2026-11-20, and shared as-is with no support commitment. To report
+a security problem, see [`SECURITY.md`](SECURITY.md).
 
 ## Start here
 
 The product lives in [`ga-mcp-dist/`](ga-mcp-dist/). Begin with [`ga-mcp-dist/START-HERE.md`](ga-mcp-dist/START-HERE.md), then [`ga-mcp-dist/GOOGLE-CLOUD-SETUP.md`](ga-mcp-dist/GOOGLE-CLOUD-SETUP.md) to create your own Google app.
 
-## Contributing: two guards against leaks
+## Contributing: guards against leaks
 
-Nobody's credentials, report data or identifying details belong in this repository. Two checks keep them out:
+Nobody's credentials, report data or identifying details belong in this repository. Three checks keep them out:
 
 - **CI, on every push and pull request** (`tools/leak_guard.py`). It refuses credential files and secrets (by file name and by content, so a renamed file is caught too), real-looking OAuth client ids, report output (`.csv`, `.xlsx`, `.html`, `_outputs/`) outside `tests/fixtures/`, a filled-in `deployment.json`, and home folders other than the placeholders `x`, `example`, `Jane`, `a` and `you`. Before it scans, CI proves each rule still catches a planted example. A refusal names the rule, the file and the line, never the value.
 - **A local pre-push hook** (`tools/personal_guard.py`) for the values only you know. It refuses a push that contains a property or account id from your own property snapshot, or any line of `~/.config/ga-mcp/personal-guard.txt` (your organization's name, colleagues' names, your Cloud project id). That list stays on your computer. Turn the hook on once per clone:
@@ -30,9 +31,10 @@ Nobody's credentials, report data or identifying details belong in this reposito
   ```
 
   With neither list present it says so on every push and checks nothing.
+- **Commit identities** (`tools/identity_guard.py`, in the same hook and in CI). Every commit publishes its author's and committer's email, so only GitHub noreply addresses (`…@users.noreply.github.com`) are accepted. Set yours once per clone before committing: `git config user.email <id>+<login>@users.noreply.github.com` (GitHub shows it under Settings → Emails).
 
 "Google Analytics" and "Google Search Console" are trademarks of Google LLC. This project is not affiliated with or endorsed by Google.
 
 ## Licence
 
-MIT. See [`ga-mcp-dist/LICENSE`](ga-mcp-dist/LICENSE).
+MIT. See [`LICENSE`](LICENSE).
