@@ -73,7 +73,7 @@ It never deletes anything that existed before it started.
 
 ## What is proven, and what is not
 
-Proven by tests on every run (`tests/`, 870+ cases): the tool surface over a
+Proven by tests on every run (`tests/`, run in CI on every push; the count is whatever CI last reported, so it is not written here): the tool surface over a
 real MCP handshake, the installer's refusals and backups, the export
 confinement with Windows-style paths, the upgrade's rollback under failure,
 Ctrl-C and a hard kill, and that every documented command matches the code.
