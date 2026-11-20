@@ -406,9 +406,9 @@ class TestTheDenylistMatchesRealWindowsPaths(unittest.TestCase):
     tests only checked the entries were listed, never that they matched.
     """
 
-    HOME = r"C:\Users\ali"
-    ENV = {"APPDATA": r"C:\Users\ali\AppData\Roaming",
-           "LOCALAPPDATA": r"C:\Users\ali\AppData\Local"}
+    HOME = r"C:\Users\example"
+    ENV = {"APPDATA": r"C:\Users\example\AppData\Roaming",
+           "LOCALAPPDATA": r"C:\Users\example\AppData\Local"}
 
     def setUp(self):
         self.deny = sessions.build_denylist(env=self.ENV, pathmod=ntpath,
@@ -422,24 +422,24 @@ class TestTheDenylistMatchesRealWindowsPaths(unittest.TestCase):
             self.assertNotIn("/", entry, entry)
 
     def test_home_relative_entries_match_real_windows_paths(self):
-        for inside in (r"C:\Users\ali\.ssh\x.csv",
-                       r"C:\Users\ali\.claude\projects\x.csv",
-                       r"C:\Users\ali\.config\gcloud\adc.csv",
-                       r"C:\Users\ali\.config\ga-mcp\properties.csv",
-                       r"C:\Users\ali\.codex\x.csv"):
+        for inside in (r"C:\Users\example\.ssh\x.csv",
+                       r"C:\Users\example\.claude\projects\x.csv",
+                       r"C:\Users\example\.config\gcloud\adc.csv",
+                       r"C:\Users\example\.config\ga-mcp\properties.csv",
+                       r"C:\Users\example\.codex\x.csv"):
             self.assertIsNotNone(self._match(inside), inside)
 
     def test_matching_ignores_case_as_windows_does(self):
-        self.assertIsNotNone(self._match(r"c:\users\ALI\.SSH\x.csv"))
+        self.assertIsNotNone(self._match(r"c:\users\EXAMPLE\.SSH\x.csv"))
 
     def test_appdata_entries_still_match(self):
         self.assertIsNotNone(self._match(
-            r"C:\Users\ali\AppData\Roaming\Claude\claude_desktop_config.csv"))
+            r"C:\Users\example\AppData\Roaming\Claude\claude_desktop_config.csv"))
 
     def test_ordinary_folders_are_not_caught(self):
-        for fine in (r"C:\Users\ali\Documents\analyst-sessions\r.csv",
-                     r"C:\Users\ali\.sshkeys-notes\r.csv",
-                     r"C:\Users\ali\.config\other\r.csv"):
+        for fine in (r"C:\Users\example\Documents\analyst-sessions\r.csv",
+                     r"C:\Users\example\.sshkeys-notes\r.csv",
+                     r"C:\Users\example\.config\other\r.csv"):
             self.assertIsNone(self._match(fine), fine)
 
     def test_posix_matching_is_unchanged(self):

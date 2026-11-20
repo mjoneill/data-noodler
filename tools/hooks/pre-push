@@ -1,0 +1,4 @@
+#!/bin/sh
+# Refuses a push that carries your own GA ids or personal values.
+# Installed by: git config core.hooksPath tools/hooks   (see tools/personal_guard.py)
+exec python3 -I "$(git rev-parse --show-toplevel)/tools/personal_guard.py" "$@"
