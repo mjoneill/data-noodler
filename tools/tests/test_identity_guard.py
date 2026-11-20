@@ -1,0 +1,143 @@
+"""The identity guard's controls (#1996), against real git pushes to a local
+bare remote and against the CI mode. Every identity here is invented."""
+
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+TOOLS = os.path.dirname(HERE)
+GUARD = os.path.join(TOOLS, "identity_guard.py")
+HOOKS = os.path.join(TOOLS, "hooks")
+
+NOREPLY = "12345+someone@users.noreply.github.com"
+MACHINE = "someone@someones-Mac-mini.local"
+MAILBOX = "someone+seat@" + "gmail.com"
+
+
+def git(cwd, *args, check=True, env=None):
+    return subprocess.run(["git", *args], cwd=cwd, capture_output=True,
+                          text=True, check=check, env=env)
+
+
+class Repo:
+    """A work clone with a bare 'origin' and the real pre-push hook."""
+
+    def __init__(self, root):
+        self.bare = os.path.join(root, "origin.git")
+        self.work = os.path.join(root, "work")
+        git(root, "init", "-q", "--bare", self.bare)
+        git(root, "init", "-q", "-b", "main", self.work)
+        git(self.work, "config", "commit.gpgsign", "false")
+        git(self.work, "remote", "add", "origin", self.bare)
+        os.makedirs(os.path.join(self.work, "tools", "hooks"))
+        for name in ("identity_guard.py", "personal_guard.py"):
+            shutil.copy(os.path.join(TOOLS, name),
+                        os.path.join(self.work, "tools", name))
+        shutil.copy(os.path.join(HOOKS, "pre-push"),
+                    os.path.join(self.work, "tools", "hooks", "pre-push"))
+        git(self.work, "config", "core.hooksPath", "tools/hooks")
+        # An empty personal-guard config folder: that guard warns and passes.
+        self.env = dict(os.environ,
+                        GA_MCP_PERSONAL_GUARD_CONFIG_DIR=os.path.join(root, "cfg"))
+        self.commit("README.md", "hello\n", "first", NOREPLY)
+        r = self.push()
+        assert r.returncode == 0, r.stderr
+
+    def commit(self, path, text, message, author, committer=None):
+        with open(os.path.join(self.work, path), "w") as f:
+            f.write(text)
+        git(self.work, "add", "-A")
+        env = dict(os.environ,
+                   GIT_AUTHOR_NAME="Seat", GIT_AUTHOR_EMAIL=author,
+                   GIT_COMMITTER_NAME="Seat",
+                   GIT_COMMITTER_EMAIL=committer or author)
+        git(self.work, "commit", "-q", "-m", message, env=env)
+
+    def push(self):
+        return git(self.work, "push", "-q", "origin", "HEAD:main",
+                   check=False, env=self.env)
+
+
+class TestPrePush(unittest.TestCase):
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        self.repo = Repo(self.root)
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def test_a_noreply_commit_goes_through(self):
+        self.repo.commit("a.txt", "a\n", "ok", NOREPLY)
+        r = self.repo.push()
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_a_machine_name_author_is_refused(self):
+        self.repo.commit("a.txt", "a\n", "bad", MACHINE)
+        r = self.repo.push()
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("IDENTITY-GUARD", r.stderr)
+
+    def test_a_mailbox_committer_is_refused_even_with_a_noreply_author(self):
+        # The #1989 case: a rebase restamped only the committer.
+        self.repo.commit("a.txt", "a\n", "bad", NOREPLY, committer=MAILBOX)
+        r = self.repo.push()
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("committer", r.stderr)
+
+    def test_the_refusal_never_prints_the_address(self):
+        self.repo.commit("a.txt", "a\n", "bad", MAILBOX)
+        r = self.repo.push()
+        self.assertNotIn(MAILBOX, r.stderr)
+        self.assertNotIn("gmail", r.stderr)
+
+    def test_the_refusal_says_how_to_fix_it(self):
+        self.repo.commit("a.txt", "a\n", "bad", MACHINE)
+        r = self.repo.push()
+        self.assertIn("users.noreply.github.com", r.stderr)
+
+
+class TestCiMode(unittest.TestCase):
+    """CI checks every commit reachable from HEAD: the history is small and
+    must stay clean end to end."""
+
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        self.repo = Repo(self.root)
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def _ci(self):
+        return subprocess.run([sys.executable, "-I", GUARD, "--all"],
+                              cwd=self.repo.work, capture_output=True,
+                              text=True)
+
+    def test_a_clean_history_passes(self):
+        r = self._ci()
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_one_bad_commit_anywhere_fails(self):
+        self.repo.commit("a.txt", "a\n", "bad", MACHINE)
+        self.repo.commit("b.txt", "b\n", "ok", NOREPLY)
+        r = self._ci()
+        self.assertNotEqual(r.returncode, 0)
+
+    def test_githubs_own_merge_identity_is_allowed(self):
+        self.repo.commit("a.txt", "a\n", "merge button", NOREPLY,
+                         committer="noreply@github.com")
+        r = self._ci()
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_the_real_repository_passes(self):
+        top = os.path.dirname(TOOLS)
+        r = subprocess.run([sys.executable, "-I", GUARD, "--all"], cwd=top,
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main()

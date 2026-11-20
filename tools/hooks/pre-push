@@ -1,4 +1,8 @@
 #!/bin/sh
-# Refuses a push that carries your own GA ids or personal values.
+# Refuses a push that carries your own GA ids or personal values, or a commit
+# whose author or committer email is not a GitHub noreply address (#1996).
 # Installed by: git config core.hooksPath tools/hooks   (see tools/personal_guard.py)
-exec python3 -I "$(git rev-parse --show-toplevel)/tools/personal_guard.py" "$@"
+top="$(git rev-parse --show-toplevel)"
+input="$(cat)"
+printf '%s\n' "$input" | python3 -I "$top/tools/personal_guard.py" "$@" || exit 1
+printf '%s\n' "$input" | python3 -I "$top/tools/identity_guard.py" "$@"

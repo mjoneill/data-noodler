@@ -33,11 +33,15 @@ class Repo:
         self.work = os.path.join(root, "work")
         git(root, "init", "-q", "--bare", self.bare)
         git(root, "init", "-q", "-b", "main", self.work)
-        for k, v in (("user.name", "t"), ("user.email", "t@example.invalid"), ("commit.gpgsign", "false")):
+        # A noreply identity: the same pre-push hook runs the identity guard (#1996).
+        for k, v in (("user.name", "t"), ("user.email", "1+t@users.noreply.github.com"),
+                     ("commit.gpgsign", "false")):
             git(self.work, "config", k, v)
         git(self.work, "remote", "add", "origin", self.bare)
         os.makedirs(os.path.join(self.work, "tools", "hooks"))
         shutil.copy(GUARD, os.path.join(self.work, "tools", "personal_guard.py"))
+        shutil.copy(os.path.join(TOOLS, "identity_guard.py"),
+                    os.path.join(self.work, "tools", "identity_guard.py"))
         shutil.copy(os.path.join(HOOKS, "pre-push"), os.path.join(self.work, "tools", "hooks", "pre-push"))
         git(self.work, "config", "core.hooksPath", "tools/hooks")
         self.env = dict(os.environ, GA_MCP_PERSONAL_GUARD_CONFIG_DIR=config_dir)
