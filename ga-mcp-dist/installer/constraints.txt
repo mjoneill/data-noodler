@@ -1,4 +1,4 @@
-# Pinned dependency versions for analytics-mcp 0.8.0 (mcp 2.x).
+# Pinned dependency versions for analytics-mcp 1.1.0 (mcp 2.x).
 #
 # WHY THIS EXISTS
 # Installing without constraints made pip backtrack through roughly 30
@@ -11,7 +11,7 @@
 # together, so an install is fast and identical everywhere.
 #
 # HOW TO USE IT
-#   pip install -c constraints.txt analytics-mcp==0.8.0 google-auth-oauthlib
+#   pip install -c constraints.txt analytics-mcp==1.1.0 google-auth-oauthlib
 #
 # A constraints file only bounds packages that are actually installed; it
 # never causes one to be installed. So this is safe to use on any platform
@@ -58,7 +58,7 @@
 # The full suite passed against it (901 tests) and the OSV scan above exits 0
 # with no exceptions. Previous capture: 2026-10-25, Python 3.12.13 and 3.14.9.
 aiosqlite==0.22.1
-analytics-mcp==0.8.0
+analytics-mcp==1.1.0
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1

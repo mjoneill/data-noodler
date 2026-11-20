@@ -36,7 +36,7 @@ import security_floors  # noqa: E402
 # -c pins the libraries underneath to the tested, scanned set (#151).
 INSTALL_HINT = (
     "Install it first:\n"
-    "  uv tool install analytics-mcp==0.8.0 --with google-auth-oauthlib "
+    "  uv tool install analytics-mcp==1.1.0 --with google-auth-oauthlib "
     "-c <repo>/ga-mcp-dist/installer/constraints.txt")
 
 # Windows has its own, because the macOS advice is wrong there: windows.md opens
@@ -52,7 +52,7 @@ INSTALL_HINT_WINDOWS = (
     'install "' + security_floors.PIP_BOOTSTRAP_REQUIREMENT + '"\n'
     '  & "$env:USERPROFILE\\.config\\ga-mcp\\venv\\Scripts\\python.exe" -m pip '
     "install -c <repo>\\ga-mcp-dist\\installer\\constraints.txt "
-    "--upgrade analytics-mcp==0.8.0 google-auth-oauthlib\n"
+    "--upgrade analytics-mcp==1.1.0 google-auth-oauthlib\n"
     "If it IS installed somewhere this did not look, name it rather than let "
     "anything guess:\n"
     '  --venv-python "<venv>\\Scripts\\python.exe"   (or --analytics-mcp-bin)')

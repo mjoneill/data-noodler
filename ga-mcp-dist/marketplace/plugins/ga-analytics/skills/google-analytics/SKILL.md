@@ -5,9 +5,9 @@ description: Query Google Analytics 4 data through the analytics-mcp MCP server 
 
 # Google Analytics via MCP
 
-The `analytics-mcp` server exposes 9 read-only tools over the Google Analytics
+The `analytics-mcp` server exposes 10 read-only tools over the Google Analytics
 Admin and Data APIs: `get_account_summaries`, `get_property_details`,
-`list_property_annotations`, `list_google_ads_links`,
+`list_property_annotations`, `list_google_ads_links`, `list_key_events`,
 `get_custom_dimensions_and_metrics`, `run_report`, `run_realtime_report`,
 `run_funnel_report`, `run_conversions_report`.
 

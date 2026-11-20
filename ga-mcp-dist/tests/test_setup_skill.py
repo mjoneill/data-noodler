@@ -229,7 +229,7 @@ class TestSkillUsesTheToolsItShips(unittest.TestCase):
         self.assertNotIn('2>/dev/null || true', self.text)
 
     def test_verification_demands_an_exit_code_not_a_reading(self):
-        self.assertIn("--require analytics-mcp=9", self.text)
+        self.assertIn("--require analytics-mcp=10", self.text)
         # The number itself is checked against the server by the test below.
         self.assertIn("--require ga-companion=", self.text)
 
@@ -269,7 +269,7 @@ class TestConstraintsFile(unittest.TestCase):
                      if l.strip() and not l.startswith("#")]
 
     def test_it_pins_the_package_the_documents_name(self):
-        self.assertIn("analytics-mcp==0.8.0", self.pins,
+        self.assertIn("analytics-mcp==1.1.0", self.pins,
                       "the constraints file and the install command disagree "
                       "about which version is being installed")
 
@@ -377,7 +377,7 @@ class TestDocumentedVerifyChecksTheSkill(unittest.TestCase):
     def test_install_md_verify_uses_require_at_all(self):
         # It predated --require entirely, so a passing run proved only that
         # each server started -- not that it served the expected tools.
-        self.assertIn("--require analytics-mcp=9", self._text(ROOT, "INSTALL.md"))
+        self.assertIn("--require analytics-mcp=10", self._text(ROOT, "INSTALL.md"))
 
 
 class TestSecondWindowsInstallLessons(unittest.TestCase):

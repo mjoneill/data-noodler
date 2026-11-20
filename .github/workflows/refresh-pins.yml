@@ -22,20 +22,14 @@ permissions:
 
 env:
   # EDIT BUMPS AND RELEASE FOR EACH REFRESH. As committed they describe the
-  # last one (#1986, 2026-11-20); pushing a refresh/** branch unedited just
-  # re-runs it.
+  # last one (#1986 slice 2, 2026-11-20: analytics-mcp 0.8.0 -> 1.1.0, whose
+  # requirements the existing pins already met); pushing a refresh/** branch
+  # unedited just re-runs it.
   # name==version, space-separated: the only pins this run changes.
   BUMPS: >-
-    oauthlib==4.0.1
-    pyasn1==0.6.5
-    opentelemetry-api==1.45.2
-    opentelemetry-sdk==1.45.2
-    google-adk==2.15.0
-  # Pins dropped so pip may move them with the bumps above (google-adk's
-  # semantic-conventions must match the sdk; google-adk 2.15.0 needs
-  # google-genai >= 2.34 and watchdog >= 7; checked against PyPI metadata:
-  # those are the only two of its requirements the old pins violate).
-  RELEASE: opentelemetry-semantic-conventions google-genai watchdog
+    analytics-mcp==1.1.0
+  # Pins dropped so pip may move them with the bumps above.
+  RELEASE: ""
 
 jobs:
   refresh:
@@ -74,7 +68,7 @@ jobs:
         run: |
           python -m venv /tmp/v
           /tmp/v/bin/python -m pip install --upgrade -c seed.txt pip
-          /tmp/v/bin/python -m pip install -c seed.txt analytics-mcp==0.8.0 google-auth-oauthlib
+          /tmp/v/bin/python -m pip install -c seed.txt analytics-mcp==1.1.0 google-auth-oauthlib
       - name: Full test suite against it
         working-directory: ga-mcp-dist
         run: /tmp/v/bin/python -m unittest discover -s tests

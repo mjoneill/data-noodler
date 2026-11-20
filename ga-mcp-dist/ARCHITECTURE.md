@@ -7,7 +7,7 @@ checkable in the code and tests it names.
 
 | Piece | Where | What it is |
 |---|---|---|
-| `analytics-mcp` | installed from PyPI (Google's own server) | 9 tools for GA4 reports, property details, realtime, funnels. Pinned to one version. Its optional write tool is never enabled. |
+| `analytics-mcp` | installed from PyPI (Google's own server) | 10 tools for GA4 reports, property details, realtime, funnels, key events. Pinned to one version. Its optional write tools are never enabled. |
 | `ga-companion` | `companion/` | 15 tools built here: cheap property lookup from a local snapshot, credential status, a reporting guide, exports to CSV (GA4 reports, cohorts, realtime, funnels), two GA4 read-only checks, and four Search Console tools (sites, URL inspection, search analytics, sitemaps). |
 | Launchers | `bin/` (macOS) | Two `/bin/sh` scripts that set the environment and start each server. On Windows there are no launchers; the registered entry names the interpreter directly. |
 | Installer | `installer/` | `probe.py` (read-only facts about the machine), `bootstrap_config.py` (writes the machine's config), `install.py` (copies the payload, registers the apps), `verify.py` (proves each registered server starts and serves the expected tools), `upgrade.py` (replaces an existing install, with rollback), `copy_skills.py`. |

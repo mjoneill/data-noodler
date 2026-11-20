@@ -65,7 +65,7 @@ import safe_write  # noqa: E402
 import security_floors  # noqa: E402
 
 PAYLOAD = ("companion", "bin", "marketplace")
-ANALYTICS_MCP = "analytics-mcp==0.8.0"
+ANALYTICS_MCP = "analytics-mcp==1.1.0"
 TOOL_COUNTS = {"analytics-mcp": 9, "ga-companion": 15}
 # Tool-manager bookkeeping a rebuilt venv should keep, so `uv tool list` or
 # `pipx list` still recognise it.
@@ -383,7 +383,8 @@ def prove_venv(plan, log):
         f"sys.path.insert(0, {os.path.join(plan.dist, 'installer')!r})\n"
         "import verify\n"
         "env = dict(os.environ, GRPC_DNS_RESOLVER='native',"
-        " OTEL_PROPAGATORS='none', GA_MCP_CONFIG=sys.argv[1])\n"
+        " OTEL_PROPAGATORS='none', ANALYTICS_MCP_ALLOW_WRITE='false',"
+        " GA_MCP_CONFIG=sys.argv[1])\n"
         "out = {}\n"
         "for name, args in (('analytics-mcp', ['-m', 'analytics_mcp.server']),"
         " ('ga-companion', [sys.argv[2]])):\n"

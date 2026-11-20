@@ -19,7 +19,7 @@ command -v uv || curl -LsSf https://astral.sh/uv/install.sh | sh
 # line fails with "command not found: uv". This also covers the analytics-mcp
 # console script, which lands in the same directory.
 export PATH="$HOME/.local/bin:$PATH"
-uv tool install analytics-mcp==0.8.0 --with google-auth-oauthlib
+uv tool install analytics-mcp==1.1.0 --with google-auth-oauthlib
 uv tool update-shell    # puts the tool dir on PATH permanently
 ```
 
@@ -41,7 +41,7 @@ have `analytics-mcp` installed that way), that path is:
 
 ```bash
 brew install pipx   # or any other way of getting pipx onto your machine
-pipx install 'analytics-mcp==0.8.0'
+pipx install 'analytics-mcp==1.1.0'
 pipx inject analytics-mcp google-auth-oauthlib
 ```
 

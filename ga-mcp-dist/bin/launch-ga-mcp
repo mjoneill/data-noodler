@@ -74,6 +74,9 @@ export GRPC_DNS_RESOLVER=native
 # exports traces, and opentelemetry-api's tracestate parser carries an
 # advisory (CVE-2026-114603). Switch the parsing off (#162).
 export OTEL_PROPAGATORS=none
+# analytics-mcp 1.0+ turns its write tools on when this is truthy; this
+# package is read-only, so an inherited value must not do that (#1986).
+export ANALYTICS_MCP_ALLOW_WRITE=false
 
 # Test seam: verify the environment resolves without starting a server.
 if [ "${GA_LAUNCH_CHECK:-}" = "1" ]; then

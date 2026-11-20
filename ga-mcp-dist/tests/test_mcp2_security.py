@@ -5,8 +5,8 @@
   traceparent/tracestate from every inbound message, and opentelemetry-api's
   tracestate parser carried CVE-2026-114603 (fixed in the pins since #1986);
   the switch-off stays as defence in depth.
-- analytics-mcp 0.8.0's write tool stays off: no entry ever passes
-  --allow-write.
+- analytics-mcp's write tools stay off: no entry ever passes --allow-write,
+  and every entry sets ANALYTICS_MCP_ALLOW_WRITE=false (1.0+ reads it).
 - A probe leaves no server process behind.
 """
 
@@ -126,6 +126,25 @@ class TestEntriesAndLaunchers(unittest.TestCase):
         for name in ("launch-ga-mcp", "launch-ga-companion"):
             with open(os.path.join(ROOT, "bin", name), encoding="utf-8") as f:
                 self.assertIn("export OTEL_PROPAGATORS=none", f.read(), name)
+
+    def test_every_entry_pins_analytics_mcp_writes_off(self):
+        # analytics-mcp 1.0+ also enables its write tools (and asks for the
+        # edit scope) when ANALYTICS_MCP_ALLOW_WRITE is truthy in the
+        # environment. An inherited variable must not be able to do that
+        # here, so every entry and launcher sets it false explicitly (#1986).
+        for name, entry in self._all_entries():
+            self.assertEqual(entry["env"].get("ANALYTICS_MCP_ALLOW_WRITE"),
+                             "false", name)
+
+    def test_the_analytics_launcher_pins_writes_off(self):
+        with open(os.path.join(ROOT, "bin", "launch-ga-mcp"),
+                  encoding="utf-8") as f:
+            self.assertIn("export ANALYTICS_MCP_ALLOW_WRITE=false", f.read())
+
+    def test_the_upgrade_probe_pins_writes_off(self):
+        with open(os.path.join(ROOT, "installer", "upgrade.py"),
+                  encoding="utf-8") as f:
+            self.assertIn("ANALYTICS_MCP_ALLOW_WRITE='false'", f.read())
 
     def test_no_entry_enables_analytics_mcp_writes(self):
         # analytics-mcp 0.8.0 adds create_property_annotation behind

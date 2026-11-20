@@ -26,6 +26,12 @@ GRPC_RESOLVER = "native"
 # too; on Windows the entry is the only place it can be set (#162).
 OTEL_PROPAGATORS = "none"
 
+# analytics-mcp 1.0+ enables its write tools, and asks Google for the edit
+# scope, when ANALYTICS_MCP_ALLOW_WRITE is truthy. This package is read-only
+# by design, so every entry sets it false: an inherited variable must not be
+# able to turn writes on (#1986).
+ANALYTICS_MCP_ALLOW_WRITE = "false"
+
 
 class RegisterError(Exception):
     """Raised with a user-readable message; aborts before any write."""
@@ -78,6 +84,7 @@ def _windows_entries(ga_home, venv_python, adc_file):
     env = {
         "GRPC_DNS_RESOLVER": GRPC_RESOLVER,
         "OTEL_PROPAGATORS": OTEL_PROPAGATORS,
+        "ANALYTICS_MCP_ALLOW_WRITE": ANALYTICS_MCP_ALLOW_WRITE,
         "GOOGLE_APPLICATION_CREDENTIALS": adc_file,
     }
     return {
@@ -111,14 +118,16 @@ def _posix_entries(ga_home):
             "command": f"{ga_home}/bin/launch-ga-mcp",
             "args": [],
             "env": {"GRPC_DNS_RESOLVER": GRPC_RESOLVER,
-                    "OTEL_PROPAGATORS": OTEL_PROPAGATORS},
+                    "OTEL_PROPAGATORS": OTEL_PROPAGATORS,
+                    "ANALYTICS_MCP_ALLOW_WRITE": ANALYTICS_MCP_ALLOW_WRITE},
         },
         "ga-companion": {
             "type": "stdio",
             "command": f"{ga_home}/bin/launch-ga-companion",
             "args": [],
             "env": {"GRPC_DNS_RESOLVER": GRPC_RESOLVER,
-                    "OTEL_PROPAGATORS": OTEL_PROPAGATORS},
+                    "OTEL_PROPAGATORS": OTEL_PROPAGATORS,
+                    "ANALYTICS_MCP_ALLOW_WRITE": ANALYTICS_MCP_ALLOW_WRITE},
         },
     }
 

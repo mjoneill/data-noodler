@@ -96,7 +96,7 @@ DRIVER
   ls -d "$GA"/venv.old-* >/dev/null 2>&1 && fail "the old venv is still aside"
   # The restored install is the OLD release (15 companion tools too).
   "$GA/venv/bin/python" "$REPO/ga-mcp-dist/installer/verify.py" --config "$H/.claude.json" \
-    --require analytics-mcp=9 --require ga-companion=15 || fail "the restored install does not verify"
+    --require analytics-mcp=10 --require ga-companion=15 || fail "the restored install does not verify"
   echo "== PASS: SIG$INTERRUPT upgrade restored ($BEFORE)"
   exit 0
 fi
@@ -114,13 +114,13 @@ echo "== 3. checks"
 fail() { echo "FAIL: $*" >&2; exit 1; }
 AFTER=$("$GA/venv/bin/python" -c "import importlib.metadata as m; print(m.version('mcp'), m.version('analytics-mcp'), m.version('pip'))")
 echo "   after:  mcp/analytics-mcp/pip = $AFTER"
-case "$AFTER" in "2."*" 0.8.0 26.2.2") ;; *) fail "unexpected versions: $AFTER" ;; esac
+case "$AFTER" in "2."*" 1.1.0 26.2.2") ;; *) fail "unexpected versions: $AFTER" ;; esac
 BELOW=$("$PY" -c "
 import sys; sys.path.insert(0, '$REPO/ga-mcp-dist/installer'); import probe
 print(probe.probe_dependencies('$GA/venv/bin/python')['below_floor'])")
 [ "$BELOW" = "{}" ] || fail "below floor: $BELOW"
 "$GA/venv/bin/python" "$REPO/ga-mcp-dist/installer/verify.py" --config "$H/.claude.json" \
-  --require analytics-mcp=9 --require ga-companion=15 || fail "verify"
+  --require analytics-mcp=10 --require ga-companion=15 || fail "verify"
 grep -q someone-else "$H/.claude.json" || fail "the user's other server was lost"
 [ "$(stat -f %Lp "$H/.claude.json" 2>/dev/null || stat -c %a "$H/.claude.json")" = 600 ] || fail ".claude.json permissions changed"
 ls -d "$GA"/venv.old-* >/dev/null 2>&1 || fail "the old venv was removed -- only the user may"

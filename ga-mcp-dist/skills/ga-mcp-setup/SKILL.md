@@ -154,7 +154,7 @@ command -v uv || curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
 command -v uv    # must print a path before continuing
 uv --version     # must be 0.13.4 or later (eMudhra/emSign); see below
-uv tool install analytics-mcp==0.8.0 --with google-auth-oauthlib -c <repo>/ga-mcp-dist/installer/constraints.txt
+uv tool install analytics-mcp==1.1.0 --with google-auth-oauthlib -c <repo>/ga-mcp-dist/installer/constraints.txt
 uv tool update-shell    # puts the tool dir on PATH permanently
 ```
 
@@ -487,7 +487,7 @@ names the Desktop config path. On Windows:
 #    Closing the window is not enough.
 # 2. Then run:
 & "<venv_python>" "<repo>\ga-mcp-dist\installer\install.py" --targets claude_desktop
-& "<venv_python>" "<repo>\ga-mcp-dist\installer\verify.py" --config "<Desktop config path>" --require analytics-mcp=9 --require ga-companion=15
+& "<venv_python>" "<repo>\ga-mcp-dist\installer\verify.py" --config "<Desktop config path>" --require analytics-mcp=10 --require ga-companion=15
 # 3. Reopen Claude Desktop and paste both outputs back into this chat.
 ```
 
@@ -535,10 +535,10 @@ live plugin state.
 
 ```bash
 "<venv_python>" <repo>/ga-mcp-dist/installer/verify.py --config ~/.claude.json \
-    --require analytics-mcp=9 --require ga-companion=15 \
+    --require analytics-mcp=10 --require ga-companion=15 \
     --require-skill google-analytics
 "<venv_python>" <repo>/ga-mcp-dist/installer/verify.py --config "<claude desktop config path>" \
-    --require analytics-mcp=9 --require ga-companion=15
+    --require analytics-mcp=10 --require ga-companion=15
 ```
 
 **Use `--require`, and treat the exit code as the answer.** Without it success

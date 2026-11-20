@@ -121,7 +121,7 @@ export PATH="$HOME/.local/bin:$PATH"
 command -v uv    # must print a path before continuing
 uv --version     # must be 0.13.4 or later (eMudhra/emSign); if not:
                  #   brew upgrade uv, or UV_SYSTEM_CERTS=true uv self update
-uv tool install analytics-mcp==0.8.0 --with google-auth-oauthlib -c <repo>/ga-mcp-dist/installer/constraints.txt
+uv tool install analytics-mcp==1.1.0 --with google-auth-oauthlib -c <repo>/ga-mcp-dist/installer/constraints.txt
 uv tool update-shell    # puts the tool dir on PATH permanently
 ```
 
@@ -377,10 +377,10 @@ own that file.
 
 ```bash
 "<venv_python>" <repo>/ga-mcp-dist/installer/verify.py --config ~/.claude.json \
-    --require analytics-mcp=9 --require ga-companion=15 \
+    --require analytics-mcp=10 --require ga-companion=15 \
     --require-skill google-analytics
 "<venv_python>" <repo>/ga-mcp-dist/installer/verify.py --config "<claude desktop config path from step 7>" \
-    --require analytics-mcp=9 --require ga-companion=15
+    --require analytics-mcp=10 --require ga-companion=15
 codex plugin list   # expect ga-analytics@ga-tools: installed, enabled
 ```
 

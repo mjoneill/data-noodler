@@ -47,7 +47,7 @@ def oauthlib_install_hint(executable):
     if "/pipx/venvs/" in path:
         return "  pipx inject analytics-mcp google-auth-oauthlib"
     if "/uv/tools/" in path:
-        return ("  uv tool install analytics-mcp==0.8.0 "
+        return ("  uv tool install analytics-mcp==1.1.0 "
                 "--with google-auth-oauthlib --force")
     return f'  "{executable}" -m pip install google-auth-oauthlib'
 
