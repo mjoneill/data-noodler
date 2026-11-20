@@ -138,6 +138,18 @@ class PersonalGuard(unittest.TestCase):
         self.assertNotEqual(r.returncode, 0, r.stderr)
         self.assertNotEqual(git(repo.bare, "branch", "--list", "feature").stdout.strip(), "feature")
 
+    def test_commits_another_remote_already_has_are_still_checked_for_this_one(self):
+        repo = self.repo()
+        other = os.path.join(self.tmp, "other.git")
+        git(self.tmp, "init", "-q", "--bare", other)
+        git(repo.work, "remote", "add", "other", other)
+        repo.commit("docs/x.md", "id %s\n" % PROPERTY_ID, "add")
+        # it reached the other remote without the hook, so a tracking ref now points at it
+        git(repo.work, "push", "-q", "--no-verify", "other", "HEAD:refs/heads/main", env=repo.env)
+        git(repo.work, "fetch", "-q", "other", env=repo.env)
+        r = git(repo.work, "push", "-q", "origin", "HEAD:refs/heads/feature", check=False, env=repo.env)
+        self.assertNotEqual(r.returncode, 0, "a commit only the OTHER remote had went through: " + r.stderr)
+
     def test_a_longer_number_that_contains_an_id_passes(self):
         repo = self.repo()
         repo.commit("docs/x.md", "order 1%s0\n" % PROPERTY_ID, "x")

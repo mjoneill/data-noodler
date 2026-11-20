@@ -80,7 +80,7 @@ def git(*args):
     return subprocess.run(["git", *args], capture_output=True, text=True, errors="replace", check=True).stdout
 
 
-def commits_to_push(stdin_lines):
+def commits_to_push(stdin_lines, remote_name):
     shas = []
     for line in stdin_lines:
         parts = line.split()
@@ -90,7 +90,9 @@ def commits_to_push(stdin_lines):
         if local_sha == ZERO:
             continue  # a deletion sends no content
         if remote_sha == ZERO:
-            rng = git("rev-list", local_sha, "--not", "--remotes").split()
+            # a new branch: everything the TARGET remote is not known to have. Not
+            # --remotes (every remote): a commit another remote holds is still new here.
+            rng = git("rev-list", local_sha, "--not", "--remotes=%s" % remote_name).split()
         else:
             rng = git("rev-list", "%s..%s" % (remote_sha, local_sha)).split()
         shas.extend(s for s in rng if s not in shas)
@@ -134,7 +136,8 @@ def main():
         print("*** personal guard not configured: no property snapshot and no personal-guard.txt in %s. "
               "Nothing personal was checked. ***" % cfg, file=sys.stderr)
         return 0
-    shas = commits_to_push(sys.stdin.read().splitlines())
+    remote_name = sys.argv[1] if len(sys.argv) > 1 else "origin"   # git passes the remote's name
+    shas = commits_to_push(sys.stdin.read().splitlines(), remote_name)
     found = findings(shas, ids, personal)
     for sha, path, kind in found:
         print("PERSONAL-GUARD %s %s: %s" % (sha, path, kind), file=sys.stderr)
