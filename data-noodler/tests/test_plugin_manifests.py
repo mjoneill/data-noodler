@@ -104,11 +104,18 @@ class TestMcpManifest(unittest.TestCase):
         # home once it exists.
         import subprocess
         for name, entry in self.mcp["mcpServers"].items():
-            for where in ("ga-" "mcp", "data-noodler"):
-                with self.subTest(server=name, home=where):
+            for where, empty_new in (("ga-" "mcp", False), ("ga-" "mcp", True),
+                                     ("data-noodler", False)):
+                with self.subTest(server=name, home=where, empty_new=empty_new):
                     h = tempfile.mkdtemp()
                     b = os.path.join(h, ".config", where, "bin")
                     os.makedirs(b)
+                    with open(os.path.join(h, ".config", where, "config.json"), "w") as f:
+                        f.write("{}")
+                    if empty_new:
+                        # Indigo's review of PR #5: an empty new folder must
+                        # not pull Codex away from a working install.
+                        os.makedirs(os.path.join(h, ".config", "data-noodler"))
                     launcher = os.path.join(b, os.path.basename(
                         entry["args"][1].split("/bin/")[1].split('"')[0]))
                     with open(launcher, "w") as f:

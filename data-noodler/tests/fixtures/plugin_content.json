@@ -1,5 +1,5 @@
 {
   "version": "0.9.0",
-  "sha256": "27c0c829996e853379923755ac566debe7eaaf1ed823f977c9250577afabf395",
-  "recorded_from": "the repo at release, 2026-11-20 (install home ~/.config/data-noodler with the old home as fallback; #1999 slice 2)"
+  "sha256": "3f0f6a6bc51d9605af7ccf39825b9f654fe83c7a9e62a259ea071b9f3e9642e6",
+  "recorded_from": "the repo at release, 2026-11-20 (install home ~/.config/data-noodler, the old home a fallback decided on its config; #1999 slice 2)"
 }

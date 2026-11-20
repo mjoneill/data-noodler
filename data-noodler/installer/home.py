@@ -2,8 +2,8 @@
 
 The home is ~/.config/data-noodler. Installs made before the product had one
 name live in ~/.config/ga-mcp until migrate_home.py moves them, and keep
-working there: every reader takes the new home when it exists, else an old
-home that holds a config, else the new one.
+working there: every reader takes the new home when it holds a config, else an old home
+that holds one, else the new one.
 
 The server (server/config.py), the skill's scripts (ga_config.py), the
 launchers and tools/personal_guard.py repeat this rule because none of them
@@ -27,7 +27,10 @@ def legacy_home(home=None):
 
 def default_home(home=None):
     new, old = new_home(home), legacy_home(home)
-    if os.path.isdir(new):
+    # Decided on what a home holds, not on whether it exists: an empty new
+    # folder (a mkdir, an aborted move) must not pull every reader away from
+    # a working install (Indigo's review of PR #5).
+    if os.path.isfile(os.path.join(new, "config.json")):
         return new
     if os.path.isfile(os.path.join(old, "config.json")):
         return old

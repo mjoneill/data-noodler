@@ -4,7 +4,7 @@
       "command": "/bin/sh",
       "args": [
         "-c",
-        "H=\"${DATA_NOODLER_HOME:-$HOME/.config/data-noodler}\"; [ -d \"$H\" ] || H=\"$HOME/.config/ga-mcp\"; T=\"$H/bin/launch-analytics-mcp\"; [ -x \"$T\" ] || { echo \"data-noodler: $T is missing or not executable. Run the data-noodler-setup skill from Claude Code or Codex.\" >&2; exit 1; }; exec \"$T\""
+        "H=\"${DATA_NOODLER_HOME:-$HOME/.config/data-noodler}\"; O=\"$HOME/.config/ga-mcp\"; [ -f \"$H/config.json\" ] || [ ! -f \"$O/config.json\" ] || H=\"$O\"; T=\"$H/bin/launch-analytics-mcp\"; [ -x \"$T\" ] || { echo \"data-noodler: $T is missing or not executable. Run the data-noodler-setup skill from Claude Code or Codex.\" >&2; exit 1; }; exec \"$T\""
       ],
       "env_vars": [
         "HOME",
@@ -17,7 +17,7 @@
       "command": "/bin/sh",
       "args": [
         "-c",
-        "H=\"${DATA_NOODLER_HOME:-$HOME/.config/data-noodler}\"; [ -d \"$H\" ] || H=\"$HOME/.config/ga-mcp\"; T=\"$H/bin/launch-data-noodler\"; [ -x \"$T\" ] || { echo \"data-noodler: $T is missing or not executable. Run the data-noodler-setup skill from Claude Code or Codex.\" >&2; exit 1; }; exec \"$T\""
+        "H=\"${DATA_NOODLER_HOME:-$HOME/.config/data-noodler}\"; O=\"$HOME/.config/ga-mcp\"; [ -f \"$H/config.json\" ] || [ ! -f \"$O/config.json\" ] || H=\"$O\"; T=\"$H/bin/launch-data-noodler\"; [ -x \"$T\" ] || { echo \"data-noodler: $T is missing or not executable. Run the data-noodler-setup skill from Claude Code or Codex.\" >&2; exit 1; }; exec \"$T\""
       ],
       "env_vars": [
         "HOME",

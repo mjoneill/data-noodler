@@ -52,7 +52,16 @@ def config_dir():
     base = os.path.expanduser("~/.config")
     new = os.path.join(base, "data-noodler")
     old = os.path.join(base, "ga-" "mcp")
-    if not os.path.isdir(new) and os.path.isdir(old):
+    def has_lists(d):
+        return any(os.path.isfile(os.path.join(d, n))
+                   for n in ("config.json", "personal-guard.txt"))
+
+    # Decided on the lists, not on the folder: an empty new folder must not
+    # hide lists still in the old one (Indigo's review of PR #5). This
+    # differs on purpose from the installer's rule, which follows
+    # config.json: a contributor may keep only personal-guard.txt, and for
+    # this guard the lists are what matter. A test pins the difference.
+    if not has_lists(new) and has_lists(old):
         return old
     return new
 

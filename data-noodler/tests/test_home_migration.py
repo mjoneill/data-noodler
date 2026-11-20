@@ -76,6 +76,8 @@ class TestEveryReaderFindsTheHome(unittest.TestCase):
         _old_install(h)
         new = os.path.join(h, ".config", "data-noodler")
         os.makedirs(new)
+        with open(os.path.join(new, "config.json"), "w") as f:
+            f.write("{}")
         self.assertEqual(dn_home.default_home(h), new)
 
     def test_the_server_reads_the_old_config_until_the_move(self):
@@ -88,6 +90,44 @@ class TestEveryReaderFindsTheHome(unittest.TestCase):
         self.assertEqual(server_config.default_config_path(
             env={"DATA_NOODLER_CONFIG": "/x/c.json"}, home="/nowhere"),
             "/x/c.json")
+
+
+class AnEmptyNewHomeChangesNothing(unittest.TestCase):
+    """Indigo's review of PR #5: readers chose the new home on isdir(), so
+    an empty ~/.config/data-noodler flipped them all away from the real
+    install. They decide on what a home holds, not on whether it exists."""
+
+    def setUp(self):
+        self.h = _fake_home()
+        self.old = _old_install(self.h)
+        os.makedirs(os.path.join(self.h, ".config", "data-noodler"))
+
+    def test_the_installer_keeps_the_old_home(self):
+        self.assertEqual(dn_home.default_home(self.h), self.old)
+
+    def test_the_server_keeps_the_old_config(self):
+        self.assertEqual(server_config.default_config_path(env={}, home=self.h),
+                         os.path.join(self.old, "config.json"))
+
+    def test_the_guard_keeps_the_old_lists(self):
+        self.assertEqual(TestThePersonalGuardFollowsTheHome._config_dir(
+            None, self.h), self.old)
+
+
+class TheGuardDiffersOnPurpose(unittest.TestCase):
+    """A contributor who never installed may keep only personal-guard.txt.
+    For the guard the lists are what matter, so it follows them; the
+    installer and server follow config.json. Pinned so it stays deliberate."""
+
+    def test_a_list_alone_in_the_old_home_is_still_read(self):
+        h = _fake_home()
+        old = os.path.join(h, ".config", OLD)
+        os.makedirs(old)
+        with open(os.path.join(old, "personal-guard.txt"), "w") as f:
+            f.write("x\n")
+        self.assertEqual(TestThePersonalGuardFollowsTheHome._config_dir(None, h), old)
+        self.assertEqual(dn_home.default_home(h),
+                         os.path.join(h, ".config", "data-noodler"))
 
 
 class TestTheMoveIsPlannedFirst(unittest.TestCase):
@@ -173,6 +213,34 @@ class TestTheMove(unittest.TestCase):
         self.assertTrue(os.path.isfile(cfg["adc_file"]))
         self.assertTrue(os.path.isfile(cfg["oauth_client_file"]))
         self.assertTrue(os.path.isfile(os.path.join(self.old, "personal-guard.txt")))
+
+
+class AFailureLateInTheMovePutsEverythingBack(unittest.TestCase):
+    def test_a_failed_record_write_restores_the_config_too(self):
+        h = _fake_home()
+        old = _old_install(h)
+        with open(os.path.join(old, "config.json")) as f:
+            before = f.read()
+        real_dump = json.dump
+
+        def failing_dump(obj, f, *a, **k):
+            if isinstance(obj, dict) and "config_backup" in obj:
+                raise OSError("disk full")
+            return real_dump(obj, f, *a, **k)
+
+        migrate_home.json.dump = failing_dump
+        try:
+            with self.assertRaises(OSError):
+                migrate_home.migrate(h, running=lambda: [])
+        finally:
+            migrate_home.json.dump = real_dump
+        self.assertFalse(os.path.exists(os.path.join(h, ".config", "data-noodler")))
+        with open(os.path.join(old, "config.json")) as f:
+            self.assertEqual(f.read(), before)
+        cfg = json.loads(before)
+        self.assertTrue(os.path.isfile(cfg["adc_file"]))
+        self.assertTrue(os.path.isfile(cfg["oauth_client_file"]))
+        self.assertEqual([n for n in os.listdir(old) if ".ga-backup-" in n], [])
 
 
 class TestThePersonalGuardFollowsTheHome(unittest.TestCase):

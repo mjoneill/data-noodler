@@ -20,7 +20,7 @@ def _config_path():
     base = os.path.expanduser("~/.config")
     new = os.path.join(base, "data-noodler")
     old = os.path.join(base, "ga-" "mcp", "config.json")
-    if not os.path.isdir(new) and os.path.isfile(old):
+    if not os.path.isfile(os.path.join(new, "config.json")) and os.path.isfile(old):
         return old
     return os.path.join(new, "config.json")
 

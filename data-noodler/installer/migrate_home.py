@@ -188,6 +188,14 @@ def migrate(home=None, running=None):
             json.dump(record, f, indent=2)
         return record
     except Exception:
+        # Every step undone, config.json included: rolled back without it,
+        # the old home's config named the new home and the new file names
+        # (Indigo's review of PR #5).
+        cfg_path = os.path.join(new, "config.json")
+        backup = f"{cfg_path}.ga-backup-{stamp}"
+        if os.path.exists(backup):
+            shutil.copy2(backup, cfg_path)
+            os.remove(backup)
         for src, dst in reversed(done):
             os.rename(dst, src)
         os.rename(new, old)

@@ -223,16 +223,18 @@ if __name__ == "__main__":
 
 class TheGuardFollowsTheInstallHome(unittest.TestCase):
     """#1999, Indigo's hazard: with no list found this guard warns and PASSES.
-    So when the install home moves from ~/.config/ga-mcp to
+    So when the install home moves from its old name to
     ~/.config/data-noodler, a guard looking only in one of them would quietly
     stop checking. Real pushes, located by HOME alone (no override)."""
 
-    def _repo_with_home(self, home_folder):
+    def _repo_with_home(self, home_folder, empty_new=False):
         tmp = tempfile.mkdtemp()
         home = os.path.join(tmp, "home")
         cfg = os.path.join(home, ".config", home_folder)
         os.makedirs(cfg)
         write_config(cfg)
+        if empty_new:
+            os.makedirs(os.path.join(home, ".config", "data-noodler"))
         repo = Repo(tmp, cfg)
         repo.env = {k: v for k, v in os.environ.items()
                     if k != "DATA_NOODLER_PERSONAL_GUARD_CONFIG_DIR"}
@@ -251,3 +253,8 @@ class TheGuardFollowsTheInstallHome(unittest.TestCase):
 
     def test_a_list_in_the_new_home_refuses(self):
         self._assert_refused(self._repo_with_home("data-noodler"))
+
+    def test_an_empty_new_home_does_not_hide_the_lists_in_the_old(self):
+        # Indigo's review of PR #5: a mkdir, an aborted move or any tool
+        # creating the folder used to flip the guard to an empty home.
+        self._assert_refused(self._repo_with_home("ga-" "mcp", empty_new=True))
