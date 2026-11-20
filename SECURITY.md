@@ -6,8 +6,9 @@ Please report security problems privately, not in a public issue: use
 **Report a vulnerability** on this repository's **Security** tab. That opens a
 private advisory that only the maintainers can see.
 
-Include what you found, how to reproduce it, and what it could expose. You
-will get an answer within a few days.
+Include what you found, how to reproduce it, and what it could expose. This
+project is shared as-is with no support commitment (see README.md), but
+security reports are read.
 
 ## What this package is designed to protect
 
