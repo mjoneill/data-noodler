@@ -34,32 +34,29 @@
 # (found 2026-10-23, #151). Before every zip:
 #
 #   uvx pip-audit --no-deps --disable-pip -s osv \
-#       --ignore-vuln CVE-2026-114603 -r ga-mcp-dist/installer/constraints.txt
+#       -r ga-mcp-dist/installer/constraints.txt
 #
 # Ship only on exit 0. tests/test_constraints_security.py holds offline
 # floors for the versions found vulnerable, so they cannot come back.
 #
-# ACCEPTED EXCEPTION, re-reviewed 2026-10-25 for mcp 2.x: CVE-2026-114603,
-# opentelemetry-api 1.44.0 (fixed in 1.45.1): a quadratic regex in parsing a
-# W3C `tracestate` header. mcp 2.x DOES parse trace context from every
-# inbound message's _meta (OpenTelemetryMiddleware -> propagate.extract), so
-# the code is reachable in principle -- only by the MCP client app itself,
-# never by the model or by GA data. It is switched off in both servers:
-# OTEL_PROPAGATORS=none in the launchers and the Windows entries (verified:
-# no propagators load, a hostile tracestate is never parsed), and
-# ga-companion also drops the SDK's tracing middleware. No exporter is ever
-# installed, so nothing is lost. It cannot be fixed from this side:
-# analytics-mcp 0.8.0 needs google-adk >= 2.11 and google-adk 2.13.0 (the
-# newest) caps opentelemetry-api/sdk at <=1.44. Drop the --ignore-vuln once
-# google-adk allows 1.45.1. tests/test_mcp2_security.py holds the switch-off.
+# NO EXCEPTIONS since 2026-11-20 (#1986). CVE-2026-114603 (opentelemetry-api
+# tracestate parsing) was accepted from 2026-10-25 because google-adk capped
+# opentelemetry at <=1.44; google-adk 2.15.0 allows 1.45.2, which fixes it.
+# The parsing stays switched off anyway, as defence in depth: nothing here
+# exports traces, so parsing them buys nothing. OTEL_PROPAGATORS=none is set
+# in the launchers and the Windows entries, and ga-companion drops the SDK's
+# tracing middleware. tests/test_mcp2_security.py holds the switch-off.
 #
 # pip is pinned too, so the venv's own pip is upgraded with -c: pip below
 # 26.2.2 vendors the compromised roots.
 #
-# Captured 2026-10-25 from fresh Python 3.12.13 (what the Windows machines
-# run) and 3.14.9 venvs: identical sets, 68 distributions. Both passed the
-# full test suite. OSV and PyPI advisory scans clean apart from the exception
-# above.
+# Captured 2026-11-20 on a clean macOS runner (GitHub Actions, Python
+# 3.12.10) by .github/workflows/refresh-pins.yml: the 2026-10-25 set with
+# only oauthlib, pyasn1, opentelemetry-api/sdk and google-adk bumped, and
+# google-genai, watchdog and opentelemetry-semantic-conventions released to
+# follow google-adk 2.15.0. 68 distributions; 8 changed, the rest identical.
+# The full suite passed against it (901 tests) and the OSV scan above exits 0
+# with no exceptions. Previous capture: 2026-10-25, Python 3.12.13 and 3.14.9.
 aiosqlite==0.22.1
 analytics-mcp==0.8.0
 annotated-doc==0.0.5
@@ -74,13 +71,13 @@ click==8.5.0
 cryptography==50.0.2
 distro==1.9.0
 fastapi==0.162.0
-google-adk==2.13.0
+google-adk==2.15.0
 google-analytics-admin==0.30.2
 google-analytics-data==0.23.3
 google-api-core==2.43.0
 google-auth==2.62.0
 google-auth-oauthlib==1.5.0
-google-genai==2.33.0
+google-genai==2.34.0
 googleapis-common-protos==1.76.0
 graphviz==0.21
 grpcio==1.84.1
@@ -96,15 +93,15 @@ jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 mcp==2.3.0
 mcp-types==2.3.0
-oauthlib==4.0.0
-opentelemetry-api==1.44.0
-opentelemetry-sdk==1.44.0
-opentelemetry-semantic-conventions==0.65b0
+oauthlib==4.0.1
+opentelemetry-api==1.45.2
+opentelemetry-sdk==1.45.2
+opentelemetry-semantic-conventions==0.66b2
 packaging==26.3
 pip==26.2.2
 proto-plus==1.29.0
 protobuf==7.36.2
-pyasn1==0.6.4
+pyasn1==0.6.5
 pyasn1_modules==0.4.2
 pycparser==3.12
 pydantic==2.14.1
@@ -126,5 +123,5 @@ typing-inspection==0.4.4
 typing_extensions==4.16.0
 urllib3==2.8.0
 uvicorn==0.54.0
-watchdog==6.0.0
+watchdog==7.1.0
 websockets==15.0.1

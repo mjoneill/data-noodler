@@ -20,6 +20,11 @@ FLOORS = {
     "aiohttp": "3.14.4",
     "mcp": "1.30.0",
     "pip": "26.2.2",
+    # 2026-11-19 OSV scan (#1986)
+    "oauthlib": "4.0.1",
+    "pyasn1": "0.6.5",
+    "opentelemetry-api": "1.45.2",
+    "opentelemetry-sdk": "1.45.2",
 }
 
 

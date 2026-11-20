@@ -23,8 +23,13 @@ CONSTRAINTS = os.path.join(ROOT, "installer", "constraints.txt")
 sys.path.insert(0, os.path.join(ROOT, "installer"))
 from security_floors import FLOORS, below_floor, version_key as _version_key  # noqa: E402
 
-# The one advisory deliberately accepted; see the header for why.
-ACCEPTED = "CVE-2026-114603"
+# The advisory that was accepted until google-adk 2.15.0 allowed its fix
+# (#1986, 2026-11-20). It must not be ignored again.
+FORMERLY_ACCEPTED = "CVE-2026-114603"
+
+# The 2026-11-19 scan's findings and the versions that fixed them (#1986).
+FIXED_2026_11 = {"oauthlib": "4.0.1", "pyasn1": "0.6.5",
+                 "opentelemetry-api": "1.45.2", "opentelemetry-sdk": "1.45.2"}
 
 
 def _pins():
@@ -79,13 +84,27 @@ class TestTheHeaderCarriesTheScan(unittest.TestCase):
         self.assertIn("pip-audit", self.text)
         self.assertIn("-s osv", self.text)
 
-    def test_the_accepted_exception_is_explained_not_just_ignored(self):
-        self.assertIn("--ignore-vuln " + ACCEPTED, self.text)
-        self.assertIn("ACCEPTED EXCEPTION", self.text)
-        # Under mcp 2.x the parser is reachable by the client app, so the
-        # exception rests on it being switched off -- and says so.
+    def test_no_advisory_is_ignored_any_more(self):
+        # #1986: every finding now has a fix inside the pins, so the scan
+        # line carries no exception, and a new advisory fails it.
+        self.assertNotIn("--ignore-vuln", self.text)
+        self.assertNotIn("ACCEPTED EXCEPTION", self.text)
+
+    def test_the_trace_parsing_switch_off_is_still_explained(self):
+        # Kept as defence in depth after the fix: nothing exports traces, so
+        # parsing them buys nothing.
         self.assertIn("OTEL_PROPAGATORS=none", self.text)
         self.assertIn("switched off", self.text)
+
+    def test_the_2026_11_findings_have_floors(self):
+        for name, fixed in FIXED_2026_11.items():
+            with self.subTest(package=name):
+                self.assertEqual(FLOORS.get(name), fixed)
+
+    def test_the_floors_reject_the_2026_11_set(self):
+        shipped = {"oauthlib": "4.0.0", "pyasn1": "0.6.4",
+                   "opentelemetry-api": "1.44.0", "opentelemetry-sdk": "1.44.0"}
+        self.assertEqual(set(below_floor(shipped)), set(shipped))
 
     def test_the_version_comparison_orders_dates_and_releases(self):
         self.assertLess(_version_key("2026.7.22"), _version_key("2026.10.23"))

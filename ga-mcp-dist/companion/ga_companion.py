@@ -23,9 +23,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Switch off W3C trace-context parsing before anything imports opentelemetry's
 # propagators (the launchers and Windows entries set it too). mcp 2.x parses
 # traceparent/tracestate from every inbound message's _meta, and
-# opentelemetry-api 1.44.0's tracestate parser has a quadratic-regex
-# advisory (CVE-2026-114603) whose fix google-adk does not yet allow. Nothing
-# here exports traces, so the parsing buys nothing (#162).
+# opentelemetry-api 1.44.0's tracestate parser had a quadratic-regex
+# advisory (CVE-2026-114603), fixed in the pins since #1986. Nothing here
+# exports traces, so the parsing buys nothing and stays off (#162).
 os.environ.setdefault("OTEL_PROPAGATORS", "none")
 
 import config

@@ -20,8 +20,8 @@ GRPC_RESOLVER = "native"
 
 # mcp 2.x parses W3C trace context (traceparent/tracestate) from every inbound
 # message. Nothing here exports traces, and opentelemetry-api's tracestate
-# parser carries an advisory (CVE-2026-114603) its fix cannot reach yet --
-# so both servers run with the parsing off. On POSIX the launchers export it
+# parser had an advisory (CVE-2026-114603), fixed in the pins since #1986 --
+# and both servers still run with the parsing off, as defence in depth. On POSIX the launchers export it
 # too; on Windows the entry is the only place it can be set (#162).
 OTEL_PROPAGATORS = "none"
 

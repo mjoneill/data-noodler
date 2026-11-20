@@ -3,8 +3,8 @@
 - Tool annotations tell an app honestly what each tool may do.
 - W3C trace-context parsing is off in both servers: mcp 2.x parses
   traceparent/tracestate from every inbound message, and opentelemetry-api's
-  tracestate parser carries CVE-2026-114603, whose fix google-adk does not
-  yet allow.
+  tracestate parser carried CVE-2026-114603 (fixed in the pins since #1986);
+  the switch-off stays as defence in depth.
 - analytics-mcp 0.8.0's write tool stays off: no entry ever passes
   --allow-write.
 - A probe leaves no server process behind.
