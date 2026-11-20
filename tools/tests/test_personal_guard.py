@@ -150,6 +150,34 @@ class PersonalGuard(unittest.TestCase):
         r = git(repo.work, "push", "-q", "origin", "HEAD:refs/heads/feature", check=False, env=repo.env)
         self.assertNotEqual(r.returncode, 0, "a commit only the OTHER remote had went through: " + r.stderr)
 
+    def test_a_pattern_line_is_matched_as_a_regular_expression_ignoring_case(self):
+        repo = self.repo()
+        with open(os.path.join(self.config, "personal-guard.txt"), "a") as f:
+            f.write("re:" + r"\bwid" + r"get\s+lab\b" + "\n")
+        before = repo.remote_head()
+        repo.commit("docs/x.md", "Made by the WIDGET   LAB.\n", "x")
+        self.assertRefused(repo.push(), repo, before)
+
+    def test_a_pattern_keeps_its_word_boundaries(self):
+        repo = self.repo()
+        with open(os.path.join(self.config, "personal-guard.txt"), "a") as f:
+            f.write("re:" + r"\bwid" + r"get\b" + "\n")
+        repo.commit("docs/x.md", "the widgets and gadgetwidget are fine\n", "x")
+        r = repo.push()
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("1 pattern", r.stderr)
+
+    def test_an_unreadable_pattern_refuses_the_push(self):
+        repo = self.repo()
+        with open(os.path.join(self.config, "personal-guard.txt"), "a") as f:
+            f.write("re:(unclosed\n")
+        before = repo.remote_head()
+        repo.commit("docs/x.md", "nothing\n", "x")
+        r = repo.push()
+        self.assertNotEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(repo.remote_head(), before)
+        self.assertNotIn("unclosed", r.stderr, "the refusal printed the pattern")
+
     def test_a_longer_number_that_contains_an_id_passes(self):
         repo = self.repo()
         repo.commit("docs/x.md", "order 1%s0\n" % PROPERTY_ID, "x")

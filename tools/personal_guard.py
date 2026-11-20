@@ -11,7 +11,9 @@ This hook checks the private list, and the list never leaves your machine:
     whole number;
   * every line of ~/.config/ga-mcp/personal-guard.txt (your institution, team
     or colleague names, a Cloud project id...), matched anywhere, ignoring
-    case. Blank lines and lines starting with # are skipped.
+    case. A line starting with `re:` is a regular expression instead (also
+    ignoring case), for a value that needs word boundaries or variants.
+    Blank lines and lines starting with # are skipped.
 
 It reads every commit the push would send: the lines each commit adds and
 the commit message. A value added in one commit and removed in the next is
@@ -46,8 +48,8 @@ class NotReadable(Exception):
 
 
 def load_lists(cfg_dir):
-    """(ids, personal values). Raises NotReadable when a list is named but unreadable."""
-    ids, personal = set(), []
+    """(ids, personal values, patterns). Raises NotReadable when a list is named but unreadable."""
+    ids, personal, patterns = set(), [], []
     cfg_path = os.path.join(cfg_dir, "config.json")
     if os.path.exists(cfg_path):
         try:
@@ -70,10 +72,18 @@ def load_lists(cfg_dir):
     if os.path.exists(list_path):
         try:
             with open(list_path, encoding="utf-8") as f:
-                personal = [ln.strip() for ln in f if ln.strip() and not ln.lstrip().startswith("#")]
+                lines = [ln.strip() for ln in f if ln.strip() and not ln.lstrip().startswith("#")]
         except OSError as e:
             raise NotReadable("personal-guard.txt: %s" % e.__class__.__name__)
-    return ids, personal
+        for n, ln in enumerate(lines, 1):
+            if ln.startswith("re:"):
+                try:
+                    patterns.append(re.compile(ln[3:], re.I))
+                except re.error:
+                    raise NotReadable("personal-guard.txt: entry %d is not a valid pattern" % n)
+            else:
+                personal.append(ln)
+    return ids, personal, patterns
 
 
 def git(*args):
@@ -111,7 +121,7 @@ def added_lines(sha):
     return out
 
 
-def findings(shas, ids, personal):
+def findings(shas, ids, personal, patterns=()):
     lowered = [(p, p.lower()) for p in personal]
     found = []
     for sha in shas:
@@ -119,7 +129,7 @@ def findings(shas, ids, personal):
             if ids and any(tok in ids for tok in ID_TOKEN.findall(line)):
                 found.append((sha[:10], path, "a GA property or account id from your snapshot"))
             low = line.lower()
-            if any(lp in low for _, lp in lowered):
+            if any(lp in low for _, lp in lowered) or any(rx.search(line) for rx in patterns):
                 found.append((sha[:10], path, "a value from your personal-guard.txt"))
     return sorted(set(found))
 
@@ -127,22 +137,23 @@ def findings(shas, ids, personal):
 def main():
     cfg = config_dir()
     try:
-        ids, personal = load_lists(cfg)
+        ids, personal, patterns = load_lists(cfg)
     except NotReadable as e:
         print("PERSONAL-GUARD refused the push: a list is configured but could not be read (%s). "
               "Fix it, or push with --no-verify if you are sure." % e, file=sys.stderr)
         return 1
-    if not ids and not personal:
+    if not ids and not personal and not patterns:
         print("*** personal guard not configured: no property snapshot and no personal-guard.txt in %s. "
               "Nothing personal was checked. ***" % cfg, file=sys.stderr)
         return 0
     remote_name = sys.argv[1] if len(sys.argv) > 1 else "origin"   # git passes the remote's name
     shas = commits_to_push(sys.stdin.read().splitlines(), remote_name)
-    found = findings(shas, ids, personal)
+    found = findings(shas, ids, personal, patterns)
     for sha, path, kind in found:
         print("PERSONAL-GUARD %s %s: %s" % (sha, path, kind), file=sys.stderr)
-    summary = "%d commit(s) checked against %d snapshot ids and %d personal value%s" % (
-        len(shas), len(ids), len(personal), "" if len(personal) == 1 else "s")
+    summary = "%d commit(s) checked against %d snapshot ids, %d personal value%s and %d pattern%s" % (
+        len(shas), len(ids), len(personal), "" if len(personal) == 1 else "s",
+        len(patterns), "" if len(patterns) == 1 else "s")
     if found:
         print("PERSONAL-GUARD refused the push: %s. Remove the value (rewrite the commit if it is "
               "already committed) and push again." % summary, file=sys.stderr)
