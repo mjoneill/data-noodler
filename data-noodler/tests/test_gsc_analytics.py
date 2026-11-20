@@ -153,7 +153,10 @@ class TestPagination(unittest.TestCase):
         self.assertFalse(meta["row_limit_hit"])
 
     def test_row_limit_exactly_page_size_with_more_data_is_truncated(self):
-        s = _PagingSession([_page(gsc.PAGE_SIZE), _page(gsc.PAGE_SIZE)])
+        # The second page must differ from the first: the same full page
+        # twice is a server ignoring startRow, which stops paging (#1994).
+        s = _PagingSession([_page(gsc.PAGE_SIZE),
+                            _page(gsc.PAGE_SIZE, start=gsc.PAGE_SIZE)])
         _, rows, meta = gsc.search_analytics(
             "sc-domain:example.edu", "2026-08-06", "2026-08-07", ["date"],
             row_limit=gsc.PAGE_SIZE, session=s)

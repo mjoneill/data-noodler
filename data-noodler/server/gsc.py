@@ -632,11 +632,19 @@ def search_analytics(site_url, start_date, end_date, dimensions,
                                                "filters": built_filters}]
 
     rows, start_row, limit_hit = [], 0, False
+    stopped, previous = None, None
 
     while True:
         data = call("POST", endpoint, session=session,
                     json=dict(body_base, startRow=start_row))
         page = data.get("rows", []) or []
+        # The same full page twice means the server ignored startRow. Asking
+        # again would get it again, forever, and writing it would double the
+        # file (#1994). Stop, and let the receipt say the file is incomplete.
+        if page and page == previous:
+            stopped = "server_repeated_page"
+            break
+        previous = page
 
         for r in page:
             keys = list(r.get("keys", []))
@@ -665,6 +673,13 @@ def search_analytics(site_url, start_date, end_date, dimensions,
         limit_hit = True
         rows = rows[:row_limit]
 
+    # A Search Console report never repeats a full key (the requested
+    # dimensions), so a repeat means paging went wrong and every sum taken
+    # from the file is inflated. Counted so the receipt says so instead of
+    # reading all-clear, as GA exports do since #1993 (#1994).
+    n_keys = len(dimensions)
+    duplicate_rows = len(rows) - len({tuple(r[:n_keys]) for r in rows})
+
     columns = dimensions + ANALYTICS_METRICS + ["page_path"]
     meta = {
         "source": "gsc_search_analytics",
@@ -684,7 +699,8 @@ def search_analytics(site_url, start_date, end_date, dimensions,
         # only on failure is ambiguous when it is missing: the reader cannot
         # tell "this run completed" from "this field predates the code that
         # writes it". inspect_urls records it the same way.
-        "stopped_reason": None,
+        "stopped_reason": stopped,
+        "duplicate_rows": duplicate_rows,
         # Always present, null when the totals are directly comparable with a
         # date-only export of the same range. See aggregation_note().
         "aggregation_note": aggregation_note(dimensions),
