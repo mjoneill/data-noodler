@@ -19,4 +19,6 @@ class Probe2011(unittest.TestCase):
             body = open(target).read(200) if exists else ""
             print(f"\nPROBE2011 outcome={outcome!r} target_exists={exists} "
                   f"link_still_link={os.path.islink(p + '.ga-tmp')} "
-                  f"out_exists={os.path.exists(p)} target_head={body!r}", flush=True)
+                  f"out_exists={os.path.exists(p)} out_is_link={os.path.islink(p)} "
+                  f"out_realpath_is_target={os.path.normcase(os.path.realpath(p)) == os.path.normcase(os.path.realpath(target))} "
+                  f"target_head={body!r}", flush=True)
