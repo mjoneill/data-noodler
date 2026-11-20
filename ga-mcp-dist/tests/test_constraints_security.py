@@ -28,6 +28,8 @@ from security_floors import FLOORS, below_floor, version_key as _version_key  # 
 FORMERLY_ACCEPTED = "CVE-2026-114603"
 
 # The 2026-11-19 scan's findings and the versions that fixed them (#1986).
+# opentelemetry-sdk had no advisory of its own: it moves in lockstep with
+# opentelemetry-api, so it is floored with it.
 FIXED_2026_11 = {"oauthlib": "4.0.1", "pyasn1": "0.6.5",
                  "opentelemetry-api": "1.45.2", "opentelemetry-sdk": "1.45.2"}
 

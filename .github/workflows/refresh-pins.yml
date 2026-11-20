@@ -21,6 +21,9 @@ permissions:
   contents: read
 
 env:
+  # EDIT BUMPS AND RELEASE FOR EACH REFRESH. As committed they describe the
+  # last one (#1986, 2026-11-20); pushing a refresh/** branch unedited just
+  # re-runs it.
   # name==version, space-separated: the only pins this run changes.
   BUMPS: >-
     oauthlib==4.0.1

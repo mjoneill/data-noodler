@@ -24,7 +24,7 @@ FLOORS = {
     "oauthlib": "4.0.1",
     "pyasn1": "0.6.5",
     "opentelemetry-api": "1.45.2",
-    "opentelemetry-sdk": "1.45.2",
+    "opentelemetry-sdk": "1.45.2",  # no advisory; lockstep with api
 }
 
 
