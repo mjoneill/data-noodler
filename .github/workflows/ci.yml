@@ -32,6 +32,10 @@ jobs:
           git config --global user.email ci@example.invalid
           python -I -m unittest discover -s tools/tests -v
       - name: Leak guard over every tracked file
+        # Runs even when a control fails. On a bad push the control that scans
+        # this very tree fails first, and its refusal is buried in a test
+        # traceback; this step prints the plain one, rule by rule.
+        if: always()
         run: python -I tools/leak_guard.py
 
   tests:
