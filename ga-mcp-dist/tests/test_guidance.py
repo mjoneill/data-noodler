@@ -268,11 +268,11 @@ class TestGscToolDocs(unittest.TestCase):
 
     def test_gsc_search_analytics_doc_says_what_row_limit_is_for(self):
         # row_limit guards against an unbounded query on a large property; it
-        # is not how you choose what to report -- that is preview_rows or the
-        # file.
+        # is not how you choose what to report -- that is the file, sorted
+        # (#1992 review: no longer preview_rows, which is in export order).
         doc = guidance.GSC_TOOL_DOCS["gsc_search_analytics"]
         self.assertIn("row_limit", doc)
-        self.assertIn("preview_rows", doc)
+        self.assertIn("from the file", " ".join(doc.split()))
         self.assertIn("unbounded", doc.lower())
 
 
@@ -444,6 +444,38 @@ class TestExportFirstAnalyseFromTheFile(unittest.TestCase):
         for name, t in self._texts().items():
             with self.subTest(name):
                 self.assertNotIn("only for a few rows", t)
+
+
+class TestThePreviewIsNeverTheAnswer(unittest.TestCase):
+    """Indigo's review of #1992: three texts still offered the receipt's
+    preview as the source of a top ten or "a few" rows. The preview is up to
+    20 rows read INTO the conversation, in export order, so its first ten
+    are a top ten only by accident. It checks the file's shape; answers come
+    from the file."""
+
+    def _texts(self):
+        with open(SKILL_MD, encoding="utf-8") as f:
+            skill = f.read()
+        texts = {"contract": guidance.BEHAVIOURAL_CONTRACT, "skill": skill}
+        texts.update({f"tool {k}": v
+                      for k, v in guidance.GSC_TOOL_DOCS.items()})
+        return {k: " ".join(v.split()) for k, v in texts.items()}
+
+    def test_no_text_offers_the_preview_as_an_answer(self):
+        offers = ["top ten from the receipt's `preview`",
+                  "To show or report only a handful, use preview_rows",
+                  'mechanism for "show me a few"']
+        for name, t in self._texts().items():
+            for phrase in offers:
+                with self.subTest(name=name, phrase=phrase):
+                    self.assertNotIn(phrase, t)
+
+    def test_the_preview_is_named_as_a_shape_check(self):
+        for name in ("contract", "tool export_report",
+                     "tool gsc_search_analytics"):
+            with self.subTest(name):
+                self.assertIn("the preview only checks the file's shape",
+                              self._texts()[name].lower())
 
 
 class TestFindingASitesPropertyFromThePage(unittest.TestCase):

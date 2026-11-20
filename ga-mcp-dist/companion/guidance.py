@@ -299,7 +299,8 @@ BEHAVIOURAL_CONTRACT = """\
   again. A truncated result looks complete and is not.
 - **Export the complete result set — never slice, cap, or "top N" it first.**
   If the user asked for a top ten, the file still gets every row; you report
-  the top ten from the receipt's `preview` or from the file itself. The file
+  the top ten from the file, sorted by the metric. The preview only checks the
+  file's shape: it holds the first rows in export order, not answers. The file
   is the artifact someone opens in a spreadsheet later, and one that was
   truncated before export looks complete and is not. Slicing first has
   already paid the context cost export_report exists to avoid, for a worse
@@ -421,10 +422,11 @@ reporting, along with search_type.
 
 row_limit guards against an unbounded query on a large property — it is not
 how you choose what to report. Leave it unset to get everything; set it only
-to cap how much a runaway query can fetch. To show or report only a handful,
-use preview_rows (capped at 20) after the export, or read the file — never
-lower row_limit to produce a "top N" file, since that writes an incomplete
-result to disk rather than a complete one with a small preview.
+to cap how much a runaway query can fetch. To show or report a handful,
+read them from the file, sorted by the metric; the preview only checks the
+file's shape (its first rows in export order, not answers). Never lower
+row_limit to produce a "top N" file, since that writes an incomplete result
+to disk rather than a complete one.
 
 Exports include a page_path column split from the full URL, so results can be
 compared against GA4's pagePath without string surgery.""",
@@ -575,9 +577,11 @@ forty. To actually restrict the data to one host, use dimension_filter.
 
 Never slice, cap, or select a "top N" before writing the file — export the
 complete result every time, even when the user only asked for a top ten.
-preview_rows (capped at 20) is the mechanism for "show me a few": it controls
-how many rows come back in the receipt's preview, not how many are written
-to the CSV. The file always gets every row regardless of preview_rows, and
+preview_rows (capped at 20) controls how many rows come back in the
+receipt's preview, not how many are written to the CSV; the preview only
+checks the file's shape (its first rows in export order). Anything shown or
+reported, even "a few", comes from the file, sorted by the metric. The file
+always gets every row regardless of preview_rows, and
 that complete file is what makes the export trustworthy later.
 
 With no limit, the export pages through to every row the query matched;
