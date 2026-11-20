@@ -165,6 +165,8 @@ class TestBlankTeamFieldsAreAFinishedSetup(unittest.TestCase):
         self.assertIn("mjoneill+noodlerfeedback@gmail.com", step)
         self.assertIn("issues", step)
         self.assertRegex(step, r"(?i)never send it yourself")
+        self.assertRegex(step, r"(?i)it is the user's choice")
+        self.assertRegex(step, r"(?i)don't ask twice")
 
     def test_the_manual_install_skips_sending_when_just_you(self):
         text = read("INSTALL.md")
