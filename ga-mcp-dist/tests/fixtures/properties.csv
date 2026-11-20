@@ -1,0 +1,7 @@
+account_name,property_name,property_id,property,account,property_type
+Admissions,Admissions Viewbook,271828182,properties/271828182,accounts/20406080,PROPERTY_TYPE_ORDINARY
+Admissions,admissions.example.edu,314159265,properties/314159265,accounts/20406080,PROPERTY_TYPE_ORDINARY
+Admissions,admissions.example.edu - GA4 archive,111111111,properties/111111111,accounts/20406080,PROPERTY_TYPE_ORDINARY
+Admissions,blog.admissions.example.edu,222222222,properties/222222222,accounts/20406080,PROPERTY_TYPE_ORDINARY
+Main,example.edu,333333333,properties/333333333,accounts/20406080,PROPERTY_TYPE_ORDINARY
+Engineering,engineering.example.edu,444444444,properties/444444444,accounts/99999999,PROPERTY_TYPE_ORDINARY

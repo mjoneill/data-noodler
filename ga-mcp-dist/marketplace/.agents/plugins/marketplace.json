@@ -1,0 +1,19 @@
+{
+  "name": "ga-tools",
+  "interface": {
+    "displayName": "Google Analytics Tools"
+  },
+  "plugins": [
+    {
+      "name": "ga-analytics",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ga-analytics"
+      },
+      "policy": {
+        "installation": "AVAILABLE"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

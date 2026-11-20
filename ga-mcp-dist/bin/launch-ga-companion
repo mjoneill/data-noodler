@@ -1,0 +1,91 @@
+#!/bin/sh
+# Launch the ga-companion MCP server with the environment it needs.
+#
+# stdout is the MCP protocol channel: every diagnostic here goes to stderr,
+# and any failure exits non-zero rather than printing to stdout.
+#
+# The config is read with /usr/bin/plutil, which every Mac has; Python is not
+# guaranteed (see read_key). The server itself runs on the analytics-mcp venv
+# Python named in the config.
+set -eu
+
+GA_HOME="${GA_HOME:-$HOME/.config/ga-mcp}"
+CONFIG="${GA_MCP_CONFIG:-$GA_HOME/config.json}"
+SETUP_HINT="Run the ga-mcp-setup skill from Claude Code or Codex to finish installation."
+
+if [ ! -f "$CONFIG" ]; then
+  echo "ga-companion: no configuration at $CONFIG" >&2
+  echo "ga-companion: $SETUP_HINT" >&2
+  exit 1
+fi
+
+# Say what is actually wrong before reading any key. read_key turns every
+# plutil failure into an empty string, so without these two checks a damaged
+# config, or a macOS too old for `plutil -extract ... raw` (added in macOS
+# 12), was reported as a missing interpreter or credential with a blank path.
+OS_MAJOR="${GA_TEST_OS_MAJOR:-$(/usr/bin/sw_vers -productVersion 2>/dev/null | cut -d. -f1)}"
+case "$OS_MAJOR" in ''|*[!0-9]*) OS_MAJOR=99 ;; esac
+if [ "$OS_MAJOR" -lt 12 ]; then
+  echo "ga-companion: macOS 12 or later is required (this Mac reports $OS_MAJOR)." >&2
+  exit 1
+fi
+
+if ! PARSE_ERR=$(/usr/bin/plutil -convert json -o /dev/null "$CONFIG" 2>&1); then
+  echo "ga-companion: $CONFIG is not valid JSON:" >&2
+  echo "  $PARSE_ERR" >&2
+  echo "ga-companion: fix the file, or move it aside and run setup again." >&2
+  exit 1
+fi
+
+read_key() {
+  # plutil ships with every Mac and reads JSON. /usr/bin/python3 does not
+  # always work: on a Mac without the Command Line Tools it is a stub that
+  # pops an install dialog and fails, so the servers never started there
+  # (#154; a ChatGPT-only partner Mac, 2026-10-29). A missing or null key is
+  # an empty string; a leading ~ is expanded as Python's expanduser did.
+  v=$(/usr/bin/plutil -extract "$1" raw -o - "$CONFIG" 2>/dev/null) || v=""
+  case "$v" in
+    "~") v="$HOME" ;;
+    "~/"*) v="$HOME/${v#\~/}" ;;
+  esac
+  printf '%s\n' "$v"
+}
+
+PY=$(read_key venv_python)
+ADC=$(read_key adc_file)
+SERVER="$GA_HOME/companion/ga_companion.py"
+
+if [ ! -x "$PY" ]; then
+  echo "ga-companion: interpreter not found or not executable: $PY" >&2
+  echo "ga-companion: $SETUP_HINT" >&2
+  exit 1
+fi
+
+if [ ! -f "$SERVER" ]; then
+  echo "ga-companion: server not installed at $SERVER" >&2
+  echo "ga-companion: $SETUP_HINT" >&2
+  exit 1
+fi
+
+# Absent credential is NOT fatal: credential_status must still be callable so
+# the model can tell the user how to fix it. Written as an if-block rather
+# than an `&&` chain because under `set -e` a chain whose test fails aborts
+# the whole script.
+if [ -f "$ADC" ]; then
+  GOOGLE_APPLICATION_CREDENTIALS="$ADC"
+  export GOOGLE_APPLICATION_CREDENTIALS
+fi
+
+export GRPC_DNS_RESOLVER=native
+# mcp 2.x parses W3C trace context from every inbound message; nothing here
+# exports traces, and opentelemetry-api's tracestate parser carries an
+# advisory (CVE-2026-114603). Switch the parsing off (#162).
+export OTEL_PROPAGATORS=none
+export GA_MCP_CONFIG="$CONFIG"
+
+# Test seam: verify the environment resolves without starting a server.
+if [ "${GA_LAUNCH_CHECK:-}" = "1" ]; then
+  exit 0
+fi
+
+exec "$PY" "$SERVER"

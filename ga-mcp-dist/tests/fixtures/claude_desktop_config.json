@@ -1,0 +1,14 @@
+{
+  "coworkUserFilesPath": "/Users/example/Claude",
+  "preferences": {
+    "quickEntryDictationShortcut": "capslock",
+    "coworkBrowserToolsEnabled": true,
+    "sidebarMode": "chat",
+    "epitaxyPrefs": {
+      "starred-local-code-sessions": [],
+      "dframe-local-slice": {
+        "pinnedOrder": []
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "siteEntry": [
+    {"siteUrl": "sc-domain:example.edu", "permissionLevel": "siteOwner"},
+    {"siteUrl": "https://example.edu/", "permissionLevel": "siteFullUser"},
+    {"siteUrl": "https://journalism.example.edu/", "permissionLevel": "siteRestrictedUser"}
+  ]
+}

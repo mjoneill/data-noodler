@@ -1,0 +1,94 @@
+#!/bin/sh
+# Launch the upstream analytics-mcp server with the environment it needs.
+#
+# Binary resolution order, so the same artifact works on a machine set up with
+# pipx (Michael's) and one set up with uv (a colleague's):
+#   1. analytics_mcp_bin in config.json, if set
+#   2. ~/.local/bin/analytics-mcp
+#
+# There is deliberately no third step. It used to be `uv tool run
+# analytics-mcp`, which is unpinned: it resolved whatever PyPI had that day on
+# every launch -- an untested version and a supply-chain exposure (#153). An
+# install that gets this far is not one the docs describe, so fail and say so.
+#
+# stdout is the MCP protocol channel: diagnostics to stderr, failures exit
+# non-zero.
+set -eu
+
+GA_HOME="${GA_HOME:-$HOME/.config/ga-mcp}"
+CONFIG="${GA_MCP_CONFIG:-$GA_HOME/config.json}"
+SETUP_HINT="Run the ga-mcp-setup skill from Claude Code or Codex to finish installation."
+
+if [ ! -f "$CONFIG" ]; then
+  echo "launch-ga-mcp: no configuration at $CONFIG" >&2
+  echo "launch-ga-mcp: $SETUP_HINT" >&2
+  exit 1
+fi
+
+# Say what is actually wrong before reading any key. read_key turns every
+# plutil failure into an empty string, so without these two checks a damaged
+# config, or a macOS too old for `plutil -extract ... raw` (added in macOS
+# 12), was reported as a missing interpreter or credential with a blank path.
+OS_MAJOR="${GA_TEST_OS_MAJOR:-$(/usr/bin/sw_vers -productVersion 2>/dev/null | cut -d. -f1)}"
+case "$OS_MAJOR" in ''|*[!0-9]*) OS_MAJOR=99 ;; esac
+if [ "$OS_MAJOR" -lt 12 ]; then
+  echo "launch-ga-mcp: macOS 12 or later is required (this Mac reports $OS_MAJOR)." >&2
+  exit 1
+fi
+
+if ! PARSE_ERR=$(/usr/bin/plutil -convert json -o /dev/null "$CONFIG" 2>&1); then
+  echo "launch-ga-mcp: $CONFIG is not valid JSON:" >&2
+  echo "  $PARSE_ERR" >&2
+  echo "launch-ga-mcp: fix the file, or move it aside and run setup again." >&2
+  exit 1
+fi
+
+read_key() {
+  # plutil ships with every Mac and reads JSON. /usr/bin/python3 does not
+  # always work: on a Mac without the Command Line Tools it is a stub that
+  # pops an install dialog and fails, so the servers never started there
+  # (#154; a ChatGPT-only partner Mac, 2026-10-29). A missing or null key is
+  # an empty string; a leading ~ is expanded as Python's expanduser did.
+  v=$(/usr/bin/plutil -extract "$1" raw -o - "$CONFIG" 2>/dev/null) || v=""
+  case "$v" in
+    "~") v="$HOME" ;;
+    "~/"*) v="$HOME/${v#\~/}" ;;
+  esac
+  printf '%s\n' "$v"
+}
+
+ADC=$(read_key adc_file)
+CONFIGURED_BIN=$(read_key analytics_mcp_bin)
+
+if [ -f "$ADC" ]; then
+  GOOGLE_APPLICATION_CREDENTIALS="$ADC"
+  export GOOGLE_APPLICATION_CREDENTIALS
+else
+  echo "launch-ga-mcp: no credential at $ADC" >&2
+  echo "launch-ga-mcp: $SETUP_HINT" >&2
+  exit 1
+fi
+
+export GRPC_DNS_RESOLVER=native
+# mcp 2.x parses W3C trace context from every inbound message; nothing here
+# exports traces, and opentelemetry-api's tracestate parser carries an
+# advisory (CVE-2026-114603). Switch the parsing off (#162).
+export OTEL_PROPAGATORS=none
+
+# Test seam: verify the environment resolves without starting a server.
+if [ "${GA_LAUNCH_CHECK:-}" = "1" ]; then
+  exit 0
+fi
+
+if [ -n "$CONFIGURED_BIN" ] && [ -x "$CONFIGURED_BIN" ]; then
+  exec "$CONFIGURED_BIN"
+fi
+
+if [ -x "$HOME/.local/bin/analytics-mcp" ]; then
+  exec "$HOME/.local/bin/analytics-mcp"
+fi
+
+echo "launch-ga-mcp: analytics-mcp not found. Looked at analytics_mcp_bin in" >&2
+echo "  $CONFIG, then ~/.local/bin/analytics-mcp." >&2
+echo "launch-ga-mcp: $SETUP_HINT" >&2
+exit 1

@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "analytics-mcp": {
+      "type": "stdio",
+      "command": "/Users/example/.local/bin/analytics-mcp",
+      "args": [],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "/Users/example/.config/gcloud/adc-ga-personal.json",
+        "GRPC_DNS_RESOLVER": "native"
+      }
+    }
+  },
+  "someUnrelatedKey": {
+    "nested": ["a", "b"]
+  }
+}

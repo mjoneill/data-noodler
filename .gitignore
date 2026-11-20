@@ -1,0 +1,29 @@
+# Never commit credentials. They live in ~/.config, outside this repo.
+# The OAuth client's real filename is ga-mcp-client.json.
+*adc*.json
+*client_secret*.json
+*ga-mcp-client*.json
+*-client.json
+credentials.json
+application_default_credentials.json
+
+# Analysis output is someone's real traffic: it never belongs here.
+*.html
+*.csv
+*.xlsx
+!ga-mcp-dist/tests/fixtures/*.csv
+_outputs/
+
+# Build output
+dist/
+
+# Python
+__pycache__/
+*.pyc
+
+# Local harness settings
+.claude/settings.local.json
+.claude/worktrees/
+
+# macOS
+.DS_Store

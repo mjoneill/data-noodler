@@ -1,0 +1,24 @@
+# Never commit Google sign-in files. The OAuth client file identifies your
+# deployment's Cloud project, and a credential is one person's access. Both
+# live under ~/.config, outside any repository; these patterns are for the
+# day one is copied here by mistake.
+*ga-mcp-client*.json
+*-client.json
+*client_secret*.json
+*adc*.json
+credentials.json
+
+# Exported analytics data does not belong in a repository.
+_outputs/
+*.csv
+!tests/fixtures/*.csv
+
+# Build output
+dist/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
