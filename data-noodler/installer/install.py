@@ -22,6 +22,13 @@ PAYLOAD = ("server", "bin", "marketplace")
 # #1999: the server folder's name before the product had one name. An install
 # of ours under that name is moved aside (never deleted) by install_payload.
 LEGACY_PAYLOAD = ("companion",)
+# Entries an install of ours may hold that the current source no longer
+# ships: the pre-#1999 launcher and server-file names, and the bytecode cache
+# Python writes beside the server at run time. A marker-less (pre-2026-09-14)
+# install is "ours" when it holds only shipped entries and these (#1999,
+# Indigo's review of PR #4).
+LEGACY_ENTRIES = frozenset({"launch-ga-mcp", "launch-ga-companion",
+                            "ga_companion.py", "__pycache__"})
 
 
 class InstallError(Exception):
@@ -74,7 +81,7 @@ def _is_previous_payload(dest, src):
         shipped = set(os.listdir(src))
     except OSError:
         return False
-    return bool(existing) and existing <= shipped
+    return bool(existing) and existing <= shipped | LEGACY_ENTRIES
 
 
 _BACKUP_STAMP = re.compile(r"\.ga-(?:old|backup)-(\d{8}-\d{6})$")
@@ -192,18 +199,26 @@ def install_payload(repo_root, ga_home, home=None, platform=None):
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     written = []
 
+    # Every refusal before any write: checked one folder at a time, a
+    # refusal of bin/ came after server/ was already replaced, leaving a
+    # half-old, half-new install (Indigo's review of PR #4).
     for name in PAYLOAD:
         src = os.path.join(src_root, name)
         dest = os.path.join(ga_home, name)
-        staging = f"{dest}.ga-new"
         if not os.path.isdir(src):
             raise InstallError(f"missing payload directory: {src}")
         if os.path.exists(dest) and not _is_previous_payload(dest, src):
             raise InstallError(
                 f"{dest} exists and does not look like a previous install of "
                 "this package -- it holds files this package never put there. "
-                "Refusing to replace it. Check whether --ga-home is what you "
-                "meant, then move or remove that directory by hand.")
+                "Refusing to replace it, and nothing was changed. Check "
+                "whether --ga-home is what you meant, then move or remove "
+                "that directory by hand.")
+
+    for name in PAYLOAD:
+        src = os.path.join(src_root, name)
+        dest = os.path.join(ga_home, name)
+        staging = f"{dest}.ga-new"
 
         # Leftover staging from an interrupted run: ours by name, not a
         # destination anyone else writes to.

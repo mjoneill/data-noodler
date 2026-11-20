@@ -69,6 +69,51 @@ class TestTheOldServerFolderIsRetired(unittest.TestCase):
                             for p in found), found)
 
 
+class TestAnInstallFromBeforeTheMarkerIsStillOurs(unittest.TestCase):
+    """Indigo's review of PR #4: installs from before 2026-09-14 carry no
+    marker, so ownership is "every entry is one we ship". The old launcher
+    and server-file names are not shipped any more, so they must still count
+    as ours -- or the install refuses bin/ after it has already written
+    server/."""
+
+    def setUp(self):
+        self.repo = make_repo()
+        self.ga_home = os.path.join(tempfile.mkdtemp(), "ga-mcp")
+        for d, names in {"bin": ["launch-ga-mcp", "launch-ga-companion"],
+                         "marketplace": ["marketplace.txt"],
+                         "companion": ["ga_companion.py", "server.txt",
+                                       "__pycache__"]}.items():
+            os.makedirs(os.path.join(self.ga_home, d))
+            for n in names:
+                path = os.path.join(self.ga_home, d, n)
+                if n == "__pycache__":
+                    os.makedirs(path)
+                else:
+                    with open(path, "w") as f:
+                        f.write("old\n")
+
+    def test_every_folder_is_replaced_and_the_old_server_retired(self):
+        install.install_payload(self.repo, self.ga_home)
+        names = sorted(os.listdir(self.ga_home))
+        for d in ("server", "bin", "marketplace"):
+            self.assertIn(d, names)
+            self.assertTrue(any(n.startswith(d + ".ga-old-") for n in names)
+                            or d == "server", names)
+        self.assertNotIn("companion", names)
+        self.assertTrue(any(n.startswith("companion.ga-old-") for n in names))
+        self.assertTrue(os.path.isfile(os.path.join(
+            self.ga_home, "bin", "launch-data-noodler")))
+
+    def test_a_refusal_comes_before_anything_is_written(self):
+        with open(os.path.join(self.ga_home, "bin", "someone-elses"), "w") as f:
+            f.write("mine\n")
+        with self.assertRaises(install.InstallError):
+            install.install_payload(self.repo, self.ga_home)
+        self.assertFalse(os.path.exists(os.path.join(self.ga_home, "server")),
+                         "server/ was written before bin/ was refused")
+        self.assertTrue(os.path.isdir(os.path.join(self.ga_home, "companion")))
+
+
 class TestTheOldServerEntryIsRetired(unittest.TestCase):
     def setUp(self):
         self.path = os.path.join(tempfile.mkdtemp(), "config.json")
