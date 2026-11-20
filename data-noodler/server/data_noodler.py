@@ -15,6 +15,7 @@ stdout is the MCP protocol channel. Nothing here may print to it.
 import csv
 import datetime
 import json
+import re
 import os
 import sys
 
@@ -418,7 +419,11 @@ def _write_pivot(path, columns, rows, meta, pivot_on, metrics, overwrite):
     try:
         wide_cols, wide_rows = ga_reports.pivot_wide(columns, rows, pivot_on,
                                                      metrics)
-        wide_path = f"{path[:-len('.csv')]}-by-{pivot_on}.csv"
+        # The true name stays in the sidecar (pivot_on below); the filename
+        # gets a Windows-legal spelling, because custom dimensions are named
+        # customEvent:<x> and a colon cannot be in a Windows filename (#2007).
+        safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "-", pivot_on)
+        wide_path = f"{path[:-len('.csv')]}-by-{safe}.csv"
         r = export.write_export(
             wide_path, wide_cols, wide_rows,
             # rows_matched describes the long file; carried over, it would
@@ -427,7 +432,7 @@ def _write_pivot(path, columns, rows, meta, pivot_on, metrics, overwrite):
                  pivot_of=path, pivot_on=pivot_on,
                  pivot_note="Blank means that combination did not occur."),
             overwrite=overwrite, preview_rows=0)
-    except (ValueError, export.ExportError) as exc:
+    except (ValueError, OSError, export.ExportError) as exc:
         return {"error": str(exc)}
     return {"path": r["path"], "columns": len(wide_cols),
             "row_count": len(wide_rows)}
