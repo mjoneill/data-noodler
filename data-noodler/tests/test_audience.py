@@ -156,6 +156,16 @@ class TestBlankTeamFieldsAreAFinishedSetup(unittest.TestCase):
         text = read("skills", "data-noodler-setup", "SKILL.md")
         self.assertRegex(text, r"(?is)if `install_reports_to` is blank.{0,200}skip sending")
 
+    def test_a_just_me_report_can_still_reach_the_project_by_the_users_choice(self):
+        # #2007: in the public preview, a stranger's report is the most useful
+        # feedback there is, and not everyone has a GitHub account. The skill
+        # offers both doors, once, and never sends anything itself.
+        text = read("skills", "data-noodler-setup", "SKILL.md")
+        step = re.search(r"(?ms)^## Step 10:.*?(?=^## )", text).group(0)
+        self.assertIn("mjoneill+noodlerfeedback@gmail.com", step)
+        self.assertIn("issues", step)
+        self.assertRegex(step, r"(?i)never send it yourself")
+
     def test_the_manual_install_skips_sending_when_just_you(self):
         text = read("INSTALL.md")
         m = re.search(r"(?ms)^## 11\. Tell your maintainer.*?(?=^## )", text)

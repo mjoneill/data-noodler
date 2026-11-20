@@ -412,7 +412,7 @@ own that file.
 codex plugin list   # expect data-noodler@data-noodler: installed, enabled
 ```
 
-Expect `analytics-mcp` with 9 tools and `data-noodler` with 15 tools. This
+Expect `analytics-mcp` with 10 tools and `data-noodler` with 15 tools. This
 proves each entry actually launches and answers the MCP handshake — it
 cannot prove the tools show up in an app's UI.
 

@@ -649,6 +649,11 @@ folder; on Windows `%USERPROFILE%\.config\data-noodler\install-reports\`). Then:
    safe to send that way. **If `install_reports_to` is blank** (set up just
    for themselves), there is no one to send it to: keep the report where it
    was saved, as their own record, and skip sending.
+3. **Either way, mention once that Data Noodler itself welcomes install
+   reports while it is in preview**: as a GitHub issue on the public `data-noodler` repository (its
+   README links the issues page), or by email to
+   `mjoneill+noodlerfeedback@gmail.com` for anyone without a GitHub account.
+   It is the user's choice. Never send it yourself, and don't ask twice.
 
 Write what actually happened, not what should have happened. If you deviated
 from this document, that deviation is a finding: name it, along with why you

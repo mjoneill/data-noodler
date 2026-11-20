@@ -8,13 +8,13 @@ It is for anyone who looks after websites: an individual, a team, an organizatio
 
 - **Your data stays yours.** Each person signs in with their own Google account, through a Google app you create yourself. The project ships the capability, never anyone's data access.
 - **Read-only.** It reads reports; it does not change your Analytics or Search Console settings.
-- **Short-lived sign-in, by design.** With your Google app in "Testing" status, a sign-in lasts 7 days. If a credential ever leaked, it would be useful for a week at most. The trade-off is signing in again once a week.
+- **Short-lived sign-in, by design.** With your Google app in "Testing" status, a sign-in lasts 7 days. If a credential ever leaked, it would be useful for a week at most. The trade-off is signing in again once a week. If you're in a Google Workspace organization, you can choose an "Internal" app instead, which has no weekly sign-in; [`GOOGLE-CLOUD-SETUP.md`](data-noodler/GOOGLE-CLOUD-SETUP.md#before-you-start-one-decision-that-shapes-everything) explains both.
 
 ## Status
 
-**Early preview.** Public since 2026-11-20. We use it every day on macOS in Claude Code, and it has been installed on Windows. The setup instructions were rewritten this week and nobody has yet followed them from scratch, so expect rough edges, especially in the Google Cloud setup.
+**Early preview.** Public since 2026-11-20. We use it every day on macOS in Claude Code. Earlier releases have been installed and used on Windows 11, including IT-managed machines, but we have no Windows machine of our own, so feedback from Windows users is especially welcome. The setup instructions were rewritten this week and nobody has yet followed them from scratch, so expect rough edges, especially in the Google Cloud setup.
 
-**Feedback is the point of this preview.** If a step is unclear, fails, or works differently on your machine, please [open an issue](../../issues). Say which app you used (Claude Code, Claude Desktop, Codex, ChatGPT), your operating system, and the step where it went wrong. Never paste a credential, a client secret, or report data into an issue.
+**Feedback is the point of this preview.** If a step is unclear, fails, or works differently on your machine, please [open an issue](../../issues), or, if you'd rather not use GitHub, email `mjoneill+noodlerfeedback@gmail.com` instead. Say which app you used (Claude Code, Claude Desktop, Codex, ChatGPT), your operating system, and the step where it went wrong. If you installed with an AI app, it will have written an install report under `~/.config/data-noodler/install-reports/`. That report is the most useful thing you can send. It leaves out credentials and report data, but read it first and send it only if you're happy to. Never paste a credential, a client secret, or report data into an issue or an email.
 
 It's shared as-is, with no support commitment. To report a security problem privately, see [`SECURITY.md`](SECURITY.md).
 
