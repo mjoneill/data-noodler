@@ -1,6 +1,6 @@
 {
   "name": "ga-analytics",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Query Google Analytics 4 properties, with reporting discipline and credential self-service.",
   "author": {
     "name": "ga-mcp-dist maintainers (see deployment.json)"
