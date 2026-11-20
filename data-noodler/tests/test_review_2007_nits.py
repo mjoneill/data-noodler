@@ -42,6 +42,22 @@ class TestTheDefaultNameCannotLeaveThePlace(unittest.TestCase):
                 with self.assertRaises(sessions.SessionError):
                     sessions.resolve(None, self.session, name, self.places)
 
+    def test_a_plain_name_that_is_a_symlink_out_is_refused(self):
+        # The one case only _inside()'s realpath catches: no separator, so
+        # basename and dirname both pass it, but base/<name> already exists as
+        # a symlink pointing outside the place (indigo's review).
+        outside = os.path.join(self.home, "outside.csv")
+        open(outside, "w").close()
+        os.symlink(outside, os.path.join(self.session, "trap.csv"))
+        with self.assertRaises(sessions.SessionError):
+            sessions.resolve(None, self.session, "trap.csv", self.places)
+
+    def test_an_empty_or_nul_name_is_a_session_error_not_a_crash(self):
+        for name in ("", "x.csv\0"):
+            with self.subTest(repr(name)):
+                with self.assertRaises(sessions.SessionError):
+                    sessions.resolve(None, self.session, name, self.places)
+
     def test_an_ordinary_default_name_still_lands_in_the_session(self):
         path, _ = sessions.resolve(None, self.session,
                                    "ga4-123-date-20260101-20260131.csv",

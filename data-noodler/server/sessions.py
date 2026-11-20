@@ -435,6 +435,10 @@ def resolve(out_file, session_dir, suggested_name, places, save_to=""):
     # (a property id, dates). This branch is the boundary too, so it checks
     # containment itself rather than trusting every caller to sanitize
     # (#2007): a plain file name, landing directly inside the place.
+    if not suggested_name or "\0" in suggested_name:
+        raise SessionError(
+            f"Refusing the file name {suggested_name!r}: it is empty or "
+            "contains a NUL character. Pass out_file with a plain file name.")
     candidate = os.path.abspath(os.path.join(base, suggested_name))
     if (os.path.basename(suggested_name) != suggested_name
             or os.path.dirname(candidate) != os.path.abspath(base)
