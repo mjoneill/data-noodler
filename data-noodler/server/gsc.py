@@ -669,10 +669,13 @@ def search_analytics(site_url, start_date, end_date, dimensions,
 
         for r in page:
             keys = list(r.get("keys", []))
-            # One key per dimension, always: export refuses a file whose rows
-            # don't match its columns, so one short row would cost the whole
-            # export. A missing key is written as blank (#2007).
-            keys = (keys + [""] * len(dimensions))[:len(dimensions)]
+            # Pad a SHORT row to one key per dimension: export refuses a file
+            # whose rows don't match its columns, so one short row would cost
+            # the whole export, and a missing key is honestly blank (#2007).
+            # A LONG row is left alone on purpose: cutting it would discard
+            # data nobody understands, and export's refusal is the right
+            # answer to it (minimo's review).
+            keys += [""] * (len(dimensions) - len(keys))
             page_url = ""
             if "page" in dimensions:
                 idx = dimensions.index("page")

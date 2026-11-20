@@ -78,6 +78,17 @@ class TestAShortRowIsPaddedNotFatal(unittest.TestCase):
         self.assertEqual({len(r) for r in out}, {len(cols)})
         self.assertEqual(out[1][:3], ["2026-08-01", "", ""])
 
+    def test_a_long_row_is_not_cut_down_to_fit(self):
+        # Padding a gap is honest; discarding an unexpected key is not. The
+        # long row keeps every key, so export's row-length check refuses it.
+        rows = [{"keys": ["2026-08-01", "https://x/a", "q", "surprise"],
+                 "clicks": 1, "impressions": 2, "ctr": 0.5, "position": 1.0}]
+        cols, out, _ = gsc.search_analytics(
+            "sc-domain:example.edu", "2026-08-01", "2026-08-01",
+            ["date", "page", "query"], session=_OnePage(rows))
+        self.assertIn("surprise", out[0])
+        self.assertGreater(len(out[0]), len(cols))
+
 
 if __name__ == "__main__":
     unittest.main()
