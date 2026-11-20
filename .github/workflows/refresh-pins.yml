@@ -29,8 +29,9 @@ env:
     opentelemetry-sdk==1.45.2
     google-adk==2.15.0
   # Pins dropped so pip may move them with the bumps above (google-adk's
-  # semantic-conventions must match the sdk).
-  RELEASE: opentelemetry-semantic-conventions
+  # semantic-conventions must match the sdk; google-adk 2.15.0 needs
+  # google-genai >= 2.34).
+  RELEASE: opentelemetry-semantic-conventions google-genai
 
 jobs:
   refresh:
