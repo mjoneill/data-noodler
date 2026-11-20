@@ -26,9 +26,30 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ga_config
 
 DEFAULT_LIMIT = 25
+COLUMNS = ("property_name", "account_name", "property_id")
+INCOMPLETE_ID = "?"
+
+
+def property_id(row):
+    """The row's id, or None when the snapshot row is incomplete.
+
+    The same rule as the server's matching.property_id (#2007 R2). A short
+    row -- a truncated last line, a hand edit -- arrives from DictReader with
+    None in the missing fields, and formatting None against a width spec
+    raised TypeError here long after the server stopped doing so.
+    """
+    value = row.get("property_id")
+    return value if isinstance(value, str) and value.strip() else None
 
 
 def main():
+    # A console that cannot show a character (an ASCII locale, an old Windows
+    # code page) must cost a "?" in a name, never the whole answer.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")
+        except (AttributeError, ValueError):
+            pass
     ap = argparse.ArgumentParser()
     ap.add_argument("term", help="property name or fragment to search for")
     ap.add_argument("--limit", type=int, default=DEFAULT_LIMIT,
@@ -46,33 +67,52 @@ def main():
             f"{os.path.dirname(os.path.abspath(__file__))}/refresh_properties.py"
         )
 
+    rebuild = (f'Rebuild it with:\n  "{cfg["venv_python"]}" '
+               f"{os.path.dirname(os.path.abspath(__file__))}/refresh_properties.py")
+
     term = args.term.strip().lower()
-    with open(csv_path) as f:
-        rows = list(csv.DictReader(f))
+    # Explicit UTF-8: property names are often not ASCII, and a Windows
+    # locale would otherwise decode them as something else.
+    with open(csv_path, encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        absent = [c for c in COLUMNS if c not in (reader.fieldnames or [])]
+        if absent:
+            sys.exit(f"The property snapshot at {csv_path} does not have the "
+                     f"expected columns (missing: {', '.join(absent)}).\n{rebuild}")
+        rows = list(reader)
 
     def norm(s):
         return (s or "").strip().lower()
 
-    exact = [r for r in rows if norm(r["property_name"]) == term]
+    exact = [r for r in rows if norm(r.get("property_name")) == term]
     # A common naming convention is "<domain> - GA4" or "<domain> (archive)";
     # treat a leading exact-domain match as near-exact so it isn't buried.
     near = [r for r in rows
-            if r not in exact and norm(r["property_name"]).startswith(term)]
+            if r not in exact and norm(r.get("property_name")).startswith(term)]
     partial = [r for r in rows
                if r not in exact and r not in near
-               and (term in norm(r["property_name"]) or term in norm(r["account_name"]))]
+               and (term in norm(r.get("property_name"))
+                    or term in norm(r.get("account_name")))]
 
     def show(label, items, cap=None):
         if not items:
             return
         shown = items if cap is None else items[:cap]
         print(f"\n{label} ({len(items)}):")
+        incomplete = 0
         for r in shown:
-            print(f"  properties/{r['property_id']:<12} {r['property_name']}"
-                  f"   [account: {r['account_name']}]")
+            pid = property_id(r)
+            incomplete += pid is None
+            print(f"  properties/{(pid or INCOMPLETE_ID):<12} "
+                  f"{r.get('property_name') or ''}"
+                  f"   [account: {r.get('account_name') or ''}]")
         if cap is not None and len(items) > cap:
             print(f"  ... {len(items) - cap} more not shown "
                   f"(narrow the search term or raise --limit)")
+        if incomplete:
+            print(f"  (property_id missing on {incomplete} of the rows above, "
+                  f"shown as {INCOMPLETE_ID}. The snapshot is truncated or was "
+                  f"hand-edited.)\n  {rebuild}")
 
     total = len(exact) + len(near) + len(partial)
     if total == 0:
@@ -85,7 +125,9 @@ def main():
     # the partial matches then would burn thousands of tokens on rows nobody
     # asked about -- the exact opposite of why this script exists. Report the
     # count so the breadth is still visible, and let --all expand it.
-    decisive = len(exact) == 1 and not near
+    # An exact hit whose id is missing is not an answer: fall through to the
+    # listing, which shows it as "?" with the rebuild instruction.
+    decisive = len(exact) == 1 and not near and property_id(exact[0]) is not None
     show("EXACT name match", exact)
 
     if decisive and not args.all:
@@ -93,7 +135,7 @@ def main():
             print(f"\n({len(partial)} other properties contain '{args.term}' in "
                   f"their name or account -- likely subdomains. Re-run with "
                   f"--all to list them.)")
-        print(f"\nUnambiguous: use properties/{exact[0]['property_id']}")
+        print(f"\nUnambiguous: use properties/{property_id(exact[0])}")
         if partial:
             print("If the user meant the whole domain family rather than this "
                   "one site, that is a different question -- ask which.")

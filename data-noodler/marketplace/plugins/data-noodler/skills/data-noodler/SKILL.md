@@ -79,15 +79,14 @@ otherwise:
 `refresh_properties.py` calls the same `snapshot.rebuild` the tool does — so
 those two cannot give different answers.
 
-**The lookup row does not.** `lookup_property` (the tool, in data-noodler's
-`matching.py`) and `lookup_property.py` (this skill's script) are two copies of
-the same matching logic, pending consolidation. They agree on a well-formed
-snapshot. They differ on a malformed one: given a row with fewer fields than
-the header, the tool reports the row as incomplete and names
-`refresh_property_snapshot`, while the script raises `TypeError: unsupported
-format string passed to NoneType.__format__`. Prefer the tool where it exists,
-and read that traceback from the script as the known duplication rather than a
-new bug.
+**The lookup row is two copies.** `lookup_property` (the tool, in
+data-noodler's `matching.py`) and `lookup_property.py` (this skill's script)
+carry the same matching logic, pending consolidation. They now also fail the
+same way on a damaged snapshot: a row with a missing id is shown as
+`properties/?` with an instruction to rebuild, never offered as the answer, and
+a snapshot with the wrong columns is refused with the same instruction. Prefer
+the tool where it exists. A traceback from either one is a new bug, worth
+reporting.
 
 Renewal is the one thing no tool can do: it opens a browser for Google
 consent. `credential_status` returns the exact command for the user to run.

@@ -64,9 +64,10 @@ def property_id(row):
 # NOTE: skills/data-noodler/scripts/lookup_property.py -- shipped in
 # marketplace/plugins/data-noodler/ and installed at
 # ~/.claude/skills/data-noodler/scripts/ -- carries a duplicate of this
-# rendering logic and still formats r['property_id'] directly, so it keeps the
-# TypeError this module no longer has. Consolidating the two is tracked
-# separately; whoever next touches either copy should fix or delete the other.
+# rendering logic. Since #2007 it uses the same property_id() rule, so the
+# two fail alike on a damaged snapshot (tests/test_fallback_copies.py holds
+# the script's side). Consolidating them is still open; whoever next touches
+# either copy should change both.
 def _render(label, items, cap=None):
     if not items:
         return []

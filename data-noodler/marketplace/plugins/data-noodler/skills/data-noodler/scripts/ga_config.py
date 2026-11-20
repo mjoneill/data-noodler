@@ -27,6 +27,9 @@ def _config_path():
 
 CONFIG_PATH = _config_path()
 
+SETUP_HINT = ("Run the data-noodler-setup skill from Claude Code or Codex to "
+              "finish or repair installation.")
+
 REQUIRED = [
     "oauth_client_file",
     "adc_file",
@@ -56,14 +59,29 @@ def load():
             "This machine has not been set up yet -- see references/setup.md "
             "in the data-noodler skill."
         )
-    with open(CONFIG_PATH) as f:
-        cfg = json.load(f)
+    # The same checks, in the same order, as the server's config.py (#2007 R3):
+    # a terminal user with a half-written file deserves at least the guidance
+    # the server gives. tests/test_fallback_copies.py runs one set of
+    # malformed files through both loaders.
+    try:
+        with open(CONFIG_PATH, encoding="utf-8") as f:
+            cfg = json.load(f)
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        sys.exit(f"{CONFIG_PATH} could not be parsed as JSON: {exc}\n{SETUP_HINT}")
+
+    if not isinstance(cfg, dict):
+        sys.exit(f"{CONFIG_PATH} must contain a JSON object, not "
+                 f"{type(cfg).__name__}.\n{SETUP_HINT}")
 
     missing = [k for k in REQUIRED if not cfg.get(k)]
     if missing:
-        sys.exit(f"Config {CONFIG_PATH} is missing keys: {', '.join(missing)}")
+        sys.exit(f"Config {CONFIG_PATH} is missing keys: {', '.join(missing)}\n"
+                 f"{SETUP_HINT}")
 
     for key in ("oauth_client_file", "adc_file", "venv_python", "properties_csv"):
+        if not isinstance(cfg[key], str):
+            sys.exit(f"{CONFIG_PATH}: key '{key}' must be a string, not "
+                     f"{type(cfg[key]).__name__}.\n{SETUP_HINT}")
         cfg[key] = os.path.expanduser(cfg[key])
     return cfg
 
