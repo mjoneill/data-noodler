@@ -114,9 +114,9 @@ class TestTheInstallerAcceptsBlankTeamFields(unittest.TestCase):
         import tempfile
         with tempfile.TemporaryDirectory() as tmp:
             repo = os.path.join(tmp, "repo")
-            shutil.copytree(ROOT, os.path.join(repo, "ga-mcp-dist"),
+            shutil.copytree(ROOT, os.path.join(repo, "data-noodler"),
                             ignore=shutil.ignore_patterns("__pycache__", "tests"))
-            profile = os.path.join(repo, "ga-mcp-dist", "deployment.json")
+            profile = os.path.join(repo, "data-noodler", "deployment.json")
             with open(profile, encoding="utf-8") as f:
                 d = json.load(f)
             d.update({"deployment_name": "Pat's sites", "maintainer": "Pat Example",
@@ -128,7 +128,7 @@ class TestTheInstallerAcceptsBlankTeamFields(unittest.TestCase):
             os.makedirs(home)
             env = dict(os.environ, HOME=home, USERPROFILE=home)
             r = subprocess.run(
-                [sys.executable, "-I", os.path.join(repo, "ga-mcp-dist", "installer", "install.py"),
+                [sys.executable, "-I", os.path.join(repo, "data-noodler", "installer", "install.py"),
                  "--repo-root", repo, "--ga-home", ga_home, "--payload-only"],
                 env=env, capture_output=True, text=True, timeout=120)
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)

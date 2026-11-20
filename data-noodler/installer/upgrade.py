@@ -127,7 +127,7 @@ class Plan:
     def __init__(self, repo_root, ga_home, config_path, venv_python,
                  base_python, targets, platform, stamp):
         self.repo_root = repo_root
-        self.dist = os.path.join(repo_root, "ga-mcp-dist")
+        self.dist = os.path.join(repo_root, "data-noodler")
         self.ga_home = ga_home
         self.config_path = config_path
         self.venv_python = venv_python

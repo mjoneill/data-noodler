@@ -34,21 +34,21 @@ def rules(files):
 
 class SensitiveFileNames(unittest.TestCase):
     def test_oauth_client_and_credential_files_are_refused_by_name(self):
-        for path in ("ga-mcp-dist/my-ga-mcp-client.json",
+        for path in ("data-noodler/my-ga-mcp-client.json",
                      "anything/desktop-client.json",
                      "x/application_default_credentials.json",
                      "adc.json",
                      "client_secret_12345.json",
                      "credentials.json",
                      "config.json",
-                     "ga-mcp-dist/companion/config.json"):
+                     "data-noodler/companion/config.json"):
             with self.subTest(path=path):
                 self.assertIn("sensitive-file", rules({path: "{}"}))
 
     def test_a_fixture_config_and_ordinary_json_pass(self):
-        self.assertEqual(rules({"ga-mcp-dist/tests/fixtures/config.json": "{}",
-                                "ga-mcp-dist/marketplace/plugins/p/.mcp.json": "{}",
-                                "ga-mcp-dist/deployment.template.json": '{"maintainer": ""}'}), [])
+        self.assertEqual(rules({"data-noodler/tests/fixtures/config.json": "{}",
+                                "data-noodler/marketplace/plugins/p/.mcp.json": "{}",
+                                "data-noodler/deployment.template.json": '{"maintainer": ""}'}), [])
 
 
 class CredentialContent(unittest.TestCase):
@@ -70,7 +70,7 @@ class CredentialContent(unittest.TestCase):
     def test_placeholder_values_pass(self):
         body = ('{"type": "authorized_user", "client_id": "x", "client_secret": "x", '
                 '"refresh_token": "x", "private_key": "<your key>"}')
-        self.assertEqual(rules({"ga-mcp-dist/tests/test_credential.py": body}), [])
+        self.assertEqual(rules({"data-noodler/tests/test_credential.py": body}), [])
 
     def test_naming_the_keys_in_prose_passes(self):
         self.assertEqual(rules({"README.md": "The file holds a refresh_token and a client_secret.\n"}), [])
@@ -91,12 +91,12 @@ class OAuthClientIds(unittest.TestCase):
 class AnalyticsOutput(unittest.TestCase):
     def test_report_files_are_refused_outside_fixtures(self):
         for path in ("reports/traffic.csv", "out.xlsx", "summary.html", "_outputs/run-1/notes.txt",
-                     "ga-mcp-dist/properties.csv"):
+                     "data-noodler/properties.csv"):
             with self.subTest(path=path):
                 self.assertIn("analytics-output", rules({path: "a,b\n1,2\n"}))
 
     def test_fixture_data_passes(self):
-        self.assertEqual(rules({"ga-mcp-dist/tests/fixtures/properties.csv": "a,b\n1,2\n"}), [])
+        self.assertEqual(rules({"data-noodler/tests/fixtures/properties.csv": "a,b\n1,2\n"}), [])
 
 
 class DeploymentProfile(unittest.TestCase):
@@ -105,20 +105,20 @@ class DeploymentProfile(unittest.TestCase):
     def test_a_filled_profile_is_refused(self):
         filled = self.BLANK.replace('"maintainer": ""', '"maintainer": "Some Team"')
         self.assertIn("deployment-profile", rules({
-            "ga-mcp-dist/deployment.json": filled,
-            "ga-mcp-dist/deployment.template.json": self.BLANK}))
+            "data-noodler/deployment.json": filled,
+            "data-noodler/deployment.template.json": self.BLANK}))
 
     def test_a_profile_without_its_template_is_refused(self):
-        self.assertIn("deployment-profile", rules({"ga-mcp-dist/deployment.json": self.BLANK}))
+        self.assertIn("deployment-profile", rules({"data-noodler/deployment.json": self.BLANK}))
 
     def test_an_unreadable_profile_is_refused(self):
         self.assertIn("deployment-profile", rules({
-            "ga-mcp-dist/deployment.json": "{not json",
-            "ga-mcp-dist/deployment.template.json": self.BLANK}))
+            "data-noodler/deployment.json": "{not json",
+            "data-noodler/deployment.template.json": self.BLANK}))
 
     def test_a_blank_profile_beside_its_template_passes(self):
-        self.assertEqual(rules({"ga-mcp-dist/deployment.json": self.BLANK,
-                                "ga-mcp-dist/deployment.template.json": self.BLANK}), [])
+        self.assertEqual(rules({"data-noodler/deployment.json": self.BLANK,
+                                "data-noodler/deployment.template.json": self.BLANK}), [])
 
 
 class HomePaths(unittest.TestCase):

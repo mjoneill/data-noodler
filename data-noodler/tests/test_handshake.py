@@ -16,7 +16,7 @@ import unittest
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__))))
-SERVER = os.path.join(REPO, "ga-mcp-dist", "companion", "ga_companion.py")
+SERVER = os.path.join(REPO, "data-noodler", "companion", "ga_companion.py")
 FIXTURE_CSV = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            "fixtures", "properties.csv")
 
@@ -206,7 +206,7 @@ class TestVerify(unittest.TestCase):
     """verify.probe must distinguish a working server from a broken one."""
 
     def setUp(self):
-        sys.path.insert(0, os.path.join(REPO, "ga-mcp-dist", "installer"))
+        sys.path.insert(0, os.path.join(REPO, "data-noodler", "installer"))
 
     def test_probe_reports_tools_for_a_working_server(self):
         import verify
@@ -414,7 +414,7 @@ class TestRequireContracts(unittest.TestCase):
     """
 
     def setUp(self):
-        sys.path.insert(0, os.path.join(REPO, "ga-mcp-dist", "installer"))
+        sys.path.insert(0, os.path.join(REPO, "data-noodler", "installer"))
         import verify
         self.verify = verify
 
@@ -478,7 +478,7 @@ class TestRequireSkill(unittest.TestCase):
     """
 
     def setUp(self):
-        sys.path.insert(0, os.path.join(REPO, "ga-mcp-dist", "installer"))
+        sys.path.insert(0, os.path.join(REPO, "data-noodler", "installer"))
         import verify
         self.verify = verify
         self.skills = tempfile.mkdtemp()

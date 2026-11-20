@@ -21,7 +21,7 @@ from unittest import mock
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(REPO, "ga-mcp-dist", "installer"))
+sys.path.insert(0, os.path.join(REPO, "data-noodler", "installer"))
 
 import verify  # noqa: E402
 

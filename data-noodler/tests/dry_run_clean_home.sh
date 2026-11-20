@@ -33,7 +33,7 @@ mkdir -p "$FAKE_HOME/.config/ga-mcp" \
          "$FAKE_HOME/Library/Application Support/Claude"
 
 echo "== payload installs into a clean home"
-"$VENV_PY" "$REPO/ga-mcp-dist/installer/install.py" \
+"$VENV_PY" "$REPO/data-noodler/installer/install.py" \
   --repo-root "$REPO" --ga-home "$FAKE_HOME/.config/ga-mcp" --payload-only
 
 echo "== launch-ga-companion fails cleanly with no config at all"
@@ -55,7 +55,7 @@ echo "== registration creates configs from nothing"
 # be dead weight.
 "$VENV_PY" - <<PY
 import os, sys
-sys.path.insert(0, "$REPO/ga-mcp-dist/installer")
+sys.path.insert(0, "$REPO/data-noodler/installer")
 import harness_paths, register
 ga_home = os.path.join("$FAKE_HOME", ".config", "ga-mcp")
 entries = register.server_entries(ga_home)
@@ -69,7 +69,7 @@ for path in (harness_paths.claude_code_config(home="$FAKE_HOME"),
 PY
 
 echo "== bootstrap_config writes a usable config into a clean home"
-"$VENV_PY" "$REPO/ga-mcp-dist/installer/bootstrap_config.py" --home "$FAKE_HOME"
+"$VENV_PY" "$REPO/data-noodler/installer/bootstrap_config.py" --home "$FAKE_HOME"
 CFG="$FAKE_HOME/.config/ga-mcp/config.json"
 [ -f "$CFG" ] || { echo "FAIL: no config written"; exit 1; }
 "$VENV_PY" - <<PY
@@ -90,7 +90,7 @@ echo "== the renewal command names a file that actually exists"
 # author's machine. Checking inside the throwaway home is what catches that.
 "$VENV_PY" - <<PY
 import os, sys
-sys.path.insert(0, "$REPO/ga-mcp-dist/companion")
+sys.path.insert(0, "$REPO/data-noodler/companion")
 import config
 cfg = config.load("$CFG")
 script = cfg["mint_script"]
@@ -104,7 +104,7 @@ print("   ok: " + cmd)
 PY
 
 echo "== a second run refuses to overwrite"
-"$VENV_PY" "$REPO/ga-mcp-dist/installer/bootstrap_config.py" \
+"$VENV_PY" "$REPO/data-noodler/installer/bootstrap_config.py" \
   --home "$FAKE_HOME" | grep -q "left unchanged" \
   || { echo "FAIL: second run did not refuse"; exit 1; }
 echo "   ok: refused to overwrite"

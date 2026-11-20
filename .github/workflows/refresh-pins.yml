@@ -48,7 +48,7 @@ jobs:
           norm = lambda n: re.sub(r"[-_.]+", "-", n).lower()
           keyed = {norm(k): (k, v) for k, v in bumps.items()}
           out = []
-          for line in open("ga-mcp-dist/installer/constraints.txt"):
+          for line in open("data-noodler/installer/constraints.txt"):
               line = line.strip()
               if not line or line.startswith("#") or "==" not in line:
                   continue
@@ -70,10 +70,10 @@ jobs:
           /tmp/v/bin/python -m pip install --upgrade -c seed.txt pip
           /tmp/v/bin/python -m pip install -c seed.txt analytics-mcp==1.1.0 google-auth-oauthlib
       - name: Full test suite against it
-        working-directory: ga-mcp-dist
+        working-directory: data-noodler
         run: /tmp/v/bin/python -m unittest discover -s tests
       - name: Capture
-        run: /tmp/v/bin/python ga-mcp-dist/installer/freeze_constraints.py | tee refreshed-pins.txt
+        run: /tmp/v/bin/python data-noodler/installer/freeze_constraints.py | tee refreshed-pins.txt
       - name: OSV scan of the capture, no exceptions
         run: |
           python -m pip install pip-audit==2.10.1

@@ -91,7 +91,7 @@ Run this first, before deciding anything. It is read-only — it opens files
 and reports what it finds, and writes nothing anywhere:
 
 ```
-python3 <repo>/ga-mcp-dist/installer/probe.py
+python3 <repo>/data-noodler/installer/probe.py
 ```
 
 Any Python 3 will do; this one only reads. Add `--json` for compact output.
@@ -154,7 +154,7 @@ command -v uv || curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
 command -v uv    # must print a path before continuing
 uv --version     # must be 0.13.4 or later (eMudhra/emSign); see below
-uv tool install analytics-mcp==1.1.0 --with google-auth-oauthlib -c <repo>/ga-mcp-dist/installer/constraints.txt
+uv tool install analytics-mcp==1.1.0 --with google-auth-oauthlib -c <repo>/data-noodler/installer/constraints.txt
 uv tool update-shell    # puts the tool dir on PATH permanently
 ```
 
@@ -206,7 +206,7 @@ never deletes anything that existed before it started.
 put `& ` in front and use backslashes):
 
 ```
-"<base python>" "<package>/ga-mcp-dist/installer/upgrade.py"
+"<base python>" "<package>/data-noodler/installer/upgrade.py"
 ```
 
 They fully quit Claude Desktop (from its icon by the clock on Windows, Cmd-Q
@@ -224,7 +224,7 @@ or undo an upgrade by hand.
 1. `probe.py` again: `dependencies.below_floor` must be empty.
 2. **Codex installed?** `codex plugin add ga-analytics@ga-tools`. Codex caches
    plugins by version; without this it keeps the old plugin.
-3. **Claude Code used?** `<venv_python> <package>/ga-mcp-dist/installer/copy_skills.py`.
+3. **Claude Code used?** `<venv_python> <package>/data-noodler/installer/copy_skills.py`.
    It refreshes only skill folders this package installed (they carry a
    `.ga-mcp-installed` marker). It prints one line per skill; read every
    line, whatever the exit code. Exit 0: done. Exit 2: a folder exists that
@@ -274,7 +274,7 @@ If it is nowhere, **stop and ask the user for it** -- do not try to generate,
 download or reconstruct one. If they have no maintainer to get it from
 (they are setting this up just for themselves, or for their own team,
 organization or institution), point them to
-`ga-mcp-dist/GOOGLE-CLOUD-SETUP.md`: they create their own client once, then
+`data-noodler/GOOGLE-CLOUD-SETUP.md`: they create their own client once, then
 come back to this step. It is deliberately not in the repo, and there is
 nowhere you can fetch it from.
 
@@ -317,7 +317,7 @@ xcode-select -p >/dev/null 2>&1 || PY3="$(uv python find)"
 if [ -f ~/.config/ga-mcp/config.json ]; then
   echo "config already present; leaving it alone"
 else
-  "$PY3" <repo>/ga-mcp-dist/installer/bootstrap_config.py
+  "$PY3" <repo>/data-noodler/installer/bootstrap_config.py
 fi
 ```
 
@@ -393,7 +393,7 @@ If it is missing or expired, give the user this command to run themselves — it
 opens a browser and you cannot click through it for them:
 
 ```bash
-"<venv_python from ~/.config/ga-mcp/config.json>" <repo>/ga-mcp-dist/marketplace/plugins/ga-analytics/skills/google-analytics/scripts/mint_adc.py --force
+"<venv_python from ~/.config/ga-mcp/config.json>" <repo>/data-noodler/marketplace/plugins/ga-analytics/skills/google-analytics/scripts/mint_adc.py --force
 ```
 
 Run the copy in the repo checkout, because at this point in the flow the
@@ -428,7 +428,7 @@ not come up.) The list caps at 100 test users.
 ## Step 6: Install the payload
 
 ```bash
-"<venv_python>" <repo>/ga-mcp-dist/installer/install.py --payload-only
+"<venv_python>" <repo>/data-noodler/installer/install.py --payload-only
 ```
 
 Copies `companion/`, `bin/` and `marketplace/` into `~/.config/ga-mcp/`. Safe
@@ -440,7 +440,7 @@ one is there. (Codex gets its skill inside the plugin in Step 7; Claude
 Desktop chat has no skill mechanism.)
 
 ```bash
-"<venv_python>" <repo>/ga-mcp-dist/installer/copy_skills.py
+"<venv_python>" <repo>/data-noodler/installer/copy_skills.py
 ```
 
 That installs both into `~/.claude/skills/` (on Windows
@@ -460,7 +460,7 @@ is loaded as a live skill, and a backup competes with the real one.
 **Claude Code and Claude Desktop:**
 
 ```bash
-"<venv_python>" <repo>/ga-mcp-dist/installer/install.py --targets claude_code,claude_desktop
+"<venv_python>" <repo>/data-noodler/installer/install.py --targets claude_code,claude_desktop
 ```
 
 This resolves the *active* Claude Desktop data directory itself. Two can
@@ -486,8 +486,8 @@ names the Desktop config path. On Windows:
 # 1. Fully quit Claude Desktop: right-click its icon by the clock, then Quit.
 #    Closing the window is not enough.
 # 2. Then run:
-& "<venv_python>" "<repo>\ga-mcp-dist\installer\install.py" --targets claude_desktop
-& "<venv_python>" "<repo>\ga-mcp-dist\installer\verify.py" --config "<Desktop config path>" --require analytics-mcp=10 --require ga-companion=15
+& "<venv_python>" "<repo>\data-noodler\installer\install.py" --targets claude_desktop
+& "<venv_python>" "<repo>\data-noodler\installer\verify.py" --config "<Desktop config path>" --require analytics-mcp=10 --require ga-companion=15
 # 3. Reopen Claude Desktop and paste both outputs back into this chat.
 ```
 
@@ -534,10 +534,10 @@ live plugin state.
 ## Step 8: Verify before claiming success
 
 ```bash
-"<venv_python>" <repo>/ga-mcp-dist/installer/verify.py --config ~/.claude.json \
+"<venv_python>" <repo>/data-noodler/installer/verify.py --config ~/.claude.json \
     --require analytics-mcp=10 --require ga-companion=15 \
     --require-skill google-analytics
-"<venv_python>" <repo>/ga-mcp-dist/installer/verify.py --config "<claude desktop config path>" \
+"<venv_python>" <repo>/data-noodler/installer/verify.py --config "<claude desktop config path>" \
     --require analytics-mcp=10 --require ga-companion=15
 ```
 
@@ -663,7 +663,7 @@ Nothing further for installation: Step 4 generates the config, so this skill
 covers the whole path on a machine where nothing was set up before.
 
 A colleague who would rather not run an agent through it at all can follow
-`ga-mcp-dist/INSTALL.md` instead — the same path written out as
+`data-noodler/INSTALL.md` instead — the same path written out as
 copy-pasteable steps, including the same `bootstrap_config.py` call. The two
 documents are alternatives, not halves: either is sufficient on its own, and a
 change to one belongs in the other.

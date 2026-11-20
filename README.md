@@ -17,7 +17,7 @@ a security problem, see [`SECURITY.md`](SECURITY.md).
 
 ## Start here
 
-The product lives in [`ga-mcp-dist/`](ga-mcp-dist/). Begin with [`ga-mcp-dist/START-HERE.md`](ga-mcp-dist/START-HERE.md), then [`ga-mcp-dist/GOOGLE-CLOUD-SETUP.md`](ga-mcp-dist/GOOGLE-CLOUD-SETUP.md) to create your own Google app.
+The product lives in [`data-noodler/`](data-noodler/). Begin with [`data-noodler/START-HERE.md`](data-noodler/START-HERE.md), then [`data-noodler/GOOGLE-CLOUD-SETUP.md`](data-noodler/GOOGLE-CLOUD-SETUP.md) to create your own Google app.
 
 ## Contributing: guards against leaks
 

@@ -11,7 +11,7 @@ application_default_credentials.json
 *.html
 *.csv
 *.xlsx
-!ga-mcp-dist/tests/fixtures/*.csv
+!data-noodler/tests/fixtures/*.csv
 _outputs/
 
 # Build output

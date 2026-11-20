@@ -25,4 +25,4 @@ but security reports are read.
   checked against published advisories in CI; a known vulnerability fails
   the build.
 
-`ga-mcp-dist/ARCHITECTURE.md` describes the security posture in full.
+`data-noodler/ARCHITECTURE.md` describes the security posture in full.

@@ -12,11 +12,11 @@
 # Needs network and a Python 3.12 (uv's is found automatically). Slow: a few
 # minutes. Not part of the unit suite; part of the release gate.
 #
-#   sh ga-mcp-dist/tests/dry_run_upgrade.sh [old-commit]
-#   INTERRUPT=INT  sh ga-mcp-dist/tests/dry_run_upgrade.sh
+#   sh data-noodler/tests/dry_run_upgrade.sh [old-commit]
+#   INTERRUPT=INT  sh data-noodler/tests/dry_run_upgrade.sh
 #       a real Ctrl-C (SIGINT to the process group) while pip is installing:
 #       the run must undo itself and the old install must verify
-#   INTERRUPT=KILL sh ga-mcp-dist/tests/dry_run_upgrade.sh
+#   INTERRUPT=KILL sh data-noodler/tests/dry_run_upgrade.sh
 #       SIGKILL instead -- nothing in-process can run -- then
 #       `upgrade.py --recover` must put the old install back
 set -eu
@@ -35,10 +35,10 @@ export HOME="$H"
 unset GA_HOME GA_MCP_CONFIG || true
 
 echo "== 1. the install a partner has today ($OLD_COMMIT)"
-git -C "$REPO" archive "$OLD_COMMIT" ga-mcp-dist | tar -x -C "$T/old"
+git -C "$REPO" archive "$OLD_COMMIT" data-noodler | tar -x -C "$T/old"
 "$PY" -m venv "$GA/venv"
 "$GA/venv/bin/python" -m pip install -q --disable-pip-version-check \
-  -c "$T/old/ga-mcp-dist/installer/constraints.txt" \
+  -c "$T/old/data-noodler/installer/constraints.txt" \
   analytics-mcp==0.7.0 google-auth-oauthlib
 echo '{}' > "$H/.config/gcloud/adc-ga-personal.json"
 cat > "$GA/config.json" <<EOF
@@ -51,7 +51,7 @@ cat > "$GA/config.json" <<EOF
 EOF
 echo '{"mcpServers": {"someone-else": {"command": "/nonexistent/server"}}}' > "$H/.claude.json"
 chmod 600 "$H/.claude.json"
-"$GA/venv/bin/python" "$T/old/ga-mcp-dist/installer/install.py" \
+"$GA/venv/bin/python" "$T/old/data-noodler/installer/install.py" \
   --repo-root "$T/old" --ga-home "$GA" --targets claude_code >/dev/null
 BEFORE=$("$GA/venv/bin/python" -c "import importlib.metadata as m; print(m.version('mcp'), m.version('analytics-mcp'), m.version('pip'))")
 echo "   before: mcp/analytics-mcp/pip = $BEFORE"
@@ -67,7 +67,7 @@ import os, signal, subprocess, sys, time
 py, repo, ga, out, which = sys.argv[1:6]
 with open(out, "w") as log:
     p = subprocess.Popen(
-        [py, "-u", f"{repo}/ga-mcp-dist/installer/upgrade.py", "--repo-root",
+        [py, "-u", f"{repo}/data-noodler/installer/upgrade.py", "--repo-root",
          repo, "--ga-home", ga, "--targets", "claude_code"],
         stdout=log, stderr=subprocess.STDOUT, start_new_session=True,
         preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL))
@@ -85,7 +85,7 @@ DRIVER
   if [ "$INTERRUPT" = "KILL" ]; then
     [ -f "$GA/.upgrade-in-progress.json" ] || fail "no record left for --recover"
     echo "   killed; running --recover"
-    "$PY" "$REPO/ga-mcp-dist/installer/upgrade.py" --ga-home "$GA" --recover || fail "--recover failed"
+    "$PY" "$REPO/data-noodler/installer/upgrade.py" --ga-home "$GA" --recover || fail "--recover failed"
     [ -f "$GA/.upgrade-in-progress.json" ] && fail "record still there after recover"
   else
     grep -q "INTERRUPTED" "$OUT" || fail "no interruption reported"
@@ -95,20 +95,20 @@ DRIVER
   [ "$AFTER" = "$BEFORE" ] || fail "venv not restored: $AFTER (was $BEFORE)"
   ls -d "$GA"/venv.old-* >/dev/null 2>&1 && fail "the old venv is still aside"
   # The restored install is the OLD release (15 companion tools too).
-  "$GA/venv/bin/python" "$REPO/ga-mcp-dist/installer/verify.py" --config "$H/.claude.json" \
+  "$GA/venv/bin/python" "$REPO/data-noodler/installer/verify.py" --config "$H/.claude.json" \
     --require analytics-mcp=10 --require ga-companion=15 || fail "the restored install does not verify"
   echo "== PASS: SIG$INTERRUPT upgrade restored ($BEFORE)"
   exit 0
 fi
 
 echo "== 2. upgrade.py --plan, then the run, for real"
-"$PY" "$REPO/ga-mcp-dist/installer/upgrade.py" --repo-root "$REPO" \
+"$PY" "$REPO/data-noodler/installer/upgrade.py" --repo-root "$REPO" \
   --ga-home "$GA" --targets claude_code --plan
-"$PY" "$REPO/ga-mcp-dist/installer/upgrade.py" --repo-root "$REPO" \
+"$PY" "$REPO/data-noodler/installer/upgrade.py" --repo-root "$REPO" \
   --ga-home "$GA" --targets claude_code
 echo "== 2b. the agent's step afterwards: skills"
-"$GA/venv/bin/python" "$REPO/ga-mcp-dist/installer/copy_skills.py" \
-  --ga-home "$GA" --dist "$REPO/ga-mcp-dist" --skills-dir "$H/.claude/skills"
+"$GA/venv/bin/python" "$REPO/data-noodler/installer/copy_skills.py" \
+  --ga-home "$GA" --dist "$REPO/data-noodler" --skills-dir "$H/.claude/skills"
 
 echo "== 3. checks"
 fail() { echo "FAIL: $*" >&2; exit 1; }
@@ -116,10 +116,10 @@ AFTER=$("$GA/venv/bin/python" -c "import importlib.metadata as m; print(m.versio
 echo "   after:  mcp/analytics-mcp/pip = $AFTER"
 case "$AFTER" in "2."*" 1.1.0 26.2.2") ;; *) fail "unexpected versions: $AFTER" ;; esac
 BELOW=$("$PY" -c "
-import sys; sys.path.insert(0, '$REPO/ga-mcp-dist/installer'); import probe
+import sys; sys.path.insert(0, '$REPO/data-noodler/installer'); import probe
 print(probe.probe_dependencies('$GA/venv/bin/python')['below_floor'])")
 [ "$BELOW" = "{}" ] || fail "below floor: $BELOW"
-"$GA/venv/bin/python" "$REPO/ga-mcp-dist/installer/verify.py" --config "$H/.claude.json" \
+"$GA/venv/bin/python" "$REPO/data-noodler/installer/verify.py" --config "$H/.claude.json" \
   --require analytics-mcp=10 --require ga-companion=15 || fail "verify"
 grep -q someone-else "$H/.claude.json" || fail "the user's other server was lost"
 [ "$(stat -f %Lp "$H/.claude.json" 2>/dev/null || stat -c %a "$H/.claude.json")" = 600 ] || fail ".claude.json permissions changed"

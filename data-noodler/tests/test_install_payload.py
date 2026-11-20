@@ -24,9 +24,9 @@ import install
 
 
 def make_repo(root=None, extra=None):
-    """A minimal repo_root containing a ga-mcp-dist/ payload."""
+    """A minimal repo_root containing a data-noodler/ payload."""
     root = root or tempfile.mkdtemp()
-    dist = os.path.join(root, "ga-mcp-dist")
+    dist = os.path.join(root, "data-noodler")
     for name in install.PAYLOAD:
         d = os.path.join(dist, name)
         os.makedirs(d, exist_ok=True)
@@ -83,7 +83,7 @@ class TestPayloadCopyCharacterization(unittest.TestCase):
 
     def test_a_missing_payload_directory_is_refused_by_name(self):
         import shutil
-        shutil.rmtree(os.path.join(self.repo, "ga-mcp-dist", "marketplace"))
+        shutil.rmtree(os.path.join(self.repo, "data-noodler", "marketplace"))
         with self.assertRaises(install.InstallError) as caught:
             install.install_payload(self.repo, self.ga_home)
         self.assertIn("marketplace", str(caught.exception))
@@ -197,7 +197,7 @@ class TestPayloadCopyLeavesARollback(unittest.TestCase):
         # marketplace disappears midway through a second run: companion has
         # already been dealt with by then.
         import shutil
-        shutil.rmtree(os.path.join(self.repo, "ga-mcp-dist", "marketplace"))
+        shutil.rmtree(os.path.join(self.repo, "data-noodler", "marketplace"))
         with self.assertRaises(install.InstallError):
             install.install_payload(self.repo, self.ga_home)
         self.assertTrue(

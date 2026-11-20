@@ -58,10 +58,10 @@ jobs:
           python-version: "3.12"
       - name: Install the pinned set (the install line from installer/constraints.txt)
         run: |
-          python -m pip install --upgrade -c ga-mcp-dist/installer/constraints.txt pip
-          python -m pip install -c ga-mcp-dist/installer/constraints.txt analytics-mcp==1.1.0 google-auth-oauthlib
+          python -m pip install --upgrade -c data-noodler/installer/constraints.txt pip
+          python -m pip install -c data-noodler/installer/constraints.txt analytics-mcp==1.1.0 google-auth-oauthlib
       - name: Test suite
-        working-directory: ga-mcp-dist
+        working-directory: data-noodler
         run: python -m unittest discover -s tests -v
 
   audit:
@@ -78,4 +78,4 @@ jobs:
           python -m pip install pip-audit==2.10.1
           # The scan line from installer/constraints.txt's header.
           pip-audit --no-deps --disable-pip -s osv \
-            -r ga-mcp-dist/installer/constraints.txt
+            -r data-noodler/installer/constraints.txt

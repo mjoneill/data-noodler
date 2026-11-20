@@ -1,9 +1,9 @@
 {
   "name": "ga-analytics",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "Query Google Analytics 4 properties, with reporting discipline and credential self-service.",
   "author": {
-    "name": "ga-mcp-dist maintainers (see deployment.json)"
+    "name": "Data Noodler maintainers (see deployment.json)"
   },
   "license": "MIT",
   "keywords": [
@@ -18,7 +18,7 @@
     "displayName": "Google Analytics",
     "shortDescription": "Query GA4 traffic, users, sessions, and conversions",
     "longDescription": "Read-only access to the Google Analytics 4 properties your own Google account can already see. Includes cheap property lookup, reporting discipline that keeps metric and date-range choices explicit, and a credential status tool that explains the weekly reauth rather than failing silently.",
-    "developerName": "ga-mcp-dist",
+    "developerName": "Data Noodler",
     "category": "Productivity",
     "capabilities": [
       "Read"

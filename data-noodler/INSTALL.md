@@ -13,7 +13,7 @@ new package say what changes.
    (read-only; any Python 3 will run it):
 
    ```bash
-   python3 <repo>/ga-mcp-dist/installer/upgrade.py --plan
+   python3 <repo>/data-noodler/installer/upgrade.py --plan
    ```
 
    (On a Mac where `xcode-select -p` errors, `python3` is only Apple's stub:
@@ -26,7 +26,7 @@ new package say what changes.
    ChatGPT app. Then run, with that base Python:
 
    ```bash
-   "<base python>" <repo>/ga-mcp-dist/installer/upgrade.py
+   "<base python>" <repo>/data-noodler/installer/upgrade.py
    ```
 
    On Windows, in an ordinary PowerShell window, put `& ` in front and use
@@ -34,7 +34,7 @@ new package say what changes.
    FAILED" means it already put everything back -- send the output to
    your maintainer (named in `deployment.json`).
 3. Reopen your apps. If you use Codex: `codex plugin add ga-analytics@ga-tools`.
-   If you use Claude Code: `"<venv_python>" <repo>/ga-mcp-dist/installer/copy_skills.py`.
+   If you use Claude Code: `"<venv_python>" <repo>/data-noodler/installer/copy_skills.py`.
 4. The previous setup is left in place as the undo, at the path the upgrade
    printed. Delete it once you've used the upgraded tools.
 
@@ -121,7 +121,7 @@ export PATH="$HOME/.local/bin:$PATH"
 command -v uv    # must print a path before continuing
 uv --version     # must be 0.13.4 or later (eMudhra/emSign); if not:
                  #   brew upgrade uv, or UV_SYSTEM_CERTS=true uv self update
-uv tool install analytics-mcp==1.1.0 --with google-auth-oauthlib -c <repo>/ga-mcp-dist/installer/constraints.txt
+uv tool install analytics-mcp==1.1.0 --with google-auth-oauthlib -c <repo>/data-noodler/installer/constraints.txt
 uv tool update-shell    # puts the tool dir on PATH permanently
 ```
 
@@ -193,7 +193,7 @@ now.
 PY3=/usr/bin/python3
 xcode-select -p >/dev/null 2>&1 || PY3="$(uv python find)"
 [ -x "$PY3" ] || echo "no usable Python 3: install uv first (step 1), then re-run"
-"$PY3" <repo>/ga-mcp-dist/installer/bootstrap_config.py
+"$PY3" <repo>/data-noodler/installer/bootstrap_config.py
 ```
 
 A plain system Python is deliberate and correct here, not a shortcut. You do
@@ -234,7 +234,7 @@ of the old file before replacing it):
 PY3=/usr/bin/python3
 xcode-select -p >/dev/null 2>&1 || PY3="$(uv python find)"
 [ -x "$PY3" ] || echo "no usable Python 3: install uv first (step 1), then re-run"
-"$PY3" <repo>/ga-mcp-dist/installer/bootstrap_config.py --force
+"$PY3" <repo>/data-noodler/installer/bootstrap_config.py --force
 ```
 
 If it instead prints an error naming `analytics-mcp` and `uv tool install`,
@@ -249,7 +249,7 @@ This is the one step that needs your input: it opens a browser and asks you
 to sign in with your own Google account.
 
 ```bash
-"<venv_python from config.json>" <repo>/ga-mcp-dist/marketplace/plugins/ga-analytics/skills/google-analytics/scripts/mint_adc.py
+"<venv_python from config.json>" <repo>/data-noodler/marketplace/plugins/ga-analytics/skills/google-analytics/scripts/mint_adc.py
 ```
 
 Read `venv_python` out of the `config.json` step 3 just wrote (it's the
@@ -281,7 +281,7 @@ again.
 ## 5. Install the payload
 
 ```bash
-"<venv_python>" <repo>/ga-mcp-dist/installer/install.py --payload-only
+"<venv_python>" <repo>/data-noodler/installer/install.py --payload-only
 ```
 
 Copies the companion server, launcher scripts, and the Codex plugin
@@ -295,7 +295,7 @@ plugin you install in step 8. Claude Code reads skills from your home
 directory instead, so it needs its own copy:
 
 ```bash
-"<venv_python>" <repo>/ga-mcp-dist/installer/copy_skills.py
+"<venv_python>" <repo>/data-noodler/installer/copy_skills.py
 ```
 
 That installs the `google-analytics` skill and the `ga-mcp-setup` skill (so a
@@ -330,7 +330,7 @@ installer refuses (exit 1) rather than silently skipping when Claude Desktop is
 installed but that directory is missing. Most likely on a brand-new machine.
 
 ```bash
-"<venv_python>" <repo>/ga-mcp-dist/installer/install.py --targets claude_code,claude_desktop
+"<venv_python>" <repo>/data-noodler/installer/install.py --targets claude_code,claude_desktop
 ```
 
 **Quit Claude Desktop first if it's running.** Both Claude Desktop and
@@ -376,10 +376,10 @@ own that file.
 ## 9. Verify
 
 ```bash
-"<venv_python>" <repo>/ga-mcp-dist/installer/verify.py --config ~/.claude.json \
+"<venv_python>" <repo>/data-noodler/installer/verify.py --config ~/.claude.json \
     --require analytics-mcp=10 --require ga-companion=15 \
     --require-skill google-analytics
-"<venv_python>" <repo>/ga-mcp-dist/installer/verify.py --config "<claude desktop config path from step 7>" \
+"<venv_python>" <repo>/data-noodler/installer/verify.py --config "<claude desktop config path from step 7>" \
     --require analytics-mcp=10 --require ga-companion=15
 codex plugin list   # expect ga-analytics@ga-tools: installed, enabled
 ```
@@ -442,7 +442,7 @@ browser session with you signed in.
 
 ## If something goes wrong
 
-Read `<repo>/ga-mcp-dist/skills/ga-mcp-setup/references/troubleshooting.md`.
+Read `<repo>/data-noodler/skills/ga-mcp-setup/references/troubleshooting.md`.
 Match the exact error text before assuming it's a credential problem — an
 expired credential is the most-documented failure and therefore the easiest
 wrong guess.

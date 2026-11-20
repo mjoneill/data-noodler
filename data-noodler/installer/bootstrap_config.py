@@ -37,7 +37,7 @@ import security_floors  # noqa: E402
 INSTALL_HINT = (
     "Install it first:\n"
     "  uv tool install analytics-mcp==1.1.0 --with google-auth-oauthlib "
-    "-c <repo>/ga-mcp-dist/installer/constraints.txt")
+    "-c <repo>/data-noodler/installer/constraints.txt")
 
 # Windows has its own, because the macOS advice is wrong there: windows.md opens
 # with "No uv", and on the machine measured uv was absent and gated behind an
@@ -51,7 +51,7 @@ INSTALL_HINT_WINDOWS = (
     '  & "$env:USERPROFILE\\.config\\ga-mcp\\venv\\Scripts\\python.exe" -m pip '
     'install "' + security_floors.PIP_BOOTSTRAP_REQUIREMENT + '"\n'
     '  & "$env:USERPROFILE\\.config\\ga-mcp\\venv\\Scripts\\python.exe" -m pip '
-    "install -c <repo>\\ga-mcp-dist\\installer\\constraints.txt "
+    "install -c <repo>\\data-noodler\\installer\\constraints.txt "
     "--upgrade analytics-mcp==1.1.0 google-auth-oauthlib\n"
     "If it IS installed somewhere this did not look, name it rather than let "
     "anything guess:\n"

@@ -14,7 +14,7 @@ import unittest
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__))))
-BIN = os.path.join(REPO, "ga-mcp-dist", "bin")
+BIN = os.path.join(REPO, "data-noodler", "bin")
 LAUNCHERS = ["launch-ga-companion", "launch-ga-mcp"]
 
 

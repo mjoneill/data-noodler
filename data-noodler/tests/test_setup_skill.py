@@ -15,11 +15,11 @@ SKILL_DIR = os.path.join(ROOT, "skills", "ga-mcp-setup")
 SKILL_MD = os.path.join(SKILL_DIR, "SKILL.md")
 
 # Repo-relative paths the document's commands reference, e.g.
-# "ga-mcp-dist/installer/verify.py". Deliberately simple: it does not try to
-# parse shell, only to pull out path-shaped tokens rooted at ga-mcp-dist/ so
+# "data-noodler/installer/verify.py". Deliberately simple: it does not try to
+# parse shell, only to pull out path-shaped tokens rooted at data-noodler/ so
 # that a stale or wrong path (like the bug this test was added to catch) is
 # caught mechanically rather than by a human re-reading the prose.
-REPO_PATH_RE = re.compile(r"ga-mcp-dist/[A-Za-z0-9_./-]+\.(?:py|md|sh)")
+REPO_PATH_RE = re.compile(r"data-noodler/[A-Za-z0-9_./-]+\.(?:py|md|sh)")
 
 
 class TestSetupSkillStructure(unittest.TestCase):
@@ -102,12 +102,12 @@ class TestSetupSkillStructure(unittest.TestCase):
         self.assertIn("Test users", self.text)
 
     def test_referenced_repo_paths_exist_on_disk(self):
-        # ROOT is .../ga-mcp-dist; the paths in the doc (e.g.
-        # "ga-mcp-dist/installer/verify.py") are relative to its parent, the
+        # ROOT is .../data-noodler; the paths in the doc (e.g.
+        # "data-noodler/installer/verify.py") are relative to its parent, the
         # repo root the doc tells the reader to run commands from.
         repo_root = os.path.dirname(ROOT)
         paths = sorted(set(m.group(0) for m in REPO_PATH_RE.finditer(self.text)))
-        self.assertTrue(paths, "expected at least one ga-mcp-dist/... path "
+        self.assertTrue(paths, "expected at least one data-noodler/... path "
                                 "referenced in SKILL.md")
         missing = [p for p in paths
                    if not os.path.exists(os.path.join(repo_root, p))]

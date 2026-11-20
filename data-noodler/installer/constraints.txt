@@ -34,7 +34,7 @@
 # (found 2026-10-23, #151). Before every zip:
 #
 #   uvx pip-audit --no-deps --disable-pip -s osv \
-#       -r ga-mcp-dist/installer/constraints.txt
+#       -r data-noodler/installer/constraints.txt
 #
 # Ship only on exit 0. tests/test_constraints_security.py holds offline
 # floors for the versions found vulnerable, so they cannot come back.

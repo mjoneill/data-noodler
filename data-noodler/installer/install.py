@@ -145,7 +145,7 @@ def describe_payload_plan(repo_root, ga_home, home=None):
     it has not earned.
     """
     ga_home = _validated_ga_home(ga_home, home=home)
-    src_root = os.path.join(repo_root, "ga-mcp-dist")
+    src_root = os.path.join(repo_root, "data-noodler")
     lines = [f"plan for {ga_home} (nothing below has been done)"]
     for name in PAYLOAD:
         src = os.path.join(src_root, name)
@@ -184,7 +184,7 @@ def install_payload(repo_root, ga_home, home=None, platform=None):
     """
     platform = sys.platform if platform is None else platform
     ga_home = _validated_ga_home(ga_home, home=home)
-    src_root = os.path.join(repo_root, "ga-mcp-dist")
+    src_root = os.path.join(repo_root, "data-noodler")
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     written = []
 
@@ -277,7 +277,7 @@ def resolve_sessions_root(repo_root, config_path=None):
     than failing the install: this function always returns a path, never
     raises.
     """
-    companion_dir = os.path.join(repo_root, "ga-mcp-dist", "companion")
+    companion_dir = os.path.join(repo_root, "data-noodler", "companion")
     if companion_dir not in sys.path:
         sys.path.insert(0, companion_dir)
     import config as companion_config
