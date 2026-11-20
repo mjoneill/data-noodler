@@ -132,15 +132,17 @@ class TestAllowed(unittest.TestCase):
         self.allowed = identity_guard.allowed
 
     def test_accepted(self):
+        # A registrable domain passes; a single-label hostname (below) does not.
         for e in (NOREPLY, "noreply@github.com", SEAT,
-                  "Someone+Wren@Example.COM"):
+                  "Someone+Wren@Example.COM", "someone+seat@host.example"):
             with self.subTest(e):
                 self.assertTrue(self.allowed(e))
 
     def test_refused(self):
         for e in (MAILBOX, MACHINE, MACHINE_TAGGED, "someone+@example.com",
                   "+seat@example.com", "someone+seat@localhost",
-                  "someone+seat@host", "someone+seat@box.localdomain", ""):
+                  "someone+seat@host", "someone+seat@box.localdomain",
+                  "someone+seat@foo.localhost", "someone+seat@printer.home.arpa", ""):
             with self.subTest(e):
                 self.assertFalse(self.allowed(e))
 

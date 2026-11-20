@@ -12,7 +12,8 @@ Allowed:
   - a seat's plus-address, <name>+<seat>@<domain>: the identity the seats use
     in this project and in manyhands alike, so each can attribute its own
     work (#2001). It must have a non-empty name and tag, and a real domain:
-    never .local, .localdomain, localhost or a bare host (a machine default).
+    never .local, .localdomain, .localhost, .home.arpa, localhost or a
+    bare host (a machine default).
   - any address ending @users.noreply.github.com.
   - GitHub's own noreply@github.com (the identity of its web merges).
 A bare mailbox (no +<seat>) is refused.
@@ -39,7 +40,8 @@ FIX = ("Set this clone's identity before committing (or rebasing), as your "
        "or a GitHub noreply address (<id>+<login>@users.noreply.github.com). "
        "Then rewrite the commits named above and push again.")
 SEAT = re.compile(r"^[^@+\s]+\+[^@+\s]+@([a-z0-9-]+\.)+[a-z]{2,}$")
-MACHINE_DOMAINS = (".local", ".localdomain", ".lan", ".home", ".internal")
+MACHINE_DOMAINS = (".local", ".localdomain", ".localhost", ".lan", ".home",
+                   ".home.arpa", ".internal")
 
 
 def git(*args):
