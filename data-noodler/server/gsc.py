@@ -53,11 +53,32 @@ def authorized_session():
     return AuthorizedSession(creds)
 
 
+# Our own limits, so they are visible here rather than inherited from
+# google-auth's default (120 s for both). A host that can't be reached is
+# never merely slow, so connecting gets a short limit. Waiting for the answer
+# gets a long one: on 2026-11-20 a healthy 25,000-row page took 61.7 s, and
+# cutting off a page that is working costs more than waiting (#2007 R1).
+CONNECT_TIMEOUT = 15
+READ_TIMEOUT = 300
+
+
 def call(method, url, session=None, **kw):
     """One request. Raises GscError carrying Google's own message."""
+    import requests
+
     sess = session or authorized_session()
+    kw.setdefault("timeout", (CONNECT_TIMEOUT, READ_TIMEOUT))
     try:
         resp = sess.request(method, url, **kw)
+    except requests.exceptions.ConnectTimeout:
+        raise GscError(
+            f"Search Console could not be reached within {CONNECT_TIMEOUT} "
+            "seconds. Check the network connection, then try again.")
+    except requests.exceptions.Timeout:
+        raise GscError(
+            f"Search Console did not answer within {READ_TIMEOUT // 60} "
+            "minutes. Google is sometimes slow on large requests; try again, "
+            "or narrow the date range or the dimensions.")
     except Exception as exc:
         # str(exc) is "" for a message-less exception -- some timeout and
         # connection-reset paths raise one -- which would render as "failed
