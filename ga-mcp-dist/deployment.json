@@ -1,5 +1,5 @@
 {
-  "_comment": "Fill this in for YOUR deployment before installing. An installing agent reads it first (START-HERE.md): blank values mean this package has not been set up for an institution yet, and the agent walks you through doing so. Nothing here is secret.",
+  "_comment": "Fill this in for YOUR deployment before installing. An installing agent reads it first (START-HERE.md): blank values mean nobody has set this package up for this user yet, and the agent walks you through doing so. Setting it up just for yourself (an individual)? Put your name in maintainer and leave maintainer_contact and install_reports_to blank: they are only for a team, organization or institution handing the package to other people. Nothing here is secret.",
   "deployment_name": "",
   "maintainer": "",
   "maintainer_contact": "",

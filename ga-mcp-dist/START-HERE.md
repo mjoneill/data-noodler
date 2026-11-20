@@ -16,16 +16,18 @@ open `deployment.json`, which decides which of two situations you are in.
 maintains it, where the Google sign-in file comes from, where install reports
 go.
 
-- **Its values are filled in** → someone already set this package up for an
-  institution or team. You are installing or upgrading one more machine in
-  that deployment. Go to `skills/ga-mcp-setup/SKILL.md` and follow it; it
-  reads `deployment.json` as it goes.
-- **Its values are blank** → this package was shared with a new institution,
-  and nobody has set it up there yet. Your job is to **port it**: understand
-  the approach, help the user make the decisions only they can make, create
-  their Google sign-in, fill in `deployment.json`, install on their machine,
-  and prepare what they will hand to their colleagues. The rest of this page
-  is that path.
+- **Its values are filled in** → someone already set this package up for
+  their team, organization or institution. You are installing or upgrading
+  one more machine in that deployment. Go to `skills/ga-mcp-setup/SKILL.md`
+  and follow it; it reads `deployment.json` as it goes.
+- **Its values are blank** → nobody has set it up for this user yet. They may
+  be an individual setting it up just for themselves, or someone setting it
+  up for a team, organization or institution. Your job is to **set it up for
+  the first time**: understand the approach, help the user make the decisions
+  only they can make, create their Google sign-in, fill in `deployment.json`,
+  and install on their machine; and, only if other people will use it too,
+  prepare what they will hand to those people. The rest of this page is that
+  path.
 
 ## What is deliberately not in this package
 
@@ -39,10 +41,21 @@ go.
 - **The original deployment's records**: install histories, runbooks, machine
   details. Those stay private to whoever shared this.
 
-## Porting it to a new institution
+## Setting it up for the first time
 
 Work through these with the user, in order. Do not skip ahead to installing;
 steps 1–3 are decisions that change what gets installed.
+
+**First, ask: is this just for you, or for other people too?**
+
+- **Just you** (an individual, with your own sites): you are both the
+  maintainer and the only user. You create your own Google sign-in, add only
+  your own Google account as a test user, and hand nothing to anyone. Leave the
+  team-only fields in `deployment.json` (`maintainer_contact`,
+  `install_reports_to`) blank, and skip step 6.
+- **Other people too** (a team, organization or institution): you are the
+  maintainer. Everyone gets the sign-in file from you, and step 6 is how you
+  hand the package over.
 
 ### 1. Understand the approach first
 
@@ -57,8 +70,8 @@ Read, in this order, and summarize each for the user in a few sentences:
 5. `skills/ga-mcp-setup/references/troubleshooting.md`.
 
 Say plainly what you found: what this package does well, what it assumes,
-and anything that does not fit the user's situation. It was built for one
-institution's mix of machines and apps; theirs may differ.
+and anything that does not fit the user's situation. It was first built and
+tested on one organization's mix of machines and apps; theirs may differ.
 
 ### 2. The decisions only the user can make
 
@@ -66,7 +79,8 @@ Ask, and write the answers into `deployment.json`:
 
 - **Who maintains this deployment?** The person others will get the sign-in
   file from and send install reports to. Usually the user you are talking to.
-  (`maintainer`, `maintainer_contact`, `install_reports_to`)
+  (`maintainer`, `maintainer_contact`, `install_reports_to`.) Just for
+  yourself: put your own name in `maintainer` and leave the other two blank.
 - **Which Google audience?** Internal (needs Google Workspace and a Cloud
   project in their organization; no weekly renewal) or External in Testing
   (works for anyone; 7-day credentials, up to 100 named test users).
@@ -75,9 +89,10 @@ Ask, and write the answers into `deployment.json`:
 - **Which apps, on which machines?** Claude Desktop, Claude Code, Codex, the
   ChatGPT app; macOS, Windows. Note anything untested for their mix (see
   "What is proven" in `ARCHITECTURE.md`).
-- **Whose Google accounts hold the GA access?** Institutional accounts, or
-  personal Gmail accounts? This decides who gets added as test users, and
-  whether Internal is even possible.
+- **Whose Google accounts hold the GA access?** Organization accounts (a
+  team's, company's or institution's Google Workspace), or personal Gmail
+  accounts? This decides who gets added as test users, and whether Internal
+  is even possible. Just for yourself, it is usually your own account.
 
 ### 3. Create the Google sign-in
 
@@ -91,7 +106,8 @@ have `ga-mcp-client.json`. Check it as the guide says (a Desktop client, an
 - `deployment.json`: fill every blank.
 - `marketplace/plugins/ga-analytics/.codex-plugin/plugin.json`: the
   `author`, `developerName` and the example prompts (`defaultPrompt`). Give
-  them the user's institution and a real site of theirs. If you change
+  them the user's own name, or their team's or organization's, and a real
+  site of theirs. If you change
   anything in that plugin folder, bump its `version`; Codex caches by
   version.
 - The reporting guide (`companion/guidance.py`) uses `example.edu` sites as
@@ -105,7 +121,10 @@ exiting 0 for every registered app, a live question answered in each app, and
 an install report (Step 10). This is the first install in the new deployment,
 so the report is worth keeping: it is the start of their own records.
 
-### 6. Prepare the hand-off to their colleagues
+### 6. Prepare the hand-off to other people
+
+**Only if others will use it too.** Just for yourself? Skip this step: you are
+done after step 5.
 
 For each person who will install, the maintainer gives:
 
@@ -137,8 +156,8 @@ the docs:
 
 ## Who to tell when something is wrong
 
-This package was shared as a one-off. Your deployment's maintainer is now
-the first stop for problems, and the install reports are how they find out.
-If you find a defect in the package itself, the person who shared it with
-you would likely want to know, but there is no support commitment implied by
-the sharing. See `LICENSE`.
+In a team, organization or institution, your deployment's maintainer is the
+first stop for problems, and the install reports are how they find out. If you
+set it up just for yourself, you are your own maintainer. If you find a defect
+in the package itself, the project would like to know (see the top-level
+README). It is open source with no support commitment; see `LICENSE`.

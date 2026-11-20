@@ -14,9 +14,10 @@ config entry naming a command to launch.
 
 **Read `deployment.json` first** (beside this package's `INSTALL.md`). It
 names this deployment's maintainer and says where the OAuth client file comes
-from. If its values are blank, nobody has set this package up for an
-institution yet: stop, and follow `START-HERE.md`, which walks the user
-through that, before installing anything.
+from. If its values are blank, nobody has set this package up for this user
+yet, whether just for themselves or for a team, organization or institution:
+stop, and follow `START-HERE.md`, which walks the user through that, before
+installing anything.
 
 Run the whole flow from Claude Code or Codex -- these instructions are for
 whichever agent is installing, and where a step applies to only one app
@@ -269,7 +270,8 @@ say-so, once you know the installed copy works.
 
 If it is nowhere, **stop and ask the user for it** -- do not try to generate,
 download or reconstruct one. If they have no maintainer to get it from
-(they are setting this up for their own institution or team), point them to
+(they are setting this up just for themselves, or for their own team,
+organization or institution), point them to
 `ga-mcp-dist/GOOGLE-CLOUD-SETUP.md`: they create their own client once, then
 come back to this step. It is deliberately not in the repo, and there is
 nowhere you can fetch it from.

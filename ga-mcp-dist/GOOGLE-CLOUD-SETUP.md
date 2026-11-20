@@ -1,8 +1,10 @@
 # Setting up your own Google sign-in (OAuth client)
 
-**Who this is for:** whoever deploys these tools for an institution or team
-that does *not* get its sign-in file from an existing maintainer. You do this
-once. Everyone you deploy to then uses the file you make here.
+**Who this is for:** anyone setting these tools up without an existing
+maintainer to get the sign-in file from: an individual setting it up just for
+themselves, or whoever deploys it for a team, organization or institution. You
+do this once. If others will use it, everyone you deploy to then uses the file
+you make here.
 
 **What you end up with:** one file, `ga-mcp-client.json`, that lets each person
 sign in with their *own* Google account and grant read-only access to the
@@ -31,24 +33,30 @@ maintainer, or whoever gave you this package, so the guide can be updated.
 | Google verification needed | No | No, as long as you stay in Testing |
 | Available when | The Cloud project belongs to your Workspace organization | Always, including for personal Gmail accounts |
 
-- **Choose Internal if you can.** It's available when your institution uses
-  Google Workspace, the Cloud project is created inside your institution's
-  Google Cloud organization, and the people using these tools sign into
-  Google Analytics with their institutional accounts. It avoids the weekly
-  renewal, the 100-person cap and the warning screen.
+- **Choose Internal if you can.** It's available when your organization (a
+  company, institution or team) uses Google Workspace, the
+  Cloud project is created inside that organization's Google Cloud
+  organization, and the people using these tools sign into Google Analytics
+  with their organization accounts. It avoids the weekly renewal, the
+  100-person cap and the warning screen.
 - **Choose External (Testing) otherwise**, for example when people use personal
-  Gmail accounts for GA, or you can't create projects in your institution's
-  organization. Everything works. Each person just renews weekly with one
-  command (`credential_status` tells them which).
+  Gmail accounts for GA, or you can't create projects in your organization.
+  **Setting this up just for yourself with a personal Gmail account? This is
+  your choice:** add only your own account as a test user. Everything works.
+  Each person just renews weekly with one command (`credential_status` tells
+  them which). Many treat the weekly renewal as a feature: a leaked credential
+  is only good for 7 days.
 - **Publishing an External app "to production"** removes the 7-day expiry and
   the 100-user cap. But `analytics.readonly` is a *sensitive* scope, so Google
   may require its app-verification review first. That's beyond this guide.
   Testing is the practical choice for a team-sized deployment.
 
-**Check your institution's rules first.** Two things can stop you before you
-start:
+**In an organization, check its rules first.** (Just you, on a personal
+Google account? Neither of these applies; skip ahead.) Two things can stop you
+before you start:
 
-- **Creating Cloud projects may be restricted.** Many institutions only let
+- **Creating Cloud projects may be restricted.** Many organizations and
+  institutions only let
   certain staff create projects in their Google Cloud organization. If
   **New project** is greyed out, or your organization isn't offered, ask your
   Google Cloud or Workspace administrator to create the project for you, or to
@@ -59,7 +67,8 @@ start:
   your own organization is usually allowed. An External one may be blocked for
   your users until an administrator marks its **client ID** as trusted. If
   people get "This app is blocked" or "Access blocked: your institution's
-  policy", that's this setting, and only an administrator can change it.
+  policy" (the wording Google uses for any Workspace organization), that's
+  this setting, and only an administrator can change it.
 
 ---
 
@@ -70,8 +79,9 @@ start:
 2. Use the project picker at the top → **New project**.
    - **Name:** something you'll recognize later, for example
      `ga-mcp` or `analytics-ai-tools`.
-   - **Organization / Location:** your institution's organization if you're
-     going **Internal**. This is what makes Internal possible.
+   - **Organization / Location:** your organization if you're going
+     **Internal**. This is what makes Internal possible. Just you, on a
+     personal account: leave it as "No organization".
 3. **Write down the project ID.** Google adds digits when a name is taken, so
    it looks like `ga-mcp-483921` rather than what you typed. Every link below
    uses it.

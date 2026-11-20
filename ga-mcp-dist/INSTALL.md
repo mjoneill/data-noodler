@@ -96,8 +96,9 @@ Error 403: access_denied
 
 So before you begin, ask whoever gave you this repo to add the Google account
 you will sign in with at Step 4 — the same account that holds the GA access you
-want to read, which may be a personal Gmail rather than your institutional
-address (`deployment.json` says which is usual in your deployment). They add it under the Cloud project's **Google Auth
+want to read, which may be a personal Gmail rather than your organization's
+address (`deployment.json` says which is usual in your deployment). Set up
+just for yourself? Then you add your own account, once. They add it under the Cloud project's **Google Auth
 Platform → Audience → Test users**. That is a one-time action per person: not
 per install, not per machine, and not per weekly renewal.
 
@@ -147,8 +148,8 @@ detects which one you have automatically.
 
 ## 2. Get the shared OAuth client file
 
-*Setting this up for your own institution or team, with no maintainer to get
-the file from?* Make your own first:
+*Setting this up just for yourself, or for your own team, organization or
+institution, with no maintainer to get the file from?* Make your own first:
 [`GOOGLE-CLOUD-SETUP.md`](GOOGLE-CLOUD-SETUP.md) (about 20 minutes, once).
 
 This file is **deliberately not in the repo**. Get the shared OAuth client
