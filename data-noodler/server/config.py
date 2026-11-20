@@ -92,6 +92,18 @@ def default_mint_script(home=None):
     return os.path.join(base, *DEFAULT_MINT_SCRIPT.split("/")[3:])
 
 
+# #1999: the plugin and skill folders' names before the product had one name.
+# A config.json written then names the consent script under them; the
+# reinstall renamed the folders, so the path is followed to where it is now.
+_OLD_SCRIPT_DIRS = "/plugins/ga-" "analytics/skills/google-" "analytics/"
+_NEW_SCRIPT_DIRS = "/plugins/data-noodler/skills/data-noodler/"
+
+
+def mint_script(cfg):
+    script = cfg.get("mint_script") or default_mint_script()
+    return script.replace(_OLD_SCRIPT_DIRS, _NEW_SCRIPT_DIRS)
+
+
 def renewal_command(cfg):
     """The exact command a user must paste into a terminal to reauthenticate.
 
@@ -102,7 +114,7 @@ def renewal_command(cfg):
     paths are expanded first: a quoted "~" is a literal tilde to the shell,
     not the home directory.
     """
-    script = cfg.get("mint_script") or default_mint_script()
+    script = mint_script(cfg)
     return (f'"{os.path.expanduser(cfg["venv_python"])}" '
             f'"{os.path.expanduser(script)}" --force')
 

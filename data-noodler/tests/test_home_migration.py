@@ -50,7 +50,8 @@ def _old_install(h, venv_inside=False):
     cfg = {"oauth_client_file": client, "adc_file": adc,
            "venv_python": venv,
            "properties_csv": os.path.join(old, "properties.csv"),
-           "mint_script": "~/.config/" + OLD + "/marketplace/x/mint_adc.py",
+           "mint_script": ("~/.config/" + OLD + "/marketplace/plugins/ga-"
+                           "analytics/skills/google-" "analytics/scripts/mint_adc.py"),
            "export_roots": ["/elsewhere"]}
     with open(os.path.join(old, "config.json"), "w") as f:
         json.dump(cfg, f)
@@ -154,7 +155,8 @@ class TestTheMove(unittest.TestCase):
         self.assertEqual(self.cfg["properties_csv"],
                          os.path.join(self.new, "properties.csv"))
         self.assertEqual(self.cfg["mint_script"],
-                         "~/.config/data-noodler/marketplace/x/mint_adc.py")
+                         "~/.config/data-noodler/marketplace/plugins/data-noodler"
+                         "/skills/data-noodler/scripts/mint_adc.py")
         self.assertEqual(self.cfg["export_roots"], ["/elsewhere"])
         self.assertNotIn(OLD, json.dumps(self.cfg))
 

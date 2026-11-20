@@ -58,9 +58,16 @@ def _expand(value):
     return os.path.expanduser(value) if isinstance(value, str) else value
 
 
+# #1999 slice 1 renamed the plugin and skill folders the consent script
+# lives in; a config.json from before names the old ones.
+_OLD_SCRIPT_DIRS = "/plugins/ga-" "analytics/skills/google-" "analytics/"
+_NEW_SCRIPT_DIRS = "/plugins/data-noodler/skills/data-noodler/"
+
+
 def _rewrite(value, old, new, tilde_old, tilde_new):
     if not isinstance(value, str):
         return value
+    value = value.replace(_OLD_SCRIPT_DIRS, _NEW_SCRIPT_DIRS)
     for a, b in ((old, new), (tilde_old, tilde_new)):
         if value == a or value.startswith(a + os.sep) or value.startswith(a + "/"):
             return b + value[len(a):]

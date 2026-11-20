@@ -133,6 +133,17 @@ class TestRenewalCommand(unittest.TestCase):
         self.assertIn(os.path.dirname(config.default_config_path(env={})), cmd)
         self.assertNotIn(".claude/skills", cmd)
 
+    def test_a_mint_script_under_the_old_plugin_layout_is_followed(self):
+        # #1999: config.json written before the rename names the script under
+        # plugins/ga-analytics/skills/google-analytics/. The reinstall renames
+        # those folders, so the command must name where it now is.
+        cfg = dict(GOOD)
+        cfg["mint_script"] = ("/h/.config/x/marketplace/plugins/ga-" "analytics"
+                              "/skills/google-" "analytics/scripts/mint_adc.py")
+        cmd = config.renewal_command(cfg)
+        self.assertIn("/h/.config/x/marketplace/plugins/data-noodler"
+                      "/skills/data-noodler/scripts/mint_adc.py", cmd)
+
     def test_the_fallback_follows_an_install_that_predates_the_rename(self):
         # #1999: until migrate_home.py moves it, the payload is in the old
         # home, so that is where the renewal command must point.
