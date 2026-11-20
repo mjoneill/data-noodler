@@ -16,11 +16,16 @@ open `deployment.json`, which decides which of two situations you are in.
 maintains it, where the Google sign-in file comes from, where install reports
 go.
 
-- **Its values are filled in** → someone already set this package up for
-  their team, organization or institution. You are installing or upgrading
-  one more machine in that deployment. Go to `skills/ga-mcp-setup/SKILL.md`
-  and follow it; it reads `deployment.json` as it goes.
-- **Its values are blank** → nobody has set it up for this user yet. They may
+Decide by the **`maintainer`** field. The two team-only fields,
+`maintainer_contact` and `install_reports_to`, may be blank on purpose (a
+just-for-yourself setup), so do not decide by them.
+
+- **`maintainer` is filled in** → someone already set this package up, for
+  themselves or for their team, organization or institution. You are
+  installing or upgrading one more machine in that deployment. Go to
+  `skills/ga-mcp-setup/SKILL.md` and follow it; it reads `deployment.json` as
+  it goes.
+- **`maintainer` is blank** → nobody has set it up for this user yet. They may
   be an individual setting it up just for themselves, or someone setting it
   up for a team, organization or institution. Your job is to **set it up for
   the first time**: understand the approach, help the user make the decisions
@@ -103,7 +108,10 @@ have `ga-mcp-client.json`. Check it as the guide says (a Desktop client, an
 
 ### 4. Adapt what names the original deployment
 
-- `deployment.json`: fill every blank.
+- `deployment.json`: fill in every field, except that a just-for-yourself
+  setup leaves `maintainer_contact` and `install_reports_to` blank on
+  purpose. Blank team fields are a finished just-me setup, not an unfinished
+  one.
 - `marketplace/plugins/ga-analytics/.codex-plugin/plugin.json`: the
   `author`, `developerName` and the example prompts (`defaultPrompt`). Give
   them the user's own name, or their team's or organization's, and a real

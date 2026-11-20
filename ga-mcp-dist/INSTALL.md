@@ -408,7 +408,11 @@ example.com?"
 
 ## 11. Tell your maintainer how it went
 
-Send your deployment's maintainer (named in `deployment.json`) a short note: your operating system, which apps you
+*Set up just for yourself?* You are your own maintainer, and there is no one
+to send this to. Skip sending; if you like, keep a few lines for your own
+records.
+
+Otherwise, send your deployment's maintainer (named in `deployment.json`) a short note: your operating system, which apps you
 registered, and anything that did not work exactly as written here, with the
 error text if there was one. Something you had to work around is the most
 useful thing you can send, because it is the next person's wall. An agent

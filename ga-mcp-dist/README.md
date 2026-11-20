@@ -16,10 +16,11 @@ Open this folder in Claude Code or Codex and say:
 
 `START-HERE.md` tells the agent which of two situations it is in:
 
-- **`deployment.json` is filled in**: someone has already set this package up
-  for your team, organization or institution, and you are installing one more
-  machine.
-- **`deployment.json` is blank**: nobody has set it up for you yet. Whether
+- **`deployment.json` names a `maintainer`**: someone has already set this
+  package up (for themselves, or for your team, organization or institution),
+  and you are installing one more machine. Blank team fields
+  (`maintainer_contact`, `install_reports_to`) just mean a one-person setup.
+- **`deployment.json` has no `maintainer`**: nobody has set it up for you yet. Whether
   it's just for you or for a group, the agent walks you through creating your
   own Google sign-in (`GOOGLE-CLOUD-SETUP.md`, about 20 minutes in the Google
   Cloud console), filling in the profile and installing; and, only if other

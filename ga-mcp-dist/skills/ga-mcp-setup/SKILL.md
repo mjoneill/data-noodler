@@ -14,10 +14,12 @@ config entry naming a command to launch.
 
 **Read `deployment.json` first** (beside this package's `INSTALL.md`). It
 names this deployment's maintainer and says where the OAuth client file comes
-from. If its values are blank, nobody has set this package up for this user
-yet, whether just for themselves or for a team, organization or institution:
-stop, and follow `START-HERE.md`, which walks the user through that, before
-installing anything.
+from. If its `maintainer` is blank, nobody has set this package up for this
+user yet, whether just for themselves or for a team, organization or
+institution: stop, and follow `START-HERE.md`, which walks the user through
+that, before installing anything. Blank `maintainer_contact` and
+`install_reports_to` with a filled `maintainer` is a finished
+just-for-yourself setup: carry on.
 
 Run the whole flow from Claude Code or Codex -- these instructions are for
 whichever agent is installing, and where a step applies to only one app
@@ -619,7 +621,9 @@ folder; on Windows `%USERPROFILE%\.config\ga-mcp\install-reports\`). Then:
 1. Show the user the report, or a short summary of it, and the path.
 2. Ask them to send the file to the maintainer, the way `deployment.json`'s
    `install_reports_to` says. It contains no credentials, which is why it is
-   safe to send that way.
+   safe to send that way. **If `install_reports_to` is blank** (set up just
+   for themselves), there is no one to send it to: keep the report where it
+   was saved, as their own record, and skip sending.
 
 Write what actually happened, not what should have happened. If you deviated
 from this document, that deviation is a finding: name it, along with why you

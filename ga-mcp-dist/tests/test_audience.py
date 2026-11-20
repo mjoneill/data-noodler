@@ -82,5 +82,85 @@ class TestTheTemplateAcceptsJustMe(unittest.TestCase):
                          "a just-me reader must know the team fields can stay blank")
 
 
+
+class TestTheInstallerAcceptsBlankTeamFields(unittest.TestCase):
+    """A just-me deployment.json leaves maintainer_contact and
+    install_reports_to blank. The installer must install anyway.
+
+    Honest note: this row was green before the docs change too. No installer
+    code reads deployment.json, so blank fields could never stop it. The row
+    exists so that stays true: if someone later makes the installer read a
+    team field, a just-me install must still pass.
+    """
+
+    def test_no_installer_code_requires_the_team_fields(self):
+        for sub in ("installer", "companion", "bin"):
+            for base, _, files in os.walk(os.path.join(ROOT, sub)):
+                for name in files:
+                    if not name.endswith(".py") and sub != "bin":
+                        continue
+                    path = os.path.join(base, name)
+                    with open(path, encoding="utf-8", errors="replace") as f:
+                        text = f.read()
+                    with self.subTest(file=os.path.relpath(path, ROOT)):
+                        self.assertNotRegex(
+                            text, r"\[\s*['\"](maintainer_contact|install_reports_to)['\"]\s*\]",
+                            "indexing a team-only field would raise on a just-me deployment")
+
+    def test_a_payload_install_succeeds_with_the_team_fields_blank(self):
+        import shutil
+        import subprocess
+        import sys
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = os.path.join(tmp, "repo")
+            shutil.copytree(ROOT, os.path.join(repo, "ga-mcp-dist"),
+                            ignore=shutil.ignore_patterns("__pycache__", "tests"))
+            profile = os.path.join(repo, "ga-mcp-dist", "deployment.json")
+            with open(profile, encoding="utf-8") as f:
+                d = json.load(f)
+            d.update({"deployment_name": "Pat's sites", "maintainer": "Pat Example",
+                      "maintainer_contact": "", "install_reports_to": ""})
+            with open(profile, "w", encoding="utf-8") as f:
+                json.dump(d, f)
+            home = os.path.join(tmp, "home")
+            ga_home = os.path.join(tmp, "ga")
+            os.makedirs(home)
+            env = dict(os.environ, HOME=home, USERPROFILE=home)
+            r = subprocess.run(
+                [sys.executable, "-I", os.path.join(repo, "ga-mcp-dist", "installer", "install.py"),
+                 "--repo-root", repo, "--ga-home", ga_home, "--payload-only"],
+                env=env, capture_output=True, text=True, timeout=120)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            for part in ("companion", "bin", "marketplace"):
+                self.assertTrue(os.path.isdir(os.path.join(ga_home, part)),
+                                f"{part} was not installed")
+
+
+class TestBlankTeamFieldsAreAFinishedSetup(unittest.TestCase):
+    """Review of a3a95e3 (minimo): docs that route on "blank" or say "fill every
+    blank" make an intentionally blank just-me profile look unfinished, and the
+    report step must not ask a just-me user to send a report to nobody."""
+
+    def test_start_here_routes_on_the_maintainer_field(self):
+        text = read("START-HERE.md")
+        self.assertRegex(text, r"(?i)decide by the \*\*`maintainer`\*\* field")
+        self.assertNotIn("fill every blank", text)
+
+    def test_the_skill_routes_on_the_maintainer_field(self):
+        text = read("skills", "ga-mcp-setup", "SKILL.md")
+        self.assertIn("If its `maintainer` is blank", text)
+        self.assertNotIn("If its values are blank", text)
+
+    def test_the_skill_skips_sending_the_report_when_no_one_receives_it(self):
+        text = read("skills", "ga-mcp-setup", "SKILL.md")
+        self.assertRegex(text, r"(?is)if `install_reports_to` is blank.{0,200}skip sending")
+
+    def test_the_manual_install_skips_sending_when_just_you(self):
+        text = read("INSTALL.md")
+        m = re.search(r"(?ms)^## 11\. Tell your maintainer.*?(?=^## )", text)
+        self.assertIsNotNone(m)
+        self.assertRegex(m.group(0), r"(?is)just for yourself.{0,200}skip sending")
+
 if __name__ == "__main__":
     unittest.main()
