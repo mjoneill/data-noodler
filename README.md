@@ -31,7 +31,7 @@ Nobody's credentials, report data or identifying details belong in this reposito
   ```
 
   With neither list present it says so on every push and checks nothing.
-- **Commit identities** (`tools/identity_guard.py`, in the same hook and in CI). Every commit publishes its author's and committer's email, so only GitHub noreply addresses (`…@users.noreply.github.com`) are accepted. Set yours once per clone before committing: `git config user.email <id>+<login>@users.noreply.github.com` (GitHub shows it under Settings → Emails).
+- **Commit identities** (`tools/identity_guard.py`, in the same hook and in CI). Every commit publishes its author's and committer's email. Accepted: a seat's plus-address (`<name>+<seat>@<domain>`, the same identity the seats use in manyhands, so each can attribute its own work) or a GitHub noreply address (`…@users.noreply.github.com`). Refused: a bare mailbox with no `+<seat>`, and any machine-default identity (`.local`, `localhost`). Set yours once per clone before committing or rebasing: `git config user.name <Seat>` and `git config user.email <name>+<seat>@<domain>`.
 
 "Google Analytics" and "Google Search Console" are trademarks of Google LLC. This project is not affiliated with or endorsed by Google.
 

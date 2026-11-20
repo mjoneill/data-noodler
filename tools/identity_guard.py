@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Identity guard (#1996): refuses commits whose author or committer email is
-not a GitHub noreply address.
+"""Identity guard (#1996, #2001): refuses commits whose author or committer
+email is not a seat identity or a GitHub noreply address.
 
 This repository is public, and a commit's email is published with it. A
 clone with no identity set falls back to the machine's default, which can
@@ -8,8 +8,14 @@ carry the computer's name (user@machine.local); a personal mailbox is just as
 public once pushed. Before this repository went public its history held both
 (#1989), and neither of the other guards looks at identities.
 
-Allowed: any address ending @users.noreply.github.com, and GitHub's own
-noreply@github.com (the identity of its web merges).
+Allowed:
+  - a seat's plus-address, <name>+<seat>@<domain>: the identity the seats use
+    in this project and in manyhands alike, so each can attribute its own
+    work (#2001). It must have a non-empty name and tag, and a real domain:
+    never .local, .localdomain, localhost or a bare host (a machine default).
+  - any address ending @users.noreply.github.com.
+  - GitHub's own noreply@github.com (the identity of its web merges).
+A bare mailbox (no +<seat>) is refused.
 
 Two modes:
   pre-push (default)  reads git's pre-push lines on stdin and checks every
@@ -19,16 +25,21 @@ Two modes:
 
 A refusal names the commit and which field, never the address.
 """
+import re
 import subprocess
 import sys
 
 ZERO = "0" * 40
 SUFFIX = "@users.noreply.github.com"
 GITHUB_ITSELF = "noreply@github.com"
-FIX = ("Set this clone's identity before committing (or rebasing):\n"
-       "  git config user.email <id>+<login>@users.noreply.github.com\n"
-       "GitHub shows yours under Settings > Emails. Then rewrite the commits "
-       "named above and push again.")
+FIX = ("Set this clone's identity before committing (or rebasing), as your "
+       "seat:\n"
+       "  git config user.name <Seat>\n"
+       "  git config user.email <name>+<seat>@<domain>\n"
+       "or a GitHub noreply address (<id>+<login>@users.noreply.github.com). "
+       "Then rewrite the commits named above and push again.")
+SEAT = re.compile(r"^[^@+\s]+\+[^@+\s]+@([a-z0-9-]+\.)+[a-z]{2,}$")
+MACHINE_DOMAINS = (".local", ".localdomain", ".lan", ".home", ".internal")
 
 
 def git(*args):
@@ -38,7 +49,9 @@ def git(*args):
 
 def allowed(email):
     e = email.strip().lower()
-    return e.endswith(SUFFIX) or e == GITHUB_ITSELF
+    if e.endswith(SUFFIX) or e == GITHUB_ITSELF:
+        return True
+    return bool(SEAT.match(e)) and not e.endswith(MACHINE_DOMAINS)
 
 
 def commits_to_push(lines, remote):
@@ -76,14 +89,14 @@ def main(argv):
         shas = commits_to_push(sys.stdin.read().splitlines(), remote)
     found = findings(shas)
     for sha, field in found:
-        print("IDENTITY-GUARD %s: the %s email is not a GitHub noreply address"
+        print("IDENTITY-GUARD %s: the %s email is not a seat or noreply address"
               % (sha, field), file=sys.stderr)
     if found:
         print("IDENTITY-GUARD refused: %d of %d commit(s) would publish a "
-              "non-noreply address.\n%s" % (len({s for s, _ in found}),
+              "machine-default or bare mailbox address.\n%s" % (len({s for s, _ in found}),
                                             len(shas), FIX), file=sys.stderr)
         return 1
-    print("identity guard: %d commit(s), all noreply" % len(shas),
+    print("identity guard: %d commit(s), all seat or noreply identities" % len(shas),
           file=sys.stderr)
     return 0
 

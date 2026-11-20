@@ -43,7 +43,7 @@ jobs:
         # traceback; this step prints the plain one, rule by rule.
         if: always()
         run: python -I tools/leak_guard.py
-      - name: Identity guard over every commit (noreply addresses only)
+      - name: Identity guard over every commit (seat or noreply identities only)
         if: always()
         run: python -I tools/identity_guard.py --all
 

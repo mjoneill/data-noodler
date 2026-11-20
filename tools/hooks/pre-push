@@ -1,6 +1,6 @@
 #!/bin/sh
 # Refuses a push that carries your own GA ids or personal values, or a commit
-# whose author or committer email is not a GitHub noreply address (#1996).
+# whose author or committer email is not a seat or noreply identity (#1996, #2001).
 # Installed by: git config core.hooksPath tools/hooks   (see tools/personal_guard.py)
 top="$(git rev-parse --show-toplevel)"
 input="$(cat)"

@@ -15,7 +15,11 @@ HOOKS = os.path.join(TOOLS, "hooks")
 
 NOREPLY = "12345+someone@users.noreply.github.com"
 MACHINE = "someone@someones-Mac-mini.local"
-MAILBOX = "someone+seat@" + "gmail.com"
+# #2001: a seat's plus-address is the project's identity (as in manyhands);
+# a bare mailbox is not.
+SEAT = "someone+seat@" + "example.com"
+MAILBOX = "someone@" + "example.com"
+MACHINE_TAGGED = "someone+seat@someones-Mac-mini.local"
 
 
 def git(cwd, *args, check=True, env=None):
@@ -91,13 +95,54 @@ class TestPrePush(unittest.TestCase):
     def test_the_refusal_never_prints_the_address(self):
         self.repo.commit("a.txt", "a\n", "bad", MAILBOX)
         r = self.repo.push()
+        self.assertNotEqual(r.returncode, 0)
         self.assertNotIn(MAILBOX, r.stderr)
-        self.assertNotIn("gmail", r.stderr)
+        self.assertNotIn("example.com", r.stderr)
 
     def test_the_refusal_says_how_to_fix_it(self):
         self.repo.commit("a.txt", "a\n", "bad", MACHINE)
         r = self.repo.push()
+        self.assertIn("+<seat>@", r.stderr)
         self.assertIn("users.noreply.github.com", r.stderr)
+
+    def test_a_seat_plus_address_goes_through(self):
+        # #2001: the same identity the seats use in manyhands.
+        self.repo.commit("a.txt", "a\n", "ok", SEAT)
+        r = self.repo.push()
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_a_bare_mailbox_author_is_refused(self):
+        self.repo.commit("a.txt", "a\n", "bad", MAILBOX)
+        r = self.repo.push()
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("IDENTITY-GUARD", r.stderr)
+
+    def test_a_machine_name_is_refused_even_with_a_tag(self):
+        self.repo.commit("a.txt", "a\n", "bad", MACHINE_TAGGED)
+        r = self.repo.push()
+        self.assertNotEqual(r.returncode, 0)
+
+
+class TestAllowed(unittest.TestCase):
+    """The rule itself, address by address (#2001)."""
+
+    def setUp(self):
+        sys.path.insert(0, TOOLS)
+        import identity_guard
+        self.allowed = identity_guard.allowed
+
+    def test_accepted(self):
+        for e in (NOREPLY, "noreply@github.com", SEAT,
+                  "Someone+Wren@Example.COM"):
+            with self.subTest(e):
+                self.assertTrue(self.allowed(e))
+
+    def test_refused(self):
+        for e in (MAILBOX, MACHINE, MACHINE_TAGGED, "someone+@example.com",
+                  "+seat@example.com", "someone+seat@localhost",
+                  "someone+seat@host", "someone+seat@box.localdomain", ""):
+            with self.subTest(e):
+                self.assertFalse(self.allowed(e))
 
 
 class TestCiMode(unittest.TestCase):
