@@ -101,6 +101,17 @@ class TestLookupSurvivesADamagedSnapshot(unittest.TestCase):
         self.assertNotIn("Unambiguous: use properties/None", r.stdout)
         self.assertNotIn("Unambiguous: use properties/?", r.stdout)
 
+    def test_an_empty_id_is_never_offered_as_the_answer(self):
+        # A trailing comma -- the most likely hand edit -- gives an EMPTY id,
+        # not a missing one. Without the strip() half of property_id() this
+        # printed "Unambiguous: use properties/" (indigo's mutation, 55973).
+        self._snapshot("property_name,account_name,property_id\n"
+                       "example.edu,Example,\n")
+        r = _run("lookup_property.py", ["example.edu"], self.config)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("properties/?", r.stdout)
+        self.assertNotIn("Unambiguous", r.stdout)
+
     def test_a_wrong_header_is_a_message_not_a_key_error(self):
         self._snapshot("name,account,id\nexample.edu,Example,123\n")
         r = _run("lookup_property.py", ["example.edu"], self.config)
