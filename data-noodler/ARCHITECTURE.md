@@ -83,8 +83,9 @@ on IT-managed Windows 11 (no administrator rights, Microsoft Store Claude
 Desktop, Defender application control), with Claude Desktop and Claude Code
 answering real questions.
 
-**Not proven, and documented as such:** Codex on Windows (the plugin starts
-its servers through `/bin/sh`); install paths containing spaces on Windows;
+**Not working or not proven, and documented as such:** this release's Codex
+plugin on Windows (it starts its servers through `/bin/sh`; Codex ran there
+with an earlier release); install paths containing spaces on Windows;
 `upgrade.py` and the project-folder export logic on a real Windows machine.
 `references/windows.md` keeps the current list.
 

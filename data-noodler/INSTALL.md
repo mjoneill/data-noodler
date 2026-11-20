@@ -75,7 +75,7 @@ application before registering is a hard requirement rather than prudence.
 
 Windows has been installed end to end on two IT-managed machines (2026-10-05
 and 2026-10-09), with Claude Code and Claude Desktop both answering real GA
-questions. Paths containing spaces, and Codex on Windows, are still unproven;
+questions. Paths containing spaces are still unproven, and this release's Codex plugin doesn't start on native Windows yet (Codex ran there with an earlier release);
 that page says which is which.
 
 **If you'd rather have an agent do this instead:** Claude Code or Codex can

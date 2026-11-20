@@ -343,8 +343,8 @@ actually take, not only the one an agent takes.
 - **Paths containing spaces.** Everything installed so far sits under
   space-free paths, though real machines have projects under paths like
   `OneDrive - Example Org`.
-- **Codex on Windows.** Not installed on the machines tested, and not
-  supported yet: the Codex plugin starts its servers through `/bin/sh` (so
+- **Codex on Windows.** Codex has run on Windows with an earlier release,
+  but this release's plugin is not supported there yet: the Codex plugin starts its servers through `/bin/sh` (so
   that Codex runs them in the project folder, #165), which does not exist on
   native Windows. Use Claude Code or Claude Desktop there.
 
