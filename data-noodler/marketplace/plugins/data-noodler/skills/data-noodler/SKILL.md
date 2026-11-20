@@ -127,6 +127,13 @@ The two look almost identical in a list. Call `gsc_list_sites` and read the
 `type` and `covers` fields before reporting anything scoped to a domain — GA
 intuition applied here gets the scope exactly backwards.
 
+**When one site is listed in several forms, ask the user which.** A site is
+often verified as `sc-domain:`, `https://` and `http://` at once, and each
+covers different URLs, so each gives a different answer. `gsc_list_sites`
+marks these AMBIGUOUS. Unless the user already named a form, ask the user
+which they want, saying what each covers, before any query. Never choose for
+them.
+
 **`gsc_search_analytics` reports web search unless told otherwise.** Discover,
 News, image and video are separate `search_type`s, and their traffic is not in
 the web numbers. Google's AI Overviews and AI Mode reports exist only in the

@@ -27,13 +27,13 @@ the user specifically asks: narrow and re-export. Past 2,500
 rows, ask the user how to cut what you show; the file keeps every row.
 
 With every GA number, state the property ID, exact metric name and exact date
-range -- a bare figure hides choices that can move the answer more than the
-trend asked about.
+range.
 
 Resolve property names with lookup_property, never get_account_summaries
 (~20k tokens on a large account).
 
-Subdomains are usually separate GA properties.
+Subdomains are usually separate GA properties. When Search Console lists a
+site in several forms (sc-domain:, https://, http://), ask the user which.
 
 On a failure, match the error text before suspecting credentials: DNS errors
 are a resolver problem. Only invalid_grant or "token expired" means renewing
@@ -197,6 +197,14 @@ The two look nearly identical in a list. Call gsc_list_sites and read the
 `type` and `covers` fields before reporting anything scoped to a domain.
 Getting this wrong produces real numbers for the wrong scope, silently.
 
+## One site in several forms: ask the user which
+
+A site is often verified more than once: as a domain property and as
+`https://` and `http://` prefixes. Each covers different URLs, so each is a
+different answer, and gsc_list_sites marks them AMBIGUOUS. Ask the user which
+they want, unless they already named one, telling them in plain words what
+each covers. Never choose for them, and never quietly report from one.
+
 ## coverageState is the actionable field, not verdict
 
 "Submitted and indexed" is fine. The two failure states demand completely
@@ -339,10 +347,16 @@ of them. This is the opposite of GA4's rule, where subdomains are usually
 separate properties — so intuition carried over from GA will be wrong.
 
 **If the user named a site, do not call this with enrich at all.** Call it
-bare to find the site's exact identifier (its `type` and `covers` tell you
-which form — domain or URL-prefix — is the one they mean), then go straight
-to gsc_search_analytics for that one site. That is one request instead of
+bare to find the site's exact identifier, then go straight to
+gsc_search_analytics for that one site. That is one request instead of
 hundreds.
+
+**One site is often listed in several forms** — `sc-domain:example.edu`,
+`https://example.edu/`, `http://example.edu/` — and each covers different
+URLs, so each gives a different answer. The listing marks these AMBIGUOUS.
+Then ask the user which they want, unless they already named one, and say
+what each covers in plain words. Never choose for them: `type` and `covers`
+say what each form includes, not which one the user means.
 
 Set enrich=true to add impressions over the last 28 complete days per site —
 but know what it costs first. It issues one Search Console request per site
@@ -391,6 +405,10 @@ stopped; a partial run is never presented as a complete one.""",
     "gsc_search_analytics": """\
 Query Search Console performance — clicks, impressions, CTR, position — and
 write the results to CSV.
+
+site_url must be the form the user chose. If gsc_list_sites showed the site
+in several forms (sc-domain:, https://, http://), ask the user which before
+calling this; never pick one for them.
 
 Dimensions: date, hour, page, query, country, device, searchAppearance.
 Paginates internally past the 25,000-row page cap and reports the true total.

@@ -112,6 +112,45 @@ def _covers(site_url):
     return f"only URLs beginning {site_url} — subdomains are NOT included"
 
 
+def _host(site_url):
+    """The host a site names: bare for a domain property, from the URL otherwise."""
+    url = str(site_url)
+    if property_type(url) == "domain":
+        return url.split(":", 1)[1].strip().lower()
+    from urllib.parse import urlparse
+    return (urlparse(url).hostname or "").lower()
+
+
+def site_form_groups(sites):
+    """{site name: [site_url, ...]} for every site listed in MORE THAN ONE form.
+
+    One site can be verified several ways -- sc-domain:example.com,
+    https://example.com/, http://example.com/, https://www.example.com/ --
+    and each form covers different URLs, so each gives a different answer.
+    Which one the user means is theirs to say (#2000); this only finds where
+    the question has to be asked.
+
+    A URL-prefix site belongs with a listed domain property that covers its
+    host (the domain itself or any subdomain). Without one, prefixes group by
+    host with a leading "www." dropped, so http and https, and www and bare,
+    of one site land together.
+    """
+    domains = sorted({_host(s["site_url"]) for s in sites
+                      if property_type(s["site_url"]) == "domain"},
+                     key=len, reverse=True)
+    groups = {}
+    for s in sites:
+        url, host = s["site_url"], _host(s["site_url"])
+        if not host:
+            continue
+        key = next((d for d in domains
+                    if host == d or host.endswith("." + d)), None)
+        if key is None:
+            key = host[4:] if host.startswith("www.") else host
+        groups.setdefault(key, []).append(url)
+    return {k: v for k, v in groups.items() if len(v) > 1}
+
+
 def impressions_window(days=28, today=None):
     """(start, end) ISO dates for the last `days` complete days.
 

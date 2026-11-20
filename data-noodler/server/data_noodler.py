@@ -559,6 +559,16 @@ def gsc_list_sites(enrich: bool = False, contains: str = "") -> str:
                 line += f"\n    impressions: {s['impressions']:,}"
         line += f"\n    covers {s['covers']}"
         lines.append(line)
+    # #2000: several forms of one site are several answers. Saying so here,
+    # where the forms are listed, is what stops an agent choosing for them.
+    for name, urls in gsc.site_form_groups(sites).items():
+        lines.append("")
+        lines.append(
+            f"AMBIGUOUS -- {name} is listed in {len(urls)} forms: "
+            + ", ".join(urls) + ". Each covers different URLs (see covers "
+            "above), so each gives a different answer. Before querying, ask "
+            "the user which they want, unless they already named one. Never "
+            "choose for them.")
     return "\n".join(lines)
 
 
