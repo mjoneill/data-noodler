@@ -57,6 +57,10 @@
 # follow google-adk 2.15.0. 68 distributions; 8 changed, the rest identical.
 # The full suite passed against it (901 tests) and the OSV scan above exits 0
 # with no exceptions. Previous capture: 2026-10-25, Python 3.12.13 and 3.14.9.
+#
+# Re-captured the same day for analytics-mcp 1.1.0 (refresh-pins run
+# 44655742735): 68 distributions, identical to the lines below; 907 tests
+# passed and the OSV scan exited 0.
 aiosqlite==0.22.1
 analytics-mcp==1.1.0
 annotated-doc==0.0.5
