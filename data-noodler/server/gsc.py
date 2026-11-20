@@ -669,6 +669,10 @@ def search_analytics(site_url, start_date, end_date, dimensions,
 
         for r in page:
             keys = list(r.get("keys", []))
+            # One key per dimension, always: export refuses a file whose rows
+            # don't match its columns, so one short row would cost the whole
+            # export. A missing key is written as blank (#2007).
+            keys = (keys + [""] * len(dimensions))[:len(dimensions)]
             page_url = ""
             if "page" in dimensions:
                 idx = dimensions.index("page")

@@ -431,8 +431,18 @@ def resolve(out_file, session_dir, suggested_name, places, save_to=""):
             "No destination. Call start_session first and pass its path as "
             "session_dir, or pass out_file -- a file name, which lands in "
             f"the chosen place ({base}).")
+    # The default name is built by callers, partly from what the model passed
+    # (a property id, dates). This branch is the boundary too, so it checks
+    # containment itself rather than trusting every caller to sanitize
+    # (#2007): a plain file name, landing directly inside the place.
+    candidate = os.path.abspath(os.path.join(base, suggested_name))
+    if (os.path.basename(suggested_name) != suggested_name
+            or os.path.dirname(candidate) != os.path.abspath(base)
+            or not _inside(candidate, base)):
+        raise SessionError(
+            f"Refusing the file name {suggested_name!r}: it would land "
+            f"outside {base}. Pass out_file with a plain file name instead.")
     stem, ext = os.path.splitext(suggested_name)
-    candidate = os.path.join(base, suggested_name)
     n = 2
     while os.path.exists(candidate):
         candidate = os.path.join(base, f"{stem}-{n}{ext}")
