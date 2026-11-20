@@ -58,4 +58,4 @@ either. Codex on Windows is not proven; `ARCHITECTURE.md` keeps the list.
 
 ## Status
 
-Shared as-is, with no support commitment. See `LICENSE`.
+Shared as-is, with no support commitment. MIT; see `LICENSE`. It installs, but does not include, Google's analytics-mcp server, which is separately licensed under the Apache License 2.0.
