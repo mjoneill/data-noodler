@@ -75,6 +75,7 @@ class TestPayloadCopyCharacterization(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(server, "__pycache__")))
         self.assertFalse(os.path.exists(os.path.join(server, "stale.pyc")))
 
+    @unittest.skipIf(sys.platform.startswith("win"), "Windows has no executable bit")
     def test_launchers_are_executable_afterwards(self):
         install.install_payload(self.repo, self.ga_home)
         for launcher in ("launch-analytics-mcp", "launch-data-noodler"):

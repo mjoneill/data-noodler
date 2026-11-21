@@ -27,20 +27,35 @@ DN_HOME = "/Users/example/.config/data-noodler"
 REPO_ROOT = os.path.dirname(ROOT)
 
 
+def _posix_entries():
+    """The POSIX entries, whatever machine runs the suite (#2008).
+
+    These tests are about how register_json merges, backs up and refuses, or
+    about the launcher entries' shape; neither depends on the platform. The
+    running platform's entries would need a venv interpreter path on
+    Windows, which is TestServerEntriesOnWindows's subject, not theirs.
+    """
+    return _SERVER_ENTRIES(DN_HOME, platform="darwin")
+
+
+# Kept before any test patches register.server_entries.
+_SERVER_ENTRIES = register.server_entries
+
+
 class TestServerEntries(unittest.TestCase):
     def test_both_servers_are_defined(self):
-        e = register.server_entries(DN_HOME)
+        e = _posix_entries()
         self.assertEqual(set(e), {"analytics-mcp", "data-noodler"})
 
     def test_entries_point_at_the_launchers_not_the_binaries(self):
-        e = register.server_entries(DN_HOME)
+        e = _posix_entries()
         self.assertEqual(e["analytics-mcp"]["command"],
                          f"{DN_HOME}/bin/launch-analytics-mcp")
         self.assertEqual(e["data-noodler"]["command"],
                          f"{DN_HOME}/bin/launch-data-noodler")
 
     def test_entries_declare_stdio_transport(self):
-        for entry in register.server_entries(DN_HOME).values():
+        for entry in _posix_entries().values():
             self.assertEqual(entry["type"], "stdio")
 
 
@@ -53,7 +68,7 @@ class TestRegisterJson(unittest.TestCase):
 
     def test_adds_both_servers_to_a_config_with_no_mcpservers_key(self):
         path = self._copy("claude_desktop_config.json")
-        result = register.register_json(path, register.server_entries(DN_HOME))
+        result = register.register_json(path, _posix_entries())
         self.assertTrue(result["changed"])
         self.assertEqual(sorted(result["added"]),
                          ["analytics-mcp", "data-noodler"])
@@ -64,7 +79,7 @@ class TestRegisterJson(unittest.TestCase):
     def test_preserves_every_unrelated_key(self):
         path = self._copy("claude_desktop_config.json")
         before = json.load(open(path))
-        register.register_json(path, register.server_entries(DN_HOME))
+        register.register_json(path, _posix_entries())
         after = json.load(open(path))
         self.assertEqual(before["coworkUserFilesPath"],
                          after["coworkUserFilesPath"])
@@ -73,7 +88,7 @@ class TestRegisterJson(unittest.TestCase):
     def test_preserves_unrelated_mcp_servers(self):
         path = self._copy("claude_json.json")
         register.register_json(path, {"data-noodler":
-                                      register.server_entries(DN_HOME)["data-noodler"]})
+                                      _posix_entries()["data-noodler"]})
         data = json.load(open(path))
         self.assertIn("someUnrelatedKey", data)
         self.assertIn("analytics-mcp", data["mcpServers"])
@@ -81,7 +96,7 @@ class TestRegisterJson(unittest.TestCase):
 
     def test_second_run_is_a_no_op(self):
         path = self._copy("claude_desktop_config.json")
-        entries = register.server_entries(DN_HOME)
+        entries = _posix_entries()
         register.register_json(path, entries)
         first = open(path).read()
         result = register.register_json(path, entries)
@@ -90,7 +105,7 @@ class TestRegisterJson(unittest.TestCase):
 
     def test_changed_entry_is_reported_as_updated_not_added(self):
         path = self._copy("claude_json.json")
-        entries = register.server_entries(DN_HOME)
+        entries = _posix_entries()
         result = register.register_json(path, entries)
         self.assertIn("analytics-mcp", result["updated"])
         self.assertIn("data-noodler", result["added"])
@@ -98,13 +113,13 @@ class TestRegisterJson(unittest.TestCase):
     def test_a_backup_is_written_before_any_change(self):
         path = self._copy("claude_desktop_config.json")
         original = open(path).read()
-        result = register.register_json(path, register.server_entries(DN_HOME))
+        result = register.register_json(path, _posix_entries())
         self.assertTrue(os.path.exists(result["backup"]))
         self.assertEqual(open(result["backup"]).read(), original)
 
     def test_no_backup_is_written_when_nothing_changes(self):
         path = self._copy("claude_desktop_config.json")
-        entries = register.server_entries(DN_HOME)
+        entries = _posix_entries()
         register.register_json(path, entries)
         result = register.register_json(path, entries)
         self.assertIsNone(result["backup"])
@@ -112,7 +127,7 @@ class TestRegisterJson(unittest.TestCase):
     def test_creates_the_file_when_absent(self):
         d = tempfile.mkdtemp()
         path = os.path.join(d, "claude_desktop_config.json")
-        result = register.register_json(path, register.server_entries(DN_HOME))
+        result = register.register_json(path, _posix_entries())
         self.assertTrue(result["changed"])
         self.assertEqual(set(json.load(open(path))["mcpServers"]),
                          {"analytics-mcp", "data-noodler"})
@@ -123,12 +138,12 @@ class TestRegisterJson(unittest.TestCase):
         with open(path, "w") as f:
             f.write("{ not json")
         with self.assertRaises(register.RegisterError):
-            register.register_json(path, register.server_entries(DN_HOME))
+            register.register_json(path, _posix_entries())
         self.assertEqual(open(path).read(), "{ not json")
 
     def test_written_file_is_valid_json_after_registration(self):
         path = self._copy("claude_desktop_config.json")
-        register.register_json(path, register.server_entries(DN_HOME))
+        register.register_json(path, _posix_entries())
         json.load(open(path))  # raises if the write corrupted it
 
     def test_mcpservers_as_a_list_aborts_without_backup_or_write(self):
@@ -139,7 +154,7 @@ class TestRegisterJson(unittest.TestCase):
         with open(path, "w") as f:
             f.write(original)
         with self.assertRaises(register.RegisterError) as ctx:
-            register.register_json(path, register.server_entries(DN_HOME))
+            register.register_json(path, _posix_entries())
         self.assertIn("mcpServers", str(ctx.exception))
         self.assertIn("list", str(ctx.exception))
         self.assertEqual(open(path).read(), original)
@@ -154,7 +169,7 @@ class TestRegisterJson(unittest.TestCase):
         with open(path, "w") as f:
             f.write(original)
         with self.assertRaises(register.RegisterError) as ctx:
-            register.register_json(path, register.server_entries(DN_HOME))
+            register.register_json(path, _posix_entries())
         self.assertIn("mcpServers", str(ctx.exception))
         self.assertIn("str", str(ctx.exception))
         self.assertEqual(open(path).read(), original)
@@ -168,7 +183,7 @@ class TestRegisterJson(unittest.TestCase):
         with mock.patch("safe_write.shutil.copyfileobj",
                          side_effect=PermissionError("denied")):
             with self.assertRaises(register.RegisterError) as ctx:
-                register.register_json(path, register.server_entries(DN_HOME))
+                register.register_json(path, _posix_entries())
         self.assertIn("denied", str(ctx.exception))
         self.assertEqual(open(path).read(), original)
         d = os.path.dirname(path)
@@ -183,7 +198,7 @@ class TestRegisterJson(unittest.TestCase):
         with mock.patch("safe_write.os.fsync",
                          side_effect=OSError("disk full")):
             with self.assertRaises(register.RegisterError) as ctx:
-                register.register_json(path, register.server_entries(DN_HOME))
+                register.register_json(path, _posix_entries())
         self.assertIn("disk full", str(ctx.exception))
         self.assertEqual(open(path).read(), original)
         self.assertEqual([n for n in os.listdir(os.path.dirname(path))
@@ -214,6 +229,11 @@ class TestInstallMainHandlesRegisterError(unittest.TestCase):
         with mock.patch.object(install.harness_paths, "claude_code_config",
                                 return_value=broken), \
              mock.patch.object(sys, "argv", argv), \
+             mock.patch.object(install, "registration_inputs",
+                               return_value={}), \
+             mock.patch.object(install.register, "server_entries",
+                               lambda home, **kw: _SERVER_ENTRIES(
+                                   home, platform="darwin")), \
              contextlib.redirect_stdout(io.StringIO()):
             with self.assertRaises(SystemExit) as ctx:
                 install.main()
@@ -270,7 +290,7 @@ class TestNonAsciiSurvivesRegistration(unittest.TestCase):
         path, note = self._config_with_history()
 
         with mock.patch("builtins.open", self._windows_locale_open):
-            register.register_json(path, register.server_entries(DN_HOME))
+            register.register_json(path, _posix_entries())
 
         # Read it back the way the application that owns the file does.
         with io.open(path, "rb") as f:
@@ -282,7 +302,7 @@ class TestNonAsciiSurvivesRegistration(unittest.TestCase):
         path, note = self._config_with_history()
 
         with mock.patch("builtins.open", self._windows_locale_open):
-            result = register.register_json(path, register.server_entries(DN_HOME))
+            result = register.register_json(path, _posix_entries())
 
         with io.open(result["backup"], "rb") as f:
             restored = json.loads(f.read().decode("utf-8"))
@@ -383,8 +403,13 @@ class TestServerEntriesOnWindows(unittest.TestCase):
                          "/Users/x/.config/data-noodler/bin/launch-data-noodler")
 
     def test_omitting_platform_uses_the_running_one(self):
-        self.assertEqual(register.server_entries(DN_HOME),
-                         register.server_entries(DN_HOME, platform=sys.platform))
+        # Windows entries need the interpreter and credential paths; POSIX
+        # ignores them, so passing them keeps this one test platform-neutral.
+        kw = {"venv_python": "C:\\venv\\Scripts\\python.exe",
+              "adc_file": "C:\\adc.json"}
+        self.assertEqual(register.server_entries(DN_HOME, **kw),
+                         register.server_entries(DN_HOME, platform=sys.platform,
+                                                 **kw))
 
 
 class TestWindowsEntriesHaveOneSeparator(unittest.TestCase):

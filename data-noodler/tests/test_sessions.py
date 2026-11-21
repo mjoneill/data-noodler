@@ -255,10 +255,11 @@ class TestDenylistCoversWindowsToo(unittest.TestCase):
     def test_home_relative_entries_survive_on_every_platform(self):
         # ~/.claude is where Claude Code keeps state on Windows too, so these
         # must not be traded away for the %APPDATA% ones.
+        # normpath, as build_denylist does: expanduser alone gives
+        # C:\\Users\\x/.claude on Windows (#158, #2008).
         got = sessions.build_denylist(env={})
-        self.assertIn(os.path.expanduser("~/.claude"), got)
-        self.assertIn(os.path.expanduser("~/.ssh"), got)
-        self.assertIn(os.path.expanduser("~/.config/data-noodler"), got)
+        for entry in ("~/.claude", "~/.ssh", "~/.config/data-noodler"):
+            self.assertIn(os.path.normpath(os.path.expanduser(entry)), got)
 
     def test_an_absent_appdata_is_not_an_error(self):
         # A scrubbed environment must not produce a denylist entry of "Claude"

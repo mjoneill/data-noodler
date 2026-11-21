@@ -145,6 +145,13 @@ class TestProbeReportsVulnerableDependencies(unittest.TestCase):
     """An upgrade copies the payload and never touches the venv, so the venv
     is where old, vulnerable libraries survive (#152, 2026-10-23)."""
 
+    # The fake interpreter is a #!/bin/sh script, which Windows cannot run.
+    # On Windows probe_dependencies reports that as an error and
+    # below_floor stays {}, so the "nothing below" test would pass without
+    # testing anything (#2008).
+    _POSIX_FAKE = unittest.skipIf(sys.platform.startswith("win"),
+                                  "the fake interpreter is a sh script")
+
     def _fake_interpreter(self, versions):
         d = tempfile.mkdtemp()
         path = os.path.join(d, "python")
@@ -153,6 +160,7 @@ class TestProbeReportsVulnerableDependencies(unittest.TestCase):
         os.chmod(path, 0o755)
         return path
 
+    @_POSIX_FAKE
     def test_an_old_venv_is_reported_below_its_floors(self):
         fake = self._fake_interpreter({"pyjwt": "2.13.0", "certifi": "2026.7.22",
                                        "urllib3": "2.8.0", "pip": None})
@@ -162,6 +170,7 @@ class TestProbeReportsVulnerableDependencies(unittest.TestCase):
         self.assertEqual(out["below_floor"]["pyjwt"],
                          {"installed": "2.13.0", "floor": "2.15.1"})
 
+    @_POSIX_FAKE
     def test_a_current_venv_reports_nothing_below(self):
         fake = self._fake_interpreter({"pyjwt": "2.15.1", "certifi": "2026.10.23"})
         self.assertEqual(probe.probe_dependencies(fake)["below_floor"], {})

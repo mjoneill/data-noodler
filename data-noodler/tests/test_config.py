@@ -128,8 +128,9 @@ class TestRenewalCommand(unittest.TestCase):
         # marketplace copy under the install home is the only one any install
         # creates. ~/.claude/skills/ is never written by anything here, so a
         # command naming it would point at nothing on a clean machine.
-        self.assertIn("/marketplace/plugins/data-noodler"
-                      "/skills/data-noodler/scripts/mint_adc.py", cmd)
+        self.assertIn(os.sep + os.path.join(
+            "marketplace", "plugins", "data-noodler", "skills",
+            "data-noodler", "scripts", "mint_adc.py"), cmd)
         self.assertIn(os.path.dirname(config.default_config_path(env={})), cmd)
         self.assertNotIn(".claude/skills", cmd)
 
@@ -233,8 +234,10 @@ class TestSessionsRoot(unittest.TestCase):
     def test_uses_the_configured_value_when_present(self):
         cfg = dict(GOOD)
         cfg["sessions_root"] = "~/Desktop/work"
+        # normpath, as sessions_root does: expanduser alone gives
+        # C:\\Users\\x/Desktop/work on Windows (#2008).
         self.assertEqual(config.sessions_root(cfg),
-                         os.path.expanduser("~/Desktop/work"))
+                         os.path.normpath(os.path.expanduser("~/Desktop/work")))
 
     def test_falls_back_to_the_default_when_absent(self):
         cfg = dict(GOOD)
