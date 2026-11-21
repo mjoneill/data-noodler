@@ -23,7 +23,7 @@ It's shared as-is, with no support commitment. To report a security problem priv
 | App | macOS | Windows |
 |---|---|---|
 | Claude Code | **Confirmed**: a real question answered. It's where we use it daily. | **Confirmed** on Windows 11. |
-| Claude Desktop | **Confirmed**, after a full quit and reopen, on two machines. | **Confirmed** on Windows 11, including the Microsoft Store version. |
+| Claude Desktop | **Confirmed**, after a full quit and reopen. | **Confirmed** on Windows 11, including the Microsoft Store version. |
 | Codex | Installs and is reachable, but hasn't yet answered a real GA question here. It should work; that's not yet proven. | **Doesn't start yet.** This release's plugin starts its servers through `/bin/sh`. |
 | ChatGPT desktop app: Work mode | **Confirmed**: a real question answered (ChatGPT 26.1021). | **Doesn't start yet**, for the same reason as Codex. |
 | ChatGPT desktop app: Codex view | Served by the same plugin and runtime as Work, but not separately tested. | **Doesn't start yet**, for the same reason. |
