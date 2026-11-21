@@ -8,6 +8,7 @@ depend on it. The two loaders read the same file and must stay compatible.
 
 import json
 import os
+import sys
 
 HOME_NAME = "data-noodler"
 # #1999: installs from before the product had one name live here until
@@ -104,7 +105,7 @@ def mint_script(cfg):
     return script.replace(_OLD_SCRIPT_DIRS, _NEW_SCRIPT_DIRS)
 
 
-def renewal_command(cfg):
+def renewal_command(cfg, platform=None):
     """The exact command a user must paste into a terminal to reauthenticate.
 
     Both paths are quoted. The venv path contains a space on macOS
@@ -113,10 +114,26 @@ def renewal_command(cfg):
     fails for the least technical user. Quoting is only safe because both
     paths are expanded first: a quoted "~" is a literal tilde to the shell,
     not the home directory.
+
+    On Windows the line starts with PowerShell's call operator, "& ". A
+    quoted path at the start of a line is a parse error in Windows
+    PowerShell 5.1 and pwsh 7 alike, and the Windows guide sends users to
+    PowerShell; cmd.exe runs the bare form but rejects the "& " (all six
+    measured on windows-latest, run 44884961837, #2017). renewal_shell
+    names the shell the line is for, so the message can say so.
     """
     script = mint_script(cfg)
-    return (f'"{os.path.expanduser(cfg["venv_python"])}" '
+    line = (f'"{os.path.expanduser(cfg["venv_python"])}" '
             f'"{os.path.expanduser(script)}" --force')
+    if (platform or sys.platform).startswith("win"):
+        return "& " + line
+    return line
+
+
+def renewal_shell(platform=None):
+    """Where the renewal line runs, in the words a user reads."""
+    return ("PowerShell" if (platform or sys.platform).startswith("win")
+            else "a terminal")
 
 
 def sessions_root(cfg):

@@ -42,6 +42,21 @@ class TestCredentialReport(unittest.TestCase):
         self.assertIsNone(r["days_remaining"])
         self.assertEqual(r["renewal_command"], CMD)
 
+    def test_every_renewal_message_names_the_shell_given(self):
+        # #2017: a Windows line runs only in PowerShell, so the message must
+        # say so rather than "a terminal".
+        for age in (None, 6.0, 9.0):
+            if age is None:
+                r = credential.credential_report("/nonexistent/adc.json",
+                                                 CMD, shell="PowerShell")
+            else:
+                minted = time.time() - age * DAY
+                os.utime(self.path, (minted, minted))
+                r = credential.credential_report(self.path, CMD,
+                                                 shell="PowerShell")
+            self.assertIn("in PowerShell", r["summary"], age)
+            self.assertNotIn("in a terminal", r["summary"], age)
+
     def test_fresh_credential_has_a_full_window(self):
         r = self._report_at_age(0)
         self.assertTrue(r["exists"])

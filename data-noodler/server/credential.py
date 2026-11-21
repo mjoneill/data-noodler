@@ -14,8 +14,11 @@ WARN_DAYS = 2
 DAY = 86400.0
 
 
-def credential_report(adc_path, renewal_command, now=None):
-    """Describe the credential's remaining life and what to do about it."""
+def credential_report(adc_path, renewal_command, now=None, shell="a terminal"):
+    """Describe the credential's remaining life and what to do about it.
+
+    `shell` names where `renewal_command` runs ("PowerShell" on Windows,
+    where the line only runs there -- #2017)."""
     now = time.time() if now is None else now
 
     if not os.path.exists(adc_path):
@@ -26,7 +29,7 @@ def credential_report(adc_path, renewal_command, now=None):
             "renewal_command": renewal_command,
             "summary": (
                 f"No credential found at {adc_path}.\n"
-                "Mint one by running this in a terminal (it opens a browser "
+                f"Mint one by running this in {shell} (it opens a browser "
                 f"for Google consent):\n  {renewal_command}\n"
                 "Then restart this application -- the server reads the "
                 "credential only when it starts."
@@ -44,7 +47,7 @@ def credential_report(adc_path, renewal_command, now=None):
             "summary": (
                 f"Credential file exists at {adc_path} but cannot be read "
                 "(permission denied, transient I/O error, or cloud-sync placeholder).\n"
-                f"Try renewing the credential:\n  {renewal_command}\n"
+                f"Try renewing the credential, in {shell}:\n  {renewal_command}\n"
                 "Then restart this application -- the server reads the "
                 "credential only when it starts."
             ),
@@ -58,7 +61,7 @@ def credential_report(adc_path, renewal_command, now=None):
             f"Credential expired about {abs(remaining):.1f} days ago "
             f"(7-day Testing-mode window).\n"
             "GA calls will fail with invalid_grant until it is renewed. Run "
-            f"this in a terminal:\n  {renewal_command}\n"
+            f"this in {shell}:\n  {renewal_command}\n"
             "Then restart this application -- the server holds the old token "
             "in memory until it respawns, which otherwise looks like the "
             "renewal did not work."
@@ -67,7 +70,7 @@ def credential_report(adc_path, renewal_command, now=None):
         summary = (
             f"Credential is valid for about {remaining:.1f} more days, then "
             "GA calls will start failing with invalid_grant.\n"
-            f"Renew when convenient:\n  {renewal_command}\n"
+            f"Renew when convenient, in {shell}:\n  {renewal_command}\n"
             "A restart of this application is needed afterward."
         )
     else:

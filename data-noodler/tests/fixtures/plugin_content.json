@@ -1,5 +1,5 @@
 {
-  "version": "0.9.2",
-  "sha256": "fea77fa7a2180c8d97072d6a3352841c384bf13d0757e3a470617750784f79da",
-  "recorded_from": "the repo at release, 2026-11-20 (the fallback scripts fail as plainly as the server; #2007 R2 R3)"
+  "version": "0.9.3",
+  "sha256": "54228313fd6d59a9903300f8247986db8431dd084ea2d9b99ed59d7c05928ca5",
+  "recorded_from": "the repo at release, 2026-11-21 (the Windows renewal line is for PowerShell; #2017)"
 }

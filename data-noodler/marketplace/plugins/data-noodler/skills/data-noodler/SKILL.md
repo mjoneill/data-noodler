@@ -279,6 +279,11 @@ command rather than trying to run it unattended:
 "<venv_python from config>" <skill>/scripts/mint_adc.py --force
 ```
 
+Prefer the exact line `credential_status` prints: it has both paths filled in
+and quoted. On Windows that line starts with `& `, PowerShell's call operator,
+because a quoted path alone is a parse error there; it is for PowerShell, not
+cmd.exe, and the message says so.
+
 Afterward the client session must restart. The MCP server process reads the
 credential file when it spawns, so a session that was already running keeps the
 expired token in memory and will keep failing in a way that looks like the

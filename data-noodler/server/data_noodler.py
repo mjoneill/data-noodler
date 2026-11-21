@@ -268,7 +268,8 @@ def credential_status() -> str:
         return f"Configuration problem: {exc}"
 
     report = credential.credential_report(
-        cfg["adc_file"], config.renewal_command(cfg))
+        cfg["adc_file"], config.renewal_command(cfg),
+        shell=config.renewal_shell())
     return report["summary"] + "\n\n" + credential.scope_line(
         config.granted_scopes(cfg))
 

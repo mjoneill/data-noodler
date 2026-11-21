@@ -202,6 +202,33 @@ class TestRenewalCommand(unittest.TestCase):
         self.assertNotIn("~", cmd)
 
 
+class TestTheRenewalLineRunsInTheShellTheUserIsSentTo(unittest.TestCase):
+    """#2017, measured on windows-latest (run 44884961837): the quoted line
+    is a parse error in Windows PowerShell 5.1 and pwsh 7, and runs with a
+    leading "& " in both; cmd.exe runs it bare and rejects the "& ". The
+    Windows guide sends users to PowerShell, so that is the form given."""
+
+    def _cfg(self):
+        cfg = dict(GOOD)
+        cfg["venv_python"] = r"C:\Users\Jane Smith\venv\Scripts\python.exe"
+        cfg["mint_script"] = r"C:\Users\Jane Smith\mint_adc.py"
+        return cfg
+
+    def test_on_windows_the_line_starts_with_the_call_operator(self):
+        cmd = config.renewal_command(self._cfg(), platform="win32")
+        self.assertTrue(cmd.startswith('& "'), cmd)
+        self.assertIn(r'"C:\Users\Jane Smith\mint_adc.py" --force', cmd)
+
+    def test_elsewhere_the_line_has_no_call_operator(self):
+        for platform in ("darwin", "linux"):
+            cmd = config.renewal_command(dict(GOOD), platform=platform)
+            self.assertFalse(cmd.startswith("&"), cmd)
+            self.assertTrue(cmd.startswith('"'), cmd)
+
+    def test_the_shell_is_named_so_a_cmd_user_is_not_misled(self):
+        self.assertEqual(config.renewal_shell("win32"), "PowerShell")
+        self.assertEqual(config.renewal_shell("darwin"), "a terminal")
+
 class TestSessionsRoot(unittest.TestCase):
     def test_uses_the_configured_value_when_present(self):
         cfg = dict(GOOD)
