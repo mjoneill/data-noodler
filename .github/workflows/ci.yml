@@ -67,10 +67,10 @@ jobs:
 
   tests-windows:
     # Windows is a supported target (#2008). Green since the fixture slice
-    # (windows-latest run 44886513828), so by convention main moves only when
-    # this passes too, like tests, audit and leak-guard (decision 162f80e1).
-    # A convention, not enforcement: main has no branch protection, and
-    # making these required checks is a repository setting. Tests that
+    # (windows-latest run 44886513828), so main moves only when this passes
+    # too (decision 162f80e1). tests, audit and leak-guard are required by
+    # the repository's ruleset for main; until tests-windows is added there,
+    # its gate is the landing convention, not enforcement. Tests that
     # exercise a POSIX-only mechanism skip on Windows by name, with the reason.
     runs-on: windows-latest
     steps:
