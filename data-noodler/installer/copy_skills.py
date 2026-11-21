@@ -60,6 +60,12 @@ def _same_tree(a, b):
     cmp = filecmp.dircmp(a, b, ignore=[MARKER, *LEGACY_MARKERS, "__pycache__"])
     if cmp.left_only or cmp.right_only or cmp.diff_files or cmp.funny_files:
         return False
+    # dircmp's diff_files is a SHALLOW compare: same size and mtime reads as
+    # the same file whatever it holds (#2009). Read the bytes.
+    _match, mismatch, errors = filecmp.cmpfiles(a, b, cmp.common_files,
+                                                shallow=False)
+    if mismatch or errors:
+        return False
     return all(_same_tree(os.path.join(a, d), os.path.join(b, d))
                for d in cmp.common_dirs)
 
@@ -89,6 +95,14 @@ def install_skill(name, src, skills_dir, replace=False):
     dest = os.path.join(skills_dir, name)
     if not os.path.isdir(src):
         return "missing-source", f"nothing to install from {src}"
+    if os.path.islink(dest):
+        # A linked skill folder points somewhere this package did not choose
+        # -- often someone's working copy. Refreshing or replacing it would
+        # write into that, so it is never touched, even on --replace (#2009).
+        return "blocked", (f"{dest} is a link (to {os.path.realpath(dest)}). "
+                           "Left untouched; the skill is NOT installed. "
+                           "Replace the link with a real folder, or remove "
+                           "it, and re-run.")
     if os.path.lexists(dest) and not os.path.isdir(dest):
         return "blocked", (f"{dest} exists and is not a folder (a file or a "
                            "broken link). Left untouched; the skill is NOT "

@@ -100,6 +100,55 @@ class TestInstallSkill(unittest.TestCase):
         self.assertIn("not-ours-differs", p.stdout)
 
 
+class TestTheCompareReadsContentAndLinksAreNotFollowed(unittest.TestCase):
+    """#2009: _same_tree used filecmp's shallow compare, so a file with the
+    same size and mtime read as unchanged whatever it held; and a symlinked
+    skill folder was followed, so a refresh or an approved replace wrote
+    into whatever it pointed at."""
+
+    def setUp(self):
+        self.src = tempfile.mkdtemp()
+        self.skills = tempfile.mkdtemp()
+        self.dest = os.path.join(self.skills, "data-noodler")
+
+    def _write(self, folder, text):
+        os.makedirs(folder, exist_ok=True)
+        path = os.path.join(folder, "SKILL.md")
+        with open(path, "w") as f:
+            f.write(text)
+        os.utime(path, (1_700_000_000, 1_700_000_000))
+        return path
+
+    def test_same_size_and_mtime_with_different_content_is_refreshed(self):
+        self._write(self.src, "version A")
+        copy_skills.install_skill("data-noodler", self.src, self.skills)
+        self._write(self.src, "version B")  # same length, same mtime
+        status, _ = copy_skills.install_skill("data-noodler", self.src,
+                                              self.skills)
+        self.assertEqual(status, "refreshed")
+        with open(os.path.join(self.dest, "SKILL.md")) as f:
+            self.assertEqual(f.read(), "version B")
+
+    def test_a_symlinked_skill_folder_is_left_untouched(self):
+        self._write(self.src, "new version")
+        elsewhere = tempfile.mkdtemp()
+        self._write(elsewhere, "someone's own work")
+        with open(os.path.join(elsewhere, copy_skills.MARKER), "w") as f:
+            f.write(copy_skills.MARKER_TEXT)
+        try:
+            os.symlink(elsewhere, self.dest)
+        except (OSError, NotImplementedError) as exc:
+            self.skipTest(f"cannot create symlinks here ({exc})")
+        for replace in (False, True):
+            status, detail = copy_skills.install_skill(
+                "data-noodler", self.src, self.skills, replace=replace)
+            self.assertEqual(status, "blocked", detail)
+            self.assertIn("link", detail)
+        with open(os.path.join(elsewhere, "SKILL.md")) as f:
+            self.assertEqual(f.read(), "someone's own work")
+        self.assertTrue(os.path.islink(self.dest))
+
+
 class TestExitCodesNeverSayDoneWhenItIsNot(unittest.TestCase):
     """Code review #6: a skill that was not installed exited 0 ('done')."""
 
