@@ -205,7 +205,7 @@ class TestTheMove(unittest.TestCase):
                          os.path.join(self.new, "config.json"))
 
     def test_undo_puts_everything_back(self):
-        migrate_home.undo(self.h)
+        migrate_home.undo(self.h, running=lambda: [])
         self.assertFalse(os.path.exists(self.new))
         with open(os.path.join(self.old, "config.json")) as f:
             cfg = json.load(f)
@@ -215,25 +215,95 @@ class TestTheMove(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(self.old, "personal-guard.txt")))
 
 
+class UndoIsAsCarefulAsTheMove(unittest.TestCase):
+    """#2009: undo() renames the home back out from under anything running
+    from it, so it refuses for the same reason migrate() does."""
+
+    def setUp(self):
+        self.h = _fake_home()
+        self.old = _old_install(self.h)
+        self.new = os.path.join(self.h, ".config", "data-noodler")
+        migrate_home.migrate(self.h, running=lambda: [])
+
+    def test_undo_refuses_while_a_server_runs_from_the_new_home(self):
+        with self.assertRaises(migrate_home.MigrateError) as ctx:
+            migrate_home.undo(self.h,
+                              running=lambda: ["python data_noodler.py"])
+        self.assertIn("quit", str(ctx.exception))
+        self.assertTrue(os.path.isdir(self.new))
+        self.assertFalse(os.path.exists(self.old))
+
+
+class TheMoveWritesAtomically(unittest.TestCase):
+    """#2009: config.json and the move record were written with a plain
+    open(), so a kill mid-write left a truncated file. The rollback path
+    cannot help with a kill; only an atomic write can."""
+
+    def test_config_and_record_go_through_the_atomic_writer(self):
+        from unittest import mock
+        h = _fake_home()
+        _old_install(h)
+        new = os.path.join(h, ".config", "data-noodler")
+        with mock.patch.object(migrate_home.safe_write, "write_atomically",
+                               wraps=migrate_home.safe_write.write_atomically
+                               ) as w:
+            migrate_home.migrate(h, running=lambda: [])
+        written = sorted(os.path.basename(c.args[0]) for c in w.call_args_list)
+        self.assertEqual(written, sorted(["config.json", migrate_home.RECORD]))
+        self.assertTrue(os.path.isfile(os.path.join(new, "config.json")))
+
+    def test_a_backup_from_the_same_second_is_neither_used_nor_removed(self):
+        # Rollback restored from a name it recomputed from the stamp, so a
+        # backup already sitting at that name was copied over config.json
+        # and then deleted.
+        from unittest import mock
+        h = _fake_home()
+        old = _old_install(h)
+        with open(os.path.join(old, "config.json")) as f:
+            before = f.read()
+        stale = os.path.join(old, "config.json.ga-backup-20261121-020000")
+        with open(stale, "w") as f:
+            f.write("an older backup")
+        frozen = mock.Mock()
+        frozen.datetime.now.return_value.strftime.return_value = \
+            "20261121-020000"
+        real = migrate_home.json.dumps
+
+        def failing(obj, *a, **k):
+            if isinstance(obj, dict) and "config_backup" in obj:
+                raise OSError("disk full")
+            return real(obj, *a, **k)
+
+        with mock.patch.object(migrate_home, "datetime", frozen), \
+                mock.patch("safe_write.datetime", frozen, create=True), \
+                mock.patch.object(migrate_home.json, "dumps", failing):
+            with self.assertRaises(OSError):
+                migrate_home.migrate(h, running=lambda: [])
+        with open(os.path.join(old, "config.json")) as f:
+            self.assertEqual(f.read(), before)
+        with open(stale) as f:
+            self.assertEqual(f.read(), "an older backup")
+
+
 class AFailureLateInTheMovePutsEverythingBack(unittest.TestCase):
     def test_a_failed_record_write_restores_the_config_too(self):
         h = _fake_home()
         old = _old_install(h)
         with open(os.path.join(old, "config.json")) as f:
             before = f.read()
-        real_dump = json.dump
+        real_dumps = json.dumps
 
-        def failing_dump(obj, f, *a, **k):
+        def failing_dumps(obj, *a, **k):
             if isinstance(obj, dict) and "config_backup" in obj:
                 raise OSError("disk full")
-            return real_dump(obj, f, *a, **k)
+            return real_dumps(obj, *a, **k)
 
-        migrate_home.json.dump = failing_dump
+        migrate_home.json.dumps = failing_dumps
         try:
             with self.assertRaises(OSError):
                 migrate_home.migrate(h, running=lambda: [])
         finally:
-            migrate_home.json.dump = real_dump
+            migrate_home.json.dumps = real_dumps
         self.assertFalse(os.path.exists(os.path.join(h, ".config", "data-noodler")))
         with open(os.path.join(old, "config.json")) as f:
             self.assertEqual(f.read(), before)

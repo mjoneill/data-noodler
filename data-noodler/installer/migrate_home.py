@@ -40,6 +40,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import home as dn_home  # noqa: E402
+import safe_write  # noqa: E402
 
 RECORD = "migration-record.json"
 # Old default name -> new name, for the two sign-in files bootstrap_config
@@ -137,17 +138,26 @@ def plan(home=None):
     return out
 
 
-def _default_running(home):
-    """Our servers' command lines, as upgrade.py finds them."""
+def _default_running(home, folder=None):
+    """Our servers' command lines, as upgrade.py finds them, for the install
+    at `folder` (the old home by default: what migrate() moves)."""
     import upgrade
-    old = dn_home.legacy_home(home)
+    folder = folder or dn_home.legacy_home(home)
     try:
-        with open(os.path.join(old, "config.json"), encoding="utf-8") as f:
+        with open(os.path.join(folder, "config.json"), encoding="utf-8") as f:
             venv_python = _expand(json.load(f).get("venv_python") or "")
     except (OSError, ValueError):
         venv_python = ""
-    venv_dir = os.path.dirname(os.path.dirname(venv_python)) if venv_python else old
-    return upgrade.running_servers(venv_dir, old, sys.platform)
+    venv_dir = (os.path.dirname(os.path.dirname(venv_python)) if venv_python
+                else folder)
+    return upgrade.running_servers(venv_dir, folder, sys.platform)
+
+
+def _refuse_if_running(hits, where):
+    if hits:
+        raise MigrateError(
+            f"these are still running from {where} -- fully quit every app "
+            "that uses them, then re-run:\n  " + "\n  ".join(hits))
 
 
 def migrate(home=None, running=None):
@@ -157,43 +167,41 @@ def migrate(home=None, running=None):
         return None
     if p["action"] == "refuse":
         raise MigrateError(p["reason"])
-    hits = (running or (lambda: _default_running(home)))()
-    if hits:
-        raise MigrateError(
-            "these are still running from the old home -- fully quit every "
-            "app that uses them, then re-run:\n  " + "\n  ".join(hits))
+    _refuse_if_running((running or (lambda: _default_running(home)))(),
+                       p["old"])
 
     old, new = p["old"], p["new"]
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     os.rename(old, new)
     done = []
+    cfg_path = os.path.join(new, "config.json")
+    backup = None
     try:
         for _key, (src, dst) in p["files"]:
             os.rename(src, dst)
             done.append((src, dst))
-        cfg_path = os.path.join(new, "config.json")
-        backup = f"{cfg_path}.ga-backup-{stamp}"
-        shutil.copy2(cfg_path, backup)
+        # The name actually written, never one recomputed from the stamp: a
+        # backup from the same second already holds that name (#2009).
+        backup = safe_write.backup_copy(cfg_path)
         with open(cfg_path, encoding="utf-8") as f:
             cfg = json.load(f)
         for key, (_before, after) in p["config"].items():
             cfg[key] = after
         text = json.dumps(cfg, indent=2) + "\n"
         json.loads(text)
-        with open(cfg_path, "w", encoding="utf-8") as f:
-            f.write(text)
+        # Atomic: a kill mid-write must not leave a truncated config.json,
+        # and the rollback below cannot run after a kill (#2009).
+        safe_write.write_atomically(cfg_path, text)
         record = {"stamp": stamp, "old": old, "new": new,
                   "files": done, "config_backup": backup}
-        with open(os.path.join(new, RECORD), "w", encoding="utf-8") as f:
-            json.dump(record, f, indent=2)
+        safe_write.write_atomically(os.path.join(new, RECORD),
+                                    json.dumps(record, indent=2))
         return record
     except Exception:
         # Every step undone, config.json included: rolled back without it,
         # the old home's config named the new home and the new file names
         # (Indigo's review of PR #5).
-        cfg_path = os.path.join(new, "config.json")
-        backup = f"{cfg_path}.ga-backup-{stamp}"
-        if os.path.exists(backup):
+        if backup and os.path.exists(backup):
             shutil.copy2(backup, cfg_path)
             os.remove(backup)
         for src, dst in reversed(done):
@@ -202,8 +210,12 @@ def migrate(home=None, running=None):
         raise
 
 
-def undo(home=None):
-    """Reverse a move, from the record it left. Raises MigrateError."""
+def undo(home=None, running=None):
+    """Reverse a move, from the record it left. Raises MigrateError.
+
+    Refuses while our servers run from the new home, for the same reason
+    migrate() refuses while they run from the old one (#2009).
+    """
     new = dn_home.new_home(home)
     path = os.path.join(new, RECORD)
     try:
@@ -215,6 +227,8 @@ def undo(home=None):
     old = record["old"]
     if os.path.exists(old):
         raise MigrateError(f"{old} exists again; not undoing over it")
+    _refuse_if_running(
+        (running or (lambda: _default_running(home, folder=new)))(), new)
     cfg_path = os.path.join(new, "config.json")
     shutil.copy2(record["config_backup"], cfg_path)
     for src, dst in reversed(record["files"]):
