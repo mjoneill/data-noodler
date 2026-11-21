@@ -217,9 +217,6 @@ class PersonalGuard(unittest.TestCase):
         self.assertIn("PERSONAL-GUARD", r.stderr)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class TheGuardFollowsTheInstallHome(unittest.TestCase):
     """#1999, Indigo's hazard: with no list found this guard warns and PASSES.
@@ -258,3 +255,7 @@ class TheGuardFollowsTheInstallHome(unittest.TestCase):
         # Indigo's review of PR #5: a mkdir, an aborted move or any tool
         # creating the folder used to flip the guard to an empty home.
         self._assert_refused(self._repo_with_home("ga-" "mcp", empty_new=True))
+
+
+if __name__ == "__main__":
+    unittest.main()
