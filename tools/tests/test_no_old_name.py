@@ -64,10 +64,21 @@ RETIREMENT = {
 def _grep(pattern):
     r = subprocess.run(["git", "grep", "-n", "-I", "-P", pattern], cwd=TOP,
                        capture_output=True, text=True)
+    # 0 = matches, 1 = no matches. Anything else means the search did not run,
+    # and an empty result from a search that did not run proves nothing (#2014).
+    if r.returncode not in (0, 1):
+        raise RuntimeError("git grep failed (exit %d) for %r: %s"
+                           % (r.returncode, pattern, r.stderr.strip()[:200]))
     return [line for line in r.stdout.splitlines() if line]
 
 
 class TestTheOldNamesAreGone(unittest.TestCase):
+    def test_a_grep_that_errors_is_a_failure_not_a_clean_result(self):
+        # An unbalanced pattern makes git grep exit 128 with no output. Read
+        # as "no matches", a broken grep would report every old name gone.
+        with self.assertRaises(RuntimeError):
+            _grep("(")
+
     def test_the_package_folder_is_data_noodler(self):
         self.assertTrue(os.path.isfile(os.path.join(TOP, "data-noodler", "START-HERE.md")))
         self.assertFalse(os.path.exists(os.path.join(TOP, OLD_FOLDER)))
