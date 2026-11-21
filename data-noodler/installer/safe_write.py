@@ -98,17 +98,17 @@ def backup_copy(path):
     only copy of the original -- with the second (#2009). A taken name gets
     a -2, -3, ... suffix.
 
-    The copy goes through a mkstemp temp file and os.replace, so a link
-    planted at the backup name is renamed over, never written through. The
-    backup keeps the original's mode and times, as shutil.copy2 did.
-    Raises OSError; callers word the refusal.
+    The bytes go to a mkstemp temp file first, then os.link gives it the
+    backup name. os.link refuses a name that exists -- a file, or a planted
+    link, which is never followed -- in one atomic step, so there is no
+    window between "is this name free?" and "take it". Where the filesystem
+    cannot hard-link (FAT, some network shares), it falls back to a
+    free-name check and os.replace, which is atomic but not race-free. The
+    backup keeps the original's mode and times, as shutil.copy2 did. Raises
+    OSError; callers word the refusal.
     """
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     base = f"{path}.ga-backup-{stamp}"
-    dest, n = base, 1
-    while os.path.lexists(dest):
-        n += 1
-        dest = f"{base}-{n}"
     folder, name = os.path.split(path)
     fd, tmp = tempfile.mkstemp(dir=folder or os.curdir,
                                prefix="." + name + ".", suffix=TEMP_SUFFIX)
@@ -116,11 +116,26 @@ def backup_copy(path):
         with os.fdopen(fd, "wb") as out, open(path, "rb") as src:
             shutil.copyfileobj(src, out)
         shutil.copystat(path, tmp)
-        os.replace(tmp, dest)
+        n = 1
+        while True:
+            dest = base if n == 1 else f"{base}-{n}"
+            try:
+                os.link(tmp, dest)
+            except FileExistsError:
+                n += 1
+                continue
+            except OSError:
+                # No hard links here: take the first free name instead.
+                while os.path.lexists(dest):
+                    n += 1
+                    dest = f"{base}-{n}"
+                os.replace(tmp, dest)
+                return dest
+            os.unlink(tmp)
+            return dest
     except BaseException:
         try:
             os.unlink(tmp)
         except OSError:
             pass
         raise
-    return dest

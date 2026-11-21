@@ -227,6 +227,36 @@ class TestBackupsNeverOverwriteEachOther(unittest.TestCase):
         name = [n for n in os.listdir(self.d) if ".ga-backup-" in n][0]
         self.assertEqual(_mode(os.path.join(self.d, name)), 0o600)
 
+    def test_a_backup_made_after_the_name_check_is_still_not_overwritten(self):
+        # The free-name check and the final rename are two steps. Simulate a
+        # backup appearing between them by making the check miss it; the
+        # rename must still refuse the taken name (Indigo, PR #22 review).
+        from unittest import mock
+        path = self._start("claude.json")
+        earlier = path + ".ga-backup-20261121-020000"
+        with open(earlier, "w") as f:
+            f.write("an earlier backup")
+        with _one_second(), mock.patch("safe_write.os.path.lexists",
+                                       return_value=False):
+            dest = safe_write.backup_copy(path)
+        self.assertNotEqual(dest, earlier)
+        with open(earlier) as f:
+            self.assertEqual(f.read(), "an earlier backup")
+        with open(dest) as f:
+            self.assertEqual(f.read(), '{"original": true}')
+
+    def test_where_hard_links_are_refused_a_backup_is_still_made(self):
+        from unittest import mock
+        path = self._start("claude.json")
+        with mock.patch("safe_write.os.link",
+                        side_effect=PermissionError("no hard links here")):
+            safe_write.backup_copy(path)
+            safe_write.backup_copy(path)
+        self.assertEqual(self._backup_texts("claude.json"),
+                         ['{"original": true}'] * 2)
+        self.assertEqual([n for n in os.listdir(self.d)
+                          if n.endswith(".ga-tmp")], [])
+
     def test_a_link_planted_at_the_backup_name_is_not_written_through(self):
         path = self._start("claude.json")
         victim = os.path.join(self.d, "victim.txt")
