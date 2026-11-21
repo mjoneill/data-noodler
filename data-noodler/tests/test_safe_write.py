@@ -90,6 +90,31 @@ class TestSymlinks(unittest.TestCase):
     def setUp(self):
         self.d = tempfile.mkdtemp()
 
+    def test_a_symlinked_config_is_written_through_not_replaced(self):
+        real = os.path.join(self.d, "dotfiles-claude.json")
+        with open(real, "w") as f:
+            f.write("{}")
+        link = os.path.join(self.d, "claude.json")
+        os.symlink(real, link)
+        register.register_json(link, {"x": {"command": "y"}})
+        self.assertTrue(os.path.islink(link), "the link was replaced")
+        with open(real) as f:
+            self.assertIn("x", json.load(f)["mcpServers"])
+
+
+class TestTheTempNameIsUnpredictable(unittest.TestCase):
+    """Runs on every platform, Windows included: Windows is where a link at
+    the old fixed name was followed (#2011)."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+
+    def _symlink(self, target, link):
+        try:
+            os.symlink(target, link)
+        except (OSError, NotImplementedError) as exc:
+            self.skipTest(f"cannot create symlinks here ({exc})")
+
     def test_a_link_planted_at_the_old_temp_name_is_never_followed(self):
         # The temp name used to be fixed (`<path>.ga-tmp`), so a link could
         # be planted there ahead of time; on Windows a dangling one was
@@ -101,34 +126,23 @@ class TestSymlinks(unittest.TestCase):
         victim = os.path.join(self.d, "victim.txt")
         with open(victim, "w") as f:
             f.write("precious")
-        os.symlink(victim, path + ".ga-tmp")
-        register.register_json(path, {"x": {"command": "y"}})
+        self._symlink(victim, path + ".ga-tmp")
+        safe_write.write_atomically(path, '{"x": 1}\n')
         with open(victim) as f:
             self.assertEqual(f.read(), "precious")
         self.assertTrue(os.path.islink(path + ".ga-tmp"))
         with open(path) as f:
-            self.assertIn("x", json.load(f)["mcpServers"])
+            self.assertEqual(json.load(f), {"x": 1})
 
     def test_a_dangling_link_at_the_old_temp_name_creates_nothing(self):
         path = os.path.join(self.d, "config.json")
         target = os.path.join(self.d, "not-yet-there.txt")
-        os.symlink(target, path + ".ga-tmp")
+        self._symlink(target, path + ".ga-tmp")
         safe_write.write_atomically(path, "{}\n")
         self.assertFalse(os.path.lexists(target))
         self.assertFalse(os.path.islink(path))
         with open(path) as f:
             self.assertEqual(f.read(), "{}\n")
-
-    def test_a_symlinked_config_is_written_through_not_replaced(self):
-        real = os.path.join(self.d, "dotfiles-claude.json")
-        with open(real, "w") as f:
-            f.write("{}")
-        link = os.path.join(self.d, "claude.json")
-        os.symlink(real, link)
-        register.register_json(link, {"x": {"command": "y"}})
-        self.assertTrue(os.path.islink(link), "the link was replaced")
-        with open(real) as f:
-            self.assertIn("x", json.load(f)["mcpServers"])
 
     def test_a_file_left_at_the_old_temp_name_is_left_alone(self):
         path = os.path.join(self.d, "c.json")
