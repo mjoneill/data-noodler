@@ -273,6 +273,22 @@ def unsafe_path_reason(text):
     return None
 
 
+def _is_home_or_above(real, home, pathmod=os.path):
+    """True if `real` is the home folder or one of its ancestors.
+
+    On Windows commonpath raises ValueError when the two are on different
+    drives (#2010). A folder on another drive cannot be home or above it, so
+    that is False and the project goes on to the remaining checks -- the same
+    answer _inside gives for the same reason.
+    """
+    if real == home:
+        return True
+    try:
+        return pathmod.commonpath([real, home]) == real
+    except ValueError:
+        return False
+
+
 def project_reason(path, home=None):
     """Why `path` cannot be a project folder, or None if it can be one."""
     if not path:
@@ -283,7 +299,7 @@ def project_reason(path, home=None):
     real = os.path.realpath(path)
     if not os.path.isdir(real):
         return "not a directory"
-    if real == home or os.path.commonpath([real, home]) == real:
+    if _is_home_or_above(real, home):
         return "the home folder itself, or above it"
     if os.name != "nt":
         for bad in _NOT_PROJECT_POSIX:
