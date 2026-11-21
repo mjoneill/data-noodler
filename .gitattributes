@@ -1,0 +1,6 @@
+# Every tracked file is text with LF endings, and must stay that way on a
+# Windows checkout. Git for Windows defaults to core.autocrlf=true, which
+# would rewrite them to CRLF. That changes the bytes the plugin fingerprint
+# hashes (tests/test_plugin_manifests.py), and a CRLF shebang breaks the sh
+# launchers (#2008).
+* text=auto eol=lf
