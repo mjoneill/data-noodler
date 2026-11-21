@@ -22,13 +22,17 @@ It's shared as-is, with no support commitment. To report a security problem priv
 
 | App | macOS | Windows |
 |---|---|---|
-| Claude Code | Works. It's where we use it daily. | Works. Installed and run on Windows 11. |
-| Claude Desktop | Works. | Works. Installed and run on Windows 11, including the Microsoft Store version. |
-| Codex | Works, through the Codex plugin. | **Doesn't start yet.** This release's plugin starts its servers through `/bin/sh`. |
-| ChatGPT desktop app: Work and Codex modes | Works, through the same Codex plugin. | **Doesn't start yet**, for the same reason. |
-| ChatGPT desktop app: Chat mode | No. It runs in the cloud and can't reach servers on your computer. | No, for the same reason. |
+| Claude Code | **Confirmed**: a real question answered. It's where we use it daily. | **Confirmed** on Windows 11. |
+| Claude Desktop | **Confirmed**, after a full quit and reopen, on two machines. | **Confirmed** on Windows 11, including the Microsoft Store version. |
+| Codex | Installs and is reachable, but hasn't yet answered a real GA question here. It should work; that's not yet proven. | **Doesn't start yet.** This release's plugin starts its servers through `/bin/sh`. |
+| ChatGPT desktop app: Work mode | **Confirmed**: a real question answered (ChatGPT 26.1021). | **Doesn't start yet**, for the same reason as Codex. |
+| ChatGPT desktop app: Codex view | Served by the same plugin and runtime as Work, but not separately tested. | **Doesn't start yet**, for the same reason. |
+| ChatGPT desktop app: Chat mode | No. It's hosted, so it can't reach servers on your computer without a hosted tunnel this package doesn't provide. Use Work instead. | No, for the same reason. |
+| claude.ai or ChatGPT in a browser | No. Browser chats run their tools on the vendor's servers. | No. |
 
-Linux isn't a supported target. The [Windows notes](data-noodler/skills/data-noodler-setup/references/windows.md) keep the current list of what is and isn't working on Windows, and [`ARCHITECTURE.md`](data-noodler/ARCHITECTURE.md#what-is-proven-and-what-is-not) says what has been proven, and how.
+On Windows, these aren't proven yet: install paths containing spaces, upgrading an install, and exports into a project folder. Linux isn't a supported target.
+
+Details: [`INSTALL.md`](data-noodler/INSTALL.md#what-you-get-and-what-you-dont) has the evidence for each app, the [Windows notes](data-noodler/skills/data-noodler-setup/references/windows.md) list what is and isn't working there, and [`ARCHITECTURE.md`](data-noodler/ARCHITECTURE.md#what-is-proven-and-what-is-not) says what has been proven, and how.
 
 ## Start here
 
