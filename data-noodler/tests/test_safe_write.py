@@ -80,7 +80,8 @@ class TestPermissionsSurviveARewrite(unittest.TestCase):
     def test_no_temp_file_is_left_behind(self):
         path = self._config()
         register.register_json(path, {"x": {"command": "y"}})
-        self.assertFalse(os.path.lexists(path + ".ga-tmp"))
+        self.assertEqual([n for n in os.listdir(self.d)
+                          if n.endswith(".ga-tmp")], [])
 
 
 @unittest.skipIf(sys.platform.startswith("win"), "POSIX symlinks")
@@ -89,7 +90,11 @@ class TestSymlinks(unittest.TestCase):
     def setUp(self):
         self.d = tempfile.mkdtemp()
 
-    def test_a_planted_temp_symlink_is_refused_and_its_target_untouched(self):
+    def test_a_link_planted_at_the_old_temp_name_is_never_followed(self):
+        # The temp name used to be fixed (`<path>.ga-tmp`), so a link could
+        # be planted there ahead of time; on Windows a dangling one was
+        # followed (#2011). The name is now unpredictable, so the planted
+        # link is simply never used.
         path = os.path.join(self.d, "claude.json")
         with open(path, "w") as f:
             f.write("{}")
@@ -97,10 +102,22 @@ class TestSymlinks(unittest.TestCase):
         with open(victim, "w") as f:
             f.write("precious")
         os.symlink(victim, path + ".ga-tmp")
-        with self.assertRaises(register.RegisterError):
-            register.register_json(path, {"x": {"command": "y"}})
+        register.register_json(path, {"x": {"command": "y"}})
         with open(victim) as f:
             self.assertEqual(f.read(), "precious")
+        self.assertTrue(os.path.islink(path + ".ga-tmp"))
+        with open(path) as f:
+            self.assertIn("x", json.load(f)["mcpServers"])
+
+    def test_a_dangling_link_at_the_old_temp_name_creates_nothing(self):
+        path = os.path.join(self.d, "config.json")
+        target = os.path.join(self.d, "not-yet-there.txt")
+        os.symlink(target, path + ".ga-tmp")
+        safe_write.write_atomically(path, "{}\n")
+        self.assertFalse(os.path.lexists(target))
+        self.assertFalse(os.path.islink(path))
+        with open(path) as f:
+            self.assertEqual(f.read(), "{}\n")
 
     def test_a_symlinked_config_is_written_through_not_replaced(self):
         real = os.path.join(self.d, "dotfiles-claude.json")
@@ -113,13 +130,25 @@ class TestSymlinks(unittest.TestCase):
         with open(real) as f:
             self.assertIn("x", json.load(f)["mcpServers"])
 
-    def test_a_regular_leftover_temp_file_is_cleared(self):
+    def test_a_file_left_at_the_old_temp_name_is_left_alone(self):
         path = os.path.join(self.d, "c.json")
         with open(path + ".ga-tmp", "w") as f:
             f.write("half-written")
         safe_write.write_atomically(path, "{}\n")
         with open(path) as f:
             self.assertEqual(f.read(), "{}\n")
+        with open(path + ".ga-tmp") as f:
+            self.assertEqual(f.read(), "half-written")
+
+    def test_the_temp_file_is_made_in_the_target_folder(self):
+        # os.replace is only atomic within one filesystem.
+        from unittest import mock
+        path = os.path.join(self.d, "c.json")
+        with mock.patch("safe_write.tempfile.mkstemp",
+                        wraps=safe_write.tempfile.mkstemp) as made:
+            safe_write.write_atomically(path, "{}\n")
+        self.assertEqual(os.path.realpath(made.call_args.kwargs["dir"]),
+                         os.path.realpath(self.d))
 
 
 if __name__ == "__main__":

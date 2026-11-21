@@ -186,7 +186,8 @@ class TestRegisterJson(unittest.TestCase):
                 register.register_json(path, register.server_entries(DN_HOME))
         self.assertIn("disk full", str(ctx.exception))
         self.assertEqual(open(path).read(), original)
-        self.assertFalse(os.path.exists(path + ".ga-tmp"))
+        self.assertEqual([n for n in os.listdir(os.path.dirname(path))
+                          if n.endswith(".ga-tmp")], [])
 
 
 class TestInstallMainHandlesRegisterError(unittest.TestCase):

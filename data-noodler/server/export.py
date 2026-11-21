@@ -12,6 +12,7 @@ import datetime
 import json
 import os
 import re
+import tempfile
 
 import sessions
 
@@ -33,65 +34,51 @@ def _meta_path_for(path):
     return path[:-4] + ".meta.json" if path.endswith(".csv") else path + ".meta.json"
 
 
-# O_NOFOLLOW does not exist on Windows, so naming it unconditionally raised
-# AttributeError on the first export there. The cheap fix is to delete it, and
-# that would be the wrong one -- this guard exists because on 2026-09-02 an
-# agent redirected output through a symlink and truncated Homebrew's
-# python3.14, breaking every MCP server on the machine.
+# The bytes go first to a temp file beside the destination, then os.replace
+# moves it into place, so a failed write never leaves a half-written export.
 #
-# It is safe to be without, and that was measured rather than assumed:
-# O_CREAT|O_EXCL alone already refuses a symlink. On POSIX that is specified.
-# On Windows the underlying CREATE_NEW fails whenever the name exists at all,
-# symlink, junction or file. So the guarantee lives in O_EXCL; O_NOFOLLOW is
-# redundancy, kept wherever the platform offers it.
+# That temp file used to have a fixed name, `<destination>.ga-tmp`, opened
+# with O_CREAT|O_EXCL (plus O_NOFOLLOW where it exists). This guard exists
+# because on 2026-09-02 an agent redirected output through a symlink and
+# truncated Homebrew's python3.14, breaking every MCP server on the machine.
+# The old comment here said O_EXCL alone refused a symlink on every platform,
+# "measured rather than assumed". That was true on POSIX and false on
+# Windows: there, a DANGLING link planted at the fixed name was followed. The
+# write created the link's target, full of report data, and os.replace moved
+# the link itself into place as the user's export (#2011, windows-latest).
 #
-# Assembled once, at import, so a test can assert what the guard is made of
-# rather than inferring it from behaviour.
-EXCLUSIVE_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_EXCL
-if hasattr(os, "O_NOFOLLOW"):
-    EXCLUSIVE_FLAGS |= os.O_NOFOLLOW
+# So the name is no longer fixed. tempfile.mkstemp picks an unpredictable
+# one and creates it exclusively, which leaves nothing to plant a link at
+# ahead of time, on any platform. It also opens in binary mode on Windows,
+# so the C runtime adds no newline translation of its own.
+TEMP_SUFFIX = ".ga-tmp"
+
+# mkstemp makes its file owner-only, and os.replace keeps that mode, so it is
+# set explicitly: an export is an ordinary file the user may hand to anyone.
+EXPORT_MODE = 0o644
 
 
-def _open_exclusively(path):
-    """Open `path` for writing, refusing a symlink or an existing file.
+def _open_temp_beside(path):
+    """Create a new, uniquely named temp file in `path`'s folder.
 
-    sessions.check_writable validates the *destination*, but the bytes go
-    first to `destination + ".ga-tmp"` -- a path nothing else checks, sitting
-    in a directory the caller does not necessarily control alone. A symlink
-    planted there is followed by a plain open(), which truncates and
-    overwrites whatever it points at: the same class of failure that
-    destroyed a Homebrew interpreter on 2026-09-02 and gave sessions.py its
-    reason to exist.
-
-    O_NOFOLLOW rather than an islink() check on purpose. A check-then-open is
-    a TOCTOU race -- the symlink can be planted in the window between the two
-    -- while O_NOFOLLOW makes the kernel refuse at open time, with no window
-    at all. O_EXCL closes the same hole from the other side (POSIX makes
-    O_CREAT|O_EXCL fail on a symlink whether or not its target exists) and
-    additionally turns a leftover tmp file from a crashed run into a refusal
-    rather than a silent overwrite.
-
-    See EXCLUSIVE_FLAGS for why this still holds where O_NOFOLLOW does not
-    exist.
+    Returns (fd, tmp_path). The folder is the destination's own so that
+    os.replace stays within one filesystem and is atomic.
     """
+    folder, name = os.path.split(path)
     try:
-        return os.open(path, EXCLUSIVE_FLAGS, 0o644)
-    except FileExistsError:
-        raise ExportError(
-            f"Refusing to write through {path}: something is already there. "
-            "That is either a leftover temporary file from an interrupted "
-            "run, or a symlink pointing somewhere else -- writing through it "
-            "could overwrite an unrelated file. Inspect it and delete it, "
-            "then re-run -- or, if there is no shell to do that from, export "
-            "to a different filename instead.")
+        return tempfile.mkstemp(dir=folder, prefix="." + name + ".",
+                                suffix=TEMP_SUFFIX)
     except OSError as exc:
-        # ELOOP lands here: O_NOFOLLOW refused a symlink at the final
-        # component. So do ordinary permission and read-only-filesystem
-        # errors, which need the same "nothing was written" answer.
         raise ExportError(
-            f"Could not open {path} for writing ({exc}). If it is a symlink, "
-            "it is refused deliberately -- a symlinked destination can point "
-            "anywhere, including at a system file.")
+            f"Could not create a temporary file beside {path} ({exc}). "
+            "Nothing was written.")
+
+
+def _discard(tmp):
+    try:
+        os.unlink(tmp)
+    except OSError:
+        pass
 
 
 # Above this many rows, a result does not belong pasted into a chat reply.
@@ -227,16 +214,13 @@ def write_export(path, columns, rows, meta, overwrite=False, preview_rows=5):
     # default text encoding -- that default is UTF-8 here (Python 3.14's
     # UTF-8 mode), but is not guaranteed on every Python this module might
     # someday run under. Do not "simplify" this back out.
-    tmp = path + ".ga-tmp"
-    # Opened before the try: a refusal here means nothing was created, so the
-    # cleanup below must not run and unlink whatever is already sitting at
-    # tmp -- that file is the evidence the refusal is about.
-    fd = _open_exclusively(tmp)
+    fd, tmp = _open_temp_beside(path)
     try:
         with os.fdopen(fd, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(columns)
             writer.writerows(rows)
+        os.chmod(tmp, EXPORT_MODE)
         os.replace(tmp, path)
     except Exception as exc:
         # Broad on purpose: anything that goes wrong while producing the CSV
@@ -245,21 +229,18 @@ def write_export(path, columns, rows, meta, overwrite=False, preview_rows=5):
         # translated to ExportError and must still clean up the tmp file.
         # A narrower `except OSError` here previously let non-OSError
         # failures escape unwrapped and skip this cleanup.
-        if os.path.exists(tmp):
-            try:
-                os.unlink(tmp)
-            except OSError:
-                pass
+        # tmp is ours: mkstemp created it, so removing it is always safe.
+        _discard(tmp)
         raise ExportError(f"Could not write {path} ({exc}). Nothing was left "
                           "behind; re-running is safe.")
 
     meta_path = receipt["meta_path"]
-    meta_tmp = meta_path + ".ga-tmp"
-    meta_fd = _open_exclusively(meta_tmp)
+    meta_fd, meta_tmp = _open_temp_beside(meta_path)
     try:
         with os.fdopen(meta_fd, "w", encoding="utf-8") as f:
             json.dump(receipt, f, indent=2)
             f.write("\n")
+        os.chmod(meta_tmp, EXPORT_MODE)
         os.replace(meta_tmp, meta_path)
     except Exception as exc:
         # Broad for the same reason as above: a non-JSON-serialisable value
@@ -270,11 +251,7 @@ def write_export(path, columns, rows, meta, overwrite=False, preview_rows=5):
         # leave a truncated, invalid-JSON sidecar sitting at meta_path --
         # the message below says the record is missing, so it must actually
         # be missing, not merely corrupt.
-        if os.path.exists(meta_tmp):
-            try:
-                os.unlink(meta_tmp)
-            except OSError:
-                pass
+        _discard(meta_tmp)
         raise ExportError(
             f"Wrote {path} but could not write its sidecar "
             f"{meta_path} ({exc}). The data is intact; the "

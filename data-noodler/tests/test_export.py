@@ -8,6 +8,7 @@ which dates, was it sampled, was it truncated -- has to travel with the file.
 import datetime
 import json
 import os
+import stat
 import sys
 import tempfile
 import unittest
@@ -100,8 +101,7 @@ class TestWriteExport(unittest.TestCase):
             export.write_export(os.path.join(self.d, "blocked.csv"),
                                 COLS, ROWS, META, overwrite=True)
         # The temp file must not survive the failure.
-        self.assertFalse(os.path.exists(
-            os.path.join(self.d, "blocked.csv.ga-tmp")))
+        self.assertEqual(_temps(self.d), [])
 
     def test_row_count_mismatch_with_columns_is_rejected(self):
         with self.assertRaises(export.ExportError) as ctx:
@@ -117,12 +117,11 @@ class TestWriteExport(unittest.TestCase):
         bad_meta = dict(META, when=datetime.date(2026, 9, 3))
         with self.assertRaises(export.ExportError):
             export.write_export(self.p, COLS, ROWS, bad_meta)
-        self.assertFalse(os.path.exists(self.p + ".ga-tmp"))
+        self.assertEqual(_temps(self.d), [])
         meta_path = self.p[:-4] + ".meta.json"
         # No truncated, invalid-JSON sidecar left behind either: the error
         # message says the provenance record is missing, so it must be.
         self.assertFalse(os.path.exists(meta_path))
-        self.assertFalse(os.path.exists(meta_path + ".ga-tmp"))
 
     def test_preview_rows_is_capped_however_many_are_asked_for(self):
         # The whole point of exporting is that large results never pass
@@ -146,19 +145,30 @@ class TestWriteExport(unittest.TestCase):
         self.assertIn("日本語", content)
 
 
-class TestTempPathsAreNotWritableThrough(unittest.TestCase):
-    """The destination is validated; the temp file it is written through is
-    not addressable by the caller at all, and used to be opened with a plain
-    open(). A symlink planted at `<destination>.ga-tmp` was therefore
-    followed, truncating and overwriting whatever it pointed at -- exactly
-    the failure that destroyed a Homebrew interpreter on 2026-09-02 and gave
-    sessions.py its reason to exist, reachable through a path sessions.py
-    never sees.
+def _temps(d):
+    """Every temp file a write left in folder `d`, whatever its name."""
+    return [n for n in os.listdir(d) if n.endswith(".ga-tmp")]
+
+
+class TestTheTempFileHasNoPredictableName(unittest.TestCase):
+    """The bytes go first to a temp file beside the destination. That temp
+    file used to have a fixed name, `<destination>.ga-tmp`, opened with
+    O_CREAT|O_EXCL. A symlink planted at that name was refused on POSIX, but
+    on Windows a DANGLING link was followed: the write created the link's
+    target, full of report data, and os.replace then moved the link itself
+    into place as the user's export (#2011, windows-latest runs 44835530029
+    and 44836263798).
+
+    The fix is not a better check on the fixed name. It is having no fixed
+    name: tempfile.mkstemp picks an unpredictable one, so there is nothing to
+    plant a link at ahead of time, on any platform. These tests plant links
+    at the OLD name and require that the write never touches them.
     """
 
     def setUp(self):
         self.d = tempfile.mkdtemp()
         self.p = os.path.join(self.d, "out.csv")
+        self.meta_path = self.p[:-4] + ".meta.json"
         self.victim = os.path.join(self.d, "victim.txt")
         with open(self.victim, "w") as f:
             f.write("precious")
@@ -167,125 +177,105 @@ class TestTempPathsAreNotWritableThrough(unittest.TestCase):
         with open(self.victim) as f:
             return f.read()
 
-    def test_a_symlinked_csv_tmp_is_refused_and_the_victim_survives(self):
+    def _assert_a_real_export(self):
+        self.assertTrue(os.path.isfile(self.p))
+        self.assertFalse(os.path.islink(self.p),
+                         "the export is a link, not the user's file")
+        self.assertFalse(os.path.islink(self.meta_path))
+        with open(self.p, encoding="utf-8") as f:
+            self.assertEqual(f.readline().strip(), ",".join(COLS))
+
+    @unittest.skipUnless(hasattr(os, "symlink"), "needs symlink support")
+    def test_a_link_planted_at_the_old_csv_temp_name_is_never_followed(self):
         os.symlink(self.victim, self.p + ".ga-tmp")
-        with self.assertRaises(export.ExportError):
-            export.write_export(self.p, COLS, ROWS, META)
+        export.write_export(self.p, COLS, ROWS, META)
         self.assertEqual(self._victim_text(), "precious")
-        self.assertFalse(os.path.exists(self.p))
+        self.assertTrue(os.path.islink(self.p + ".ga-tmp"))
+        self._assert_a_real_export()
 
-    def test_a_symlinked_sidecar_tmp_is_refused_and_the_victim_survives(self):
-        meta_path = self.p[:-4] + ".meta.json"
-        os.symlink(self.victim, meta_path + ".ga-tmp")
-        with self.assertRaises(export.ExportError):
-            export.write_export(self.p, COLS, ROWS, META)
+    @unittest.skipUnless(hasattr(os, "symlink"), "needs symlink support")
+    def test_a_link_planted_at_the_old_sidecar_temp_name_is_never_followed(self):
+        os.symlink(self.victim, self.meta_path + ".ga-tmp")
+        export.write_export(self.p, COLS, ROWS, META)
         self.assertEqual(self._victim_text(), "precious")
-        # The CSV itself was written before the sidecar failed; the sidecar
-        # must not exist, because the error says the record is missing.
-        self.assertFalse(os.path.exists(meta_path))
+        self._assert_a_real_export()
 
-    def test_a_dangling_symlink_at_the_tmp_path_is_refused_too(self):
-        # O_CREAT|O_EXCL must refuse a symlink whether or not its target
-        # exists -- otherwise a link planted ahead of time creates the
-        # victim file rather than merely overwriting one.
-        target = os.path.join(self.d, "not-yet-there.txt")
-        os.symlink(target, self.p + ".ga-tmp")
-        with self.assertRaises(export.ExportError):
-            export.write_export(self.p, COLS, ROWS, META)
-        self.assertFalse(os.path.exists(target))
+    @unittest.skipUnless(hasattr(os, "symlink"), "needs symlink support")
+    def test_a_dangling_link_at_the_old_name_creates_nothing(self):
+        # The Windows case: the link's target does not exist yet, and the
+        # old code created it, full of report data.
+        for planted in (self.p + ".ga-tmp", self.meta_path + ".ga-tmp"):
+            target = planted + ".target"
+            os.symlink(target, planted)
+        export.write_export(self.p, COLS, ROWS, META)
+        for planted in (self.p + ".ga-tmp", self.meta_path + ".ga-tmp"):
+            self.assertFalse(os.path.lexists(planted + ".target"),
+                             f"the write created {planted}.target")
+        self._assert_a_real_export()
 
-    def test_a_leftover_tmp_file_is_refused_not_silently_overwritten(self):
+    def test_a_file_left_at_the_old_name_is_left_alone(self):
+        # An older version's leftover is not ours to delete or to refuse
+        # over: the write no longer uses that name.
         leftover = self.p + ".ga-tmp"
         with open(leftover, "w") as f:
             f.write("half a previous run")
-        with self.assertRaises(export.ExportError) as ctx:
-            export.write_export(self.p, COLS, ROWS, META)
-        message = str(ctx.exception).lower()
-        self.assertIn("already there", message)
-        # "delete it" is not recourse Claude Desktop's chat harness can take
-        # -- it has no shell -- so the message must also name the one
-        # workaround that needs no shell at all: exporting to a different
-        # filename.
-        self.assertIn("different filename", message)
+        export.write_export(self.p, COLS, ROWS, META)
         with open(leftover) as f:
             self.assertEqual(f.read(), "half a previous run")
+        self._assert_a_real_export()
+
+    def test_the_temp_file_is_made_in_the_destination_folder(self):
+        # os.replace is only atomic within one filesystem, so the temp file
+        # must sit beside the destination, not in the system temp folder.
+        from unittest import mock
+        with mock.patch("export.tempfile.mkstemp",
+                        wraps=tempfile.mkstemp) as made:
+            export.write_export(self.p, COLS, ROWS, META)
+        self.assertEqual(made.call_count, 2)
+        for call in made.call_args_list:
+            self.assertEqual(os.path.realpath(call.kwargs["dir"]),
+                             os.path.realpath(self.d))
+
+    @unittest.skipIf(sys.platform.startswith("win"), "POSIX modes")
+    def test_the_export_is_readable_like_any_other_file(self):
+        # mkstemp makes its file 0600 and os.replace keeps that mode, so
+        # without an explicit chmod every export would silently become
+        # owner-only.
+        export.write_export(self.p, COLS, ROWS, META)
+        self.assertEqual(stat.S_IMODE(os.stat(self.p).st_mode), 0o644)
+        self.assertEqual(stat.S_IMODE(os.stat(self.meta_path).st_mode), 0o644)
 
     def test_an_ordinary_write_still_succeeds_and_leaves_no_tmp_files(self):
         r = export.write_export(self.p, COLS, ROWS, META)
         self.assertEqual(r["row_count"], 3)
         self.assertTrue(os.path.exists(self.p))
         self.assertTrue(os.path.exists(r["meta_path"]))
-        self.assertFalse(os.path.exists(self.p + ".ga-tmp"))
-        self.assertFalse(os.path.exists(r["meta_path"] + ".ga-tmp"))
+        self.assertEqual(_temps(self.d), [])
 
     def test_a_second_export_over_the_same_path_still_works(self):
-        # The tmp file must actually be consumed by os.replace, or O_EXCL
-        # would make every export after the first one fail.
         export.write_export(self.p, COLS, ROWS, META)
         r = export.write_export(self.p, COLS, ROWS, META, overwrite=True)
         self.assertEqual(r["row_count"], 3)
-
-
-class TestExclusiveOpenOnEveryPlatform(unittest.TestCase):
-    """The symlink guard must survive the port, not be deleted by it.
-
-    os.O_NOFOLLOW does not exist on Windows, so export.py raised
-    AttributeError on the first export there. The cheap fix is to delete the
-    flag, and that would be the wrong one: this guard exists because on
-    2026-09-02 an agent redirected output through a symlink and truncated
-    Homebrew's python3.14, breaking every MCP server on the machine.
-
-    Measured rather than assumed: O_CREAT|O_EXCL alone already refuses a
-    symlink, on POSIX by specification and on Windows because CREATE_NEW
-    fails when the name exists at all. So the guarantee lives in O_EXCL and
-    O_NOFOLLOW is redundancy -- worth keeping where it exists, safe to be
-    without where it does not. That is the difference between porting a guard
-    and dropping one.
-    """
-
-    def _flags_without_nofollow(self):
-        return export.EXCLUSIVE_FLAGS & ~getattr(os, "O_NOFOLLOW", 0)
-
-    def test_the_flag_set_includes_nofollow_where_the_platform_has_it(self):
-        if hasattr(os, "O_NOFOLLOW"):
-            self.assertTrue(export.EXCLUSIVE_FLAGS & os.O_NOFOLLOW,
-                            "POSIX has O_NOFOLLOW and it is not being used")
-
-    def test_the_flag_set_always_carries_excl_and_creat(self):
-        # If this ever stops holding, the guard is gone on every platform.
-        self.assertTrue(export.EXCLUSIVE_FLAGS & os.O_EXCL)
-        self.assertTrue(export.EXCLUSIVE_FLAGS & os.O_CREAT)
+        self.assertEqual(_temps(self.d), [])
 
     @unittest.skipUnless(hasattr(os, "symlink"), "needs symlink support")
-    def test_a_planted_symlink_is_refused_without_nofollow_too(self):
-        # The Windows flag set, exercised on this machine. This is the
-        # assertion that makes dropping O_NOFOLLOW there defensible.
-        d = tempfile.mkdtemp()
-        target = os.path.join(d, "precious")
-        with open(target, "w", encoding="utf-8") as f:
-            f.write("do not overwrite me")
-        link = os.path.join(d, "planted")
-        os.symlink(target, link)
-
-        with self.assertRaises(OSError):
-            os.open(link, self._flags_without_nofollow(), 0o644)
-        with open(target, encoding="utf-8") as f:
-            self.assertEqual(f.read(), "do not overwrite me")
+    def test_overwrite_never_writes_through_a_symlinked_destination(self):
+        # The 2026-11-20 follow-up: overwrite=True must not turn a link at
+        # the destination itself into a way to write somewhere else.
+        os.symlink(self.victim, self.p)
+        with self.assertRaises(export.ExportError):
+            export.write_export(self.p, COLS, ROWS, META, overwrite=True)
+        self.assertEqual(self._victim_text(), "precious")
 
     @unittest.skipUnless(hasattr(os, "symlink"), "needs symlink support")
-    def test_export_refuses_to_write_through_a_symlinked_destination(self):
-        # End to end through the real code path, not just the flags.
-        d = tempfile.mkdtemp()
-        target = os.path.join(d, "precious.csv")
-        with open(target, "w", encoding="utf-8") as f:
-            f.write("original")
-        link = os.path.join(d, "report.csv")
-        os.symlink(target, link)
-
-        with self.assertRaises(Exception):
-            export._open_exclusively(link)
-        with open(target, encoding="utf-8") as f:
-            self.assertEqual(f.read(), "original")
+    def test_a_link_at_the_sidecar_path_is_replaced_not_followed(self):
+        # check_writable validates the CSV path, not the sidecar's. The
+        # sidecar arrives by os.replace, which renames over the link itself
+        # and never writes through it.
+        os.symlink(self.victim, self.meta_path)
+        export.write_export(self.p, COLS, ROWS, META)
+        self.assertEqual(self._victim_text(), "precious")
+        self.assertFalse(os.path.islink(self.meta_path))
 
 
 class TestTheReceiptKeepsTheTotal(unittest.TestCase):

@@ -15,11 +15,14 @@ hand.
 
 import os
 import stat
+import tempfile
 
-# O_NOFOLLOW does not exist on Windows; O_EXCL still refuses an existing
-# file there, which covers the planted-file case.
-_FLAGS = (os.O_WRONLY | os.O_CREAT | os.O_EXCL
-          | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0))
+# The temp file gets an unpredictable name from mkstemp, in the target's own
+# folder. It used to be the fixed `<target>.ga-tmp`, opened with O_EXCL (and
+# O_NOFOLLOW where it exists), and on Windows a DANGLING link planted at that
+# name was followed: the write created the link's target (#2011). With no
+# fixed name there is nothing to plant a link at ahead of time.
+TEMP_SUFFIX = ".ga-tmp"
 
 DEFAULT_MODE = 0o600
 
@@ -56,24 +59,15 @@ def write_atomically(path, text, default_mode=DEFAULT_MODE, private=False):
         mode = default_mode
     if private:
         mode = (mode & 0o700) | 0o600
-    tmp = target + ".ga-tmp"
-
-    if os.path.islink(tmp):
-        raise SafeWriteError(
-            f"{tmp} is a symlink. Refusing to write through it -- something "
-            "planted it there, or a tool made it by mistake. Remove it and "
-            "re-run.")
-    if os.path.exists(tmp):
-        # A leftover from an interrupted run (on Windows, a replace that
-        # failed because the app held the file open). It is ours and holds
-        # nothing the user needs.
-        os.unlink(tmp)
-
+    folder, name = os.path.split(target)
     try:
-        fd = os.open(tmp, _FLAGS, mode)
+        # Binary mode on Windows, created 0600, exclusive by construction.
+        fd, tmp = tempfile.mkstemp(dir=folder, prefix="." + name + ".",
+                                   suffix=TEMP_SUFFIX)
     except OSError as exc:
         raise SafeWriteError(f"Could not write {target}: could not create "
-                             f"{tmp} ({exc}). The original is untouched.")
+                             f"a temporary file beside it ({exc}). The "
+                             "original is untouched.")
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
             f.write(text)
@@ -84,11 +78,11 @@ def write_atomically(path, text, default_mode=DEFAULT_MODE, private=False):
         os.chmod(tmp, mode)
         os.replace(tmp, target)
     except OSError as exc:
-        if os.path.exists(tmp):
-            try:
-                os.unlink(tmp)
-            except OSError:
-                pass
+        # tmp is ours: mkstemp created it, so removing it is always safe.
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
         raise SafeWriteError(f"Could not write {target} ({exc}). The "
                              "original is untouched.")
     return target

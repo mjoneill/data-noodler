@@ -241,9 +241,10 @@ On macOS this is advice. On Windows it is a requirement, for a mechanical
 reason: `os.replace()` fails with a permission error when another process
 holds the destination file open. Claude Desktop holds its config open.
 
-The failure lands *after* the backup has been written, leaving a `.ga-tmp`
-file behind. Nothing is lost, but the message will be about permissions and
-the cause is the running app.
+The failure lands *after* the backup has been written. The original config
+is untouched and nothing is lost, but the message will be about permissions
+and the cause is the running app. (An older version could leave a
+`<name>.ga-tmp` file beside the config; it is safe to delete.)
 
 Fully quit — not just close the window — then register, then reopen.
 
