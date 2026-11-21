@@ -72,12 +72,28 @@ def _grep(pattern):
     return [line for line in r.stdout.splitlines() if line]
 
 
+def _ls_files(*args):
+    r = subprocess.run(["git", "ls-files", *args], cwd=TOP, capture_output=True,
+                       text=True)
+    # A failed ls-files prints nothing, and an empty list of tracked paths
+    # would pass every check below (#2015).
+    if r.returncode != 0:
+        raise RuntimeError("git ls-files failed (exit %d): %s"
+                           % (r.returncode, r.stderr.strip()[:200]))
+    return r.stdout.splitlines()
+
+
 class TestTheOldNamesAreGone(unittest.TestCase):
     def test_a_grep_that_errors_is_a_failure_not_a_clean_result(self):
         # An unbalanced pattern makes git grep exit 128 with no output. Read
         # as "no matches", a broken grep would report every old name gone.
         with self.assertRaises(RuntimeError):
             _grep("(")
+
+    def test_a_path_listing_that_errors_is_a_failure_not_an_empty_tree(self):
+        # An unknown option makes git ls-files exit 129 with no output.
+        with self.assertRaises(RuntimeError):
+            _ls_files("--no-such-option")
 
     def test_the_package_folder_is_data_noodler(self):
         self.assertTrue(os.path.isfile(os.path.join(TOP, "data-noodler", "START-HERE.md")))
@@ -97,9 +113,7 @@ class TestTheOldNamesAreGone(unittest.TestCase):
                          + "\n".join(stray))
 
     def test_no_tracked_path_uses_an_old_name(self):
-        r = subprocess.run(["git", "ls-files"], cwd=TOP, capture_output=True,
-                           text=True)
-        stray = [p for p in r.stdout.splitlines()
+        stray = [p for p in _ls_files()
                  if any(re.search("(?i)" + n, p) for n in OLD_NAMES
                         if not n.startswith("(?-i"))]
         self.assertEqual(stray, [])
