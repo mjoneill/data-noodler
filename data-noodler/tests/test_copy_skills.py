@@ -148,6 +148,46 @@ class TestTheCompareReadsContentAndLinksAreNotFollowed(unittest.TestCase):
             self.assertEqual(f.read(), "someone's own work")
         self.assertTrue(os.path.islink(self.dest))
 
+    def _link_inside(self, kind):
+        # Installed, then a subfolder or a file inside it replaced by a link
+        # to someone's own copy (Indigo's review of PR #22).
+        os.makedirs(os.path.join(self.src, "scripts"))
+        self._write(self.src, "v1")
+        with open(os.path.join(self.src, "scripts", "a.py"), "w") as f:
+            f.write("v1")
+        copy_skills.install_skill("data-noodler", self.src, self.skills)
+        outside = tempfile.mkdtemp()
+        with open(os.path.join(outside, "a.py"), "w") as f:
+            f.write("precious")
+        try:
+            if kind == "folder":
+                import shutil
+                shutil.rmtree(os.path.join(self.dest, "scripts"))
+                os.symlink(outside, os.path.join(self.dest, "scripts"))
+            else:
+                os.remove(os.path.join(self.dest, "scripts", "a.py"))
+                os.symlink(os.path.join(outside, "a.py"),
+                           os.path.join(self.dest, "scripts", "a.py"))
+        except (OSError, NotImplementedError) as exc:
+            self.skipTest(f"cannot create symlinks here ({exc})")
+        with open(os.path.join(self.src, "scripts", "a.py"), "w") as f:
+            f.write("v2-newer")
+        return outside
+
+    def _assert_blocked_and_outside_untouched(self, outside):
+        for replace in (False, True):
+            status, detail = copy_skills.install_skill(
+                "data-noodler", self.src, self.skills, replace=replace)
+            self.assertEqual(status, "blocked", detail)
+            self.assertIn("link", detail)
+        with open(os.path.join(outside, "a.py")) as f:
+            self.assertEqual(f.read(), "precious")
+
+    def test_a_linked_subfolder_inside_the_skill_is_never_written_through(self):
+        self._assert_blocked_and_outside_untouched(self._link_inside("folder"))
+
+    def test_a_linked_file_inside_the_skill_is_never_written_through(self):
+        self._assert_blocked_and_outside_untouched(self._link_inside("file"))
 
 class TestExitCodesNeverSayDoneWhenItIsNot(unittest.TestCase):
     """Code review #6: a skill that was not installed exited 0 ('done')."""

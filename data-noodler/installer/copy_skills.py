@@ -70,6 +70,16 @@ def _same_tree(a, b):
                for d in cmp.common_dirs)
 
 
+def _first_link(folder):
+    """The first link anywhere inside `folder`, or None. Not followed."""
+    for root, dirs, files in os.walk(folder):
+        for name in dirs + files:
+            path = os.path.join(root, name)
+            if os.path.islink(path):
+                return path
+    return None
+
+
 def _extra_files(src, dest):
     extra = []
     for root, dirs, files in os.walk(dest):
@@ -121,6 +131,16 @@ def install_skill(name, src, skills_dir, replace=False):
         return "not-ours-differs", (
             f"{dest} was not installed by this package (no {MARKER}) and "
             "its files differ from the new version. Left untouched.")
+    # Everything below writes into dest, and copytree follows a link inside
+    # it -- a linked subfolder or file -- into whatever it points at. The
+    # top-level check above is not enough on its own (Indigo's review of
+    # PR #22), so nothing is written while any link is inside.
+    inner = _first_link(dest)
+    if inner is not None:
+        return "blocked", (f"{inner} is a link (to {os.path.realpath(inner)})."
+                           f" Left {dest} untouched; the skill is NOT "
+                           "refreshed. Replace the link with a real file or "
+                           "folder, or remove it, and re-run.")
     if _same_tree(src, dest):
         _mark(dest)
         return "unchanged", dest
