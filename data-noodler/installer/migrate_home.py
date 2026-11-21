@@ -230,7 +230,9 @@ def undo(home=None, running=None):
     _refuse_if_running(
         (running or (lambda: _default_running(home, folder=new)))(), new)
     cfg_path = os.path.join(new, "config.json")
-    shutil.copy2(record["config_backup"], cfg_path)
+    # Atomic, like the move: a kill mid-copy must not truncate config.json.
+    with open(record["config_backup"], encoding="utf-8") as f:
+        safe_write.write_atomically(cfg_path, f.read())
     for src, dst in reversed(record["files"]):
         os.rename(dst, src)
     os.remove(path)

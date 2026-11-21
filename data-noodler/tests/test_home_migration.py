@@ -234,6 +234,20 @@ class UndoIsAsCarefulAsTheMove(unittest.TestCase):
         self.assertFalse(os.path.exists(self.old))
 
 
+    def test_undo_restores_config_json_atomically(self):
+        # A kill mid-copy truncated config.json; the backup survived, but
+        # the home was left unreadable (Indigo, PR #22 review).
+        from unittest import mock
+        with mock.patch.object(migrate_home.safe_write, "write_atomically",
+                               wraps=migrate_home.safe_write.write_atomically
+                               ) as w:
+            migrate_home.undo(self.h, running=lambda: [])
+        self.assertIn("config.json",
+                      [os.path.basename(c.args[0]) for c in w.call_args_list])
+        with open(os.path.join(self.old, "config.json")) as f:
+            self.assertNotIn("data-noodler-credential", f.read())
+
+
 class TheMoveWritesAtomically(unittest.TestCase):
     """#2009: config.json and the move record were written with a plain
     open(), so a kill mid-write left a truncated file. The rollback path
