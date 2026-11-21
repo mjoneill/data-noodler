@@ -6,7 +6,6 @@ trust levels for every project the user has opened plus live plugin state.
 Delegating to the CLI removes the riskiest write in this system.
 """
 
-import datetime
 import json
 import ntpath
 import os
@@ -160,15 +159,12 @@ def _make_private(path):
 
 
 def _backup(path):
-    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    dest = f"{path}.ga-backup-{stamp}"
     try:
-        shutil.copy2(path, dest)
+        return safe_write.backup_copy(path)
     except (OSError, shutil.Error) as exc:
         raise RegisterError(
-            f"Could not back up {path} to {dest} ({exc}). Refusing to write "
-            "without a backup in place.")
-    return dest
+            f"Could not back up {path} ({exc}). Refusing to write without a "
+            "backup in place.")
 
 
 # #1999: names this package used to register under. Each install removes

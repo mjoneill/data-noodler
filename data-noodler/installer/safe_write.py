@@ -13,7 +13,9 @@ Standard library only: bootstrap_config runs under whatever Python is at
 hand.
 """
 
+import datetime
 import os
+import shutil
 import stat
 import tempfile
 
@@ -86,3 +88,39 @@ def write_atomically(path, text, default_mode=DEFAULT_MODE, private=False):
         raise SafeWriteError(f"Could not write {target} ({exc}). The "
                              "original is untouched.")
     return target
+
+
+def backup_copy(path):
+    """Copy `path` to a new `<path>.ga-backup-<stamp>` and return its name.
+
+    Never overwrites an earlier backup: stamps are to the second, and a
+    second write in the same second used to replace the first backup -- the
+    only copy of the original -- with the second (#2009). A taken name gets
+    a -2, -3, ... suffix.
+
+    The copy goes through a mkstemp temp file and os.replace, so a link
+    planted at the backup name is renamed over, never written through. The
+    backup keeps the original's mode and times, as shutil.copy2 did.
+    Raises OSError; callers word the refusal.
+    """
+    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    base = f"{path}.ga-backup-{stamp}"
+    dest, n = base, 1
+    while os.path.lexists(dest):
+        n += 1
+        dest = f"{base}-{n}"
+    folder, name = os.path.split(path)
+    fd, tmp = tempfile.mkstemp(dir=folder or os.curdir,
+                               prefix="." + name + ".", suffix=TEMP_SUFFIX)
+    try:
+        with os.fdopen(fd, "wb") as out, open(path, "rb") as src:
+            shutil.copyfileobj(src, out)
+        shutil.copystat(path, tmp)
+        os.replace(tmp, dest)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+    return dest

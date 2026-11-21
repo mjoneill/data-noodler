@@ -244,7 +244,7 @@ class TestWriteConfigFailures(unittest.TestCase):
         with open(path, "w") as f:
             json.dump({"existing": "do not lose me"}, f)
 
-        with patch("bootstrap_config.shutil.copy2",
+        with patch("safe_write.shutil.copyfileobj",
                    side_effect=PermissionError(13, "Permission denied")):
             with self.assertRaises(bootstrap_config.BootstrapError) as ctx:
                 bootstrap_config.write_config(path, {"a": 1}, force=True)

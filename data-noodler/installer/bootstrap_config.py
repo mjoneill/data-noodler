@@ -13,7 +13,6 @@ place that always names the interpreter that will actually run the program.
 """
 
 import argparse
-import datetime
 import json
 import ntpath
 import os
@@ -329,14 +328,12 @@ def write_config(path, cfg, force=False):
         return False
 
     if os.path.exists(path):
-        stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        dest = f"{path}.ga-backup-{stamp}"
         try:
-            shutil.copy2(path, dest)
+            safe_write.backup_copy(path)
         except (OSError, shutil.Error) as exc:
             raise BootstrapError(
-                f"Could not back up {path} to {dest} ({exc}). Refusing to "
-                "replace it without a backup in place.")
+                f"Could not back up {path} ({exc}). Refusing to replace it "
+                "without a backup in place.")
 
     parent = os.path.dirname(path)
     if parent:

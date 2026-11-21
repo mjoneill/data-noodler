@@ -165,5 +165,83 @@ class TestTheTempNameIsUnpredictable(unittest.TestCase):
                          os.path.realpath(self.d))
 
 
+def _one_second():
+    """Freeze every installer module's clock to one second, so two writes
+    land in it -- whichever module computes the backup stamp."""
+    import contextlib
+    from unittest import mock
+    frozen = mock.Mock()
+    frozen.datetime.now.return_value.strftime.return_value = "20261121-020000"
+    stack = contextlib.ExitStack()
+    for mod in ("register", "bootstrap_config", "safe_write"):
+        stack.enter_context(mock.patch(mod + ".datetime", frozen,
+                                       create=True))
+    return stack
+
+
+class TestBackupsNeverOverwriteEachOther(unittest.TestCase):
+    """Backups were stamped to the second and copied over whatever was there,
+    so a second write in the same second replaced the first backup -- the
+    only copy of the original -- with the second (#2009)."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+
+    def _start(self, name):
+        path = os.path.join(self.d, name)
+        with open(path, "w") as f:
+            f.write('{"original": true}')
+        return path
+
+    def _backup_texts(self, name):
+        out = []
+        for n in sorted(os.listdir(self.d)):
+            if n.startswith(name + ".ga-backup-"):
+                with open(os.path.join(self.d, n)) as f:
+                    out.append(f.read())
+        return out
+
+    def test_two_registrations_in_one_second_keep_the_original(self):
+        path = self._start("claude.json")
+        with _one_second():
+            register.register_json(path, {"x": {"command": "1"}})
+            register.register_json(path, {"x": {"command": "2"}})
+        texts = self._backup_texts("claude.json")
+        self.assertEqual(len(texts), 2, texts)
+        self.assertIn('{"original": true}', texts)
+
+    def test_two_forced_config_writes_in_one_second_keep_the_original(self):
+        path = self._start("config.json")
+        with _one_second():
+            bootstrap_config.write_config(path, {"v": 1}, force=True)
+            bootstrap_config.write_config(path, {"v": 2}, force=True)
+        texts = self._backup_texts("config.json")
+        self.assertEqual(len(texts), 2, texts)
+        self.assertIn('{"original": true}', texts)
+
+    @unittest.skipIf(sys.platform.startswith("win"), "POSIX modes")
+    def test_a_backup_keeps_the_original_mode(self):
+        path = self._start("claude.json")
+        os.chmod(path, 0o600)
+        register.register_json(path, {"x": {"command": "1"}})
+        name = [n for n in os.listdir(self.d) if ".ga-backup-" in n][0]
+        self.assertEqual(_mode(os.path.join(self.d, name)), 0o600)
+
+    def test_a_link_planted_at_the_backup_name_is_not_written_through(self):
+        path = self._start("claude.json")
+        victim = os.path.join(self.d, "victim.txt")
+        with open(victim, "w") as f:
+            f.write("precious")
+        try:
+            os.symlink(victim, path + ".ga-backup-20261121-020000")
+        except (OSError, NotImplementedError) as exc:
+            self.skipTest(f"cannot create symlinks here ({exc})")
+        with _one_second():
+            register.register_json(path, {"x": {"command": "1"}})
+        with open(victim) as f:
+            self.assertEqual(f.read(), "precious")
+        self.assertIn('{"original": true}', self._backup_texts("claude.json"))
+
+
 if __name__ == "__main__":
     unittest.main()

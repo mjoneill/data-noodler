@@ -165,7 +165,7 @@ class TestRegisterJson(unittest.TestCase):
     def test_backup_failure_aborts_without_writing(self):
         path = self._copy("claude_desktop_config.json")
         original = open(path).read()
-        with mock.patch("register.shutil.copy2",
+        with mock.patch("safe_write.shutil.copyfileobj",
                          side_effect=PermissionError("denied")):
             with self.assertRaises(register.RegisterError) as ctx:
                 register.register_json(path, register.server_entries(DN_HOME))
