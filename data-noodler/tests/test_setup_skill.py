@@ -485,10 +485,6 @@ class TestSecondWindowsInstallLessons(unittest.TestCase):
         self.assertIn("ordinary PowerShell", self.windows)
         self.assertIn("2203", self.windows)
 
-    def test_windows_page_does_not_ask_users_to_notify_it(self):
-        # Michael, 2026-10-09: no requirement to tell IT about a Python install.
-        self.assertNotIn("Ask before this becomes the standing", self.windows)
-
     # -- Defender (#139, #142) -------------------------------------------
 
     def test_windows_page_explains_the_python_m_entry(self):

@@ -3,7 +3,7 @@
 Michael, 2026-11-20: "when working in GSC to always double-check whether the
 user wants the domain data or the property data (if both a domain and a
 property exist). This should be extended to disambiguate between domain and
-http and https versions of a propoerty if all three exist."
+http and https versions of a property if all three exist."
 
 What happened: asked about a site listed as sc-domain:, https:// and http://,
 the agent picked the domain itself and reported from it. The three cover
