@@ -18,6 +18,15 @@ BIN = os.path.join(REPO, "data-noodler", "bin")
 LAUNCHERS = ["launch-data-noodler", "launch-analytics-mcp"]
 
 
+def setUpModule():
+    # The launchers are POSIX sh scripts and nothing on Windows runs them:
+    # a Windows registration names the venv interpreter directly
+    # (register._windows_entries). Codex on Windows, which would run them,
+    # is #2012 (#2008).
+    if sys.platform.startswith("win"):
+        raise unittest.SkipTest("the launchers are POSIX sh scripts")
+
+
 class TestLaunchers(unittest.TestCase):
     def test_both_launchers_exist_and_are_executable(self):
         for name in LAUNCHERS:

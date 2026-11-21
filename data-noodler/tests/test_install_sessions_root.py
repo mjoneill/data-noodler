@@ -114,6 +114,8 @@ class TestEnsureSessionsRoot(unittest.TestCase):
         self.assertFalse(os.path.isdir(target))
         self.assertIn(target, out.getvalue())
 
+    @unittest.skipIf(sys.platform.startswith("win"),
+                     "a read-only folder mode does not stop mkdir on Windows")
     def test_permission_denied_reports_and_does_not_raise(self):
         tmp = tempfile.mkdtemp()
         locked = os.path.join(tmp, "locked")

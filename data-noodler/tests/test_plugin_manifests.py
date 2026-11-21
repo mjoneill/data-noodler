@@ -9,6 +9,7 @@ absolute path, with no "cwd", so Codex starts them in the project (#165).
 
 import json
 import os
+import sys
 import tempfile
 import unittest
 
@@ -98,6 +99,8 @@ class TestMcpManifest(unittest.TestCase):
                               entry["args"][1])
                 self.assertIn("/bin/" + launchers[name], entry["args"][1])
 
+    @unittest.skipIf(sys.platform.startswith("win"),
+                     "runs the entry through /bin/sh; Codex on Windows is #2012")
     def test_codex_runs_an_install_that_predates_the_rename(self):
         # #1999: until migrate_home.py moves it, the payload is in the old
         # home. The plugin's command must find it there, and prefer the new
@@ -137,6 +140,8 @@ class TestMcpManifest(unittest.TestCase):
                 self.assertIsInstance(item, str)
 
 
+@unittest.skipIf(sys.platform.startswith("win"),
+                 "the entries exec through /bin/sh; Codex on Windows is #2012")
 class TestTheEntriesActuallyRun(unittest.TestCase):
     """Run each .mcp.json command the way Codex would, from a project."""
 

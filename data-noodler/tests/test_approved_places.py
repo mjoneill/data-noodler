@@ -14,6 +14,7 @@ picks among them; it cannot invent one.
 import asyncio
 import json
 import os
+import pathlib
 import subprocess
 import sys
 import tempfile
@@ -256,7 +257,9 @@ class TestStartSessionUsesTheRootsTheClientDeclares(unittest.TestCase):
 
         async def roots(context):
             return types.ListRootsResult(roots=[types.Root(
-                uri="file://" + project)])
+                # as_uri, not "file://" + path: on Windows that gives
+                # file://C:\\..., whose host is "C:" (#2008).
+                uri=pathlib.Path(project).as_uri())])
 
         async def run():
             params = StdioServerParameters(command=sys.executable,

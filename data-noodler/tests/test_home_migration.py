@@ -338,7 +338,10 @@ class TestThePersonalGuardFollowsTheHome(unittest.TestCase):
              "import personal_guard; print(personal_guard.config_dir())",
              os.path.join(REPO, "tools")],
             capture_output=True, text=True,
-            env={"HOME": h, "PATH": os.environ.get("PATH", "")})
+            # USERPROFILE too: expanduser reads it, not HOME, on Windows,
+            # so without it "~" stayed unexpanded there (#2008).
+            env={"HOME": h, "USERPROFILE": h,
+                 "PATH": os.environ.get("PATH", "")})
         return out.stdout.strip()
 
     def test_it_reads_the_old_home_before_the_move(self):

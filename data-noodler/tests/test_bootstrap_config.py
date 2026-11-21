@@ -21,6 +21,12 @@ import bootstrap_config
 
 QUOTA = "data-noodler-123456"
 
+# The shebang-reading tests describe console scripts as pipx and uv make them
+# on macOS. Windows console scripts are compiled wrappers with no shebang,
+# and have their own tests below (TestWindowsInterpreterDiscovery), so these
+# name the platform rather than inheriting the running one (#2008).
+POSIX = "darwin"
+
 
 def _fake_console_script(directory, interpreter):
     """A console script shaped like the ones pipx and uv generate."""
@@ -35,7 +41,7 @@ class TestVenvPythonDiscovery(unittest.TestCase):
     def test_reads_the_interpreter_from_the_shebang(self):
         d = tempfile.mkdtemp()
         script = _fake_console_script(d, "/opt/venvs/analytics-mcp/bin/python")
-        self.assertEqual(bootstrap_config.venv_python_for(script),
+        self.assertEqual(bootstrap_config.venv_python_for(script, platform=POSIX),
                          "/opt/venvs/analytics-mcp/bin/python")
 
     def test_handles_a_shebang_containing_a_space(self):
@@ -43,7 +49,7 @@ class TestVenvPythonDiscovery(unittest.TestCase):
         d = tempfile.mkdtemp()
         interp = "/Users/x/Library/Application Support/pipx/venvs/a/bin/python"
         script = _fake_console_script(d, interp)
-        self.assertEqual(bootstrap_config.venv_python_for(script), interp)
+        self.assertEqual(bootstrap_config.venv_python_for(script, platform=POSIX), interp)
 
     def test_handles_the_pip_polyglot_wrapper_shape(self):
         # Discovered against a real pipx install on this machine: pip's
@@ -65,7 +71,7 @@ class TestVenvPythonDiscovery(unittest.TestCase):
                 "# -*- coding: utf-8 -*-\n"
                 "import sys\n")
         os.chmod(path, stat.S_IRWXU)
-        self.assertEqual(bootstrap_config.venv_python_for(path), interp)
+        self.assertEqual(bootstrap_config.venv_python_for(path, platform=POSIX), interp)
 
     def test_handles_the_pip_26_double_quoted_polyglot(self):
         # pip 26 double-quotes the interpreter in the same wrapper. Measured
@@ -81,24 +87,25 @@ class TestVenvPythonDiscovery(unittest.TestCase):
                 "' '''\n"
                 "import sys\n")
         os.chmod(path, stat.S_IRWXU)
-        self.assertEqual(bootstrap_config.venv_python_for(path), interp)
+        self.assertEqual(bootstrap_config.venv_python_for(path, platform=POSIX), interp)
 
     def test_returns_none_for_a_binary_with_no_shebang(self):
         d = tempfile.mkdtemp()
         path = os.path.join(d, "analytics-mcp")
         with open(path, "wb") as f:
             f.write(b"\xcf\xfa\xed\xfe not a script")
-        self.assertIsNone(bootstrap_config.venv_python_for(path))
+        self.assertIsNone(bootstrap_config.venv_python_for(path, platform=POSIX))
 
     def test_returns_none_for_a_missing_file(self):
-        self.assertIsNone(bootstrap_config.venv_python_for("/nonexistent/x"))
+        self.assertIsNone(bootstrap_config.venv_python_for("/nonexistent/x", platform=POSIX))
 
 
 class TestBuildConfig(unittest.TestCase):
     def test_every_required_key_is_present(self):
         d = tempfile.mkdtemp()
         script = _fake_console_script(d, "/opt/v/bin/python")
-        cfg = bootstrap_config.build_config(d, QUOTA, binary=script, validate=False)
+        cfg = bootstrap_config.build_config(d, QUOTA, binary=script, validate=False,
+                                            platform=POSIX)
         for key in ("oauth_client_file", "adc_file", "quota_project",
                     "venv_python", "properties_csv"):
             self.assertIn(key, cfg)
@@ -107,7 +114,8 @@ class TestBuildConfig(unittest.TestCase):
     def test_paths_are_anchored_to_the_given_home(self):
         d = tempfile.mkdtemp()
         script = _fake_console_script(d, "/opt/v/bin/python")
-        cfg = bootstrap_config.build_config(d, QUOTA, binary=script, validate=False)
+        cfg = bootstrap_config.build_config(d, QUOTA, binary=script, validate=False,
+                                            platform=POSIX)
         self.assertTrue(cfg["properties_csv"].startswith(d), cfg)
         self.assertTrue(cfg["adc_file"].startswith(d), cfg)
 
@@ -119,7 +127,8 @@ class TestBuildConfig(unittest.TestCase):
         # part of this installer ever creates.
         d = tempfile.mkdtemp()
         script = _fake_console_script(d, "/opt/v/bin/python")
-        cfg = bootstrap_config.build_config(d, QUOTA, binary=script, validate=False)
+        cfg = bootstrap_config.build_config(d, QUOTA, binary=script, validate=False,
+                                            platform=POSIX)
         self.assertIn("mint_script", cfg)
         self.assertTrue(cfg["mint_script"].startswith(d), cfg["mint_script"])
         self.assertNotIn(".claude/skills", cfg["mint_script"])
@@ -141,7 +150,8 @@ class TestBuildConfig(unittest.TestCase):
     def test_records_the_binary_so_the_launcher_need_not_search(self):
         d = tempfile.mkdtemp()
         script = _fake_console_script(d, "/opt/v/bin/python")
-        cfg = bootstrap_config.build_config(d, QUOTA, binary=script, validate=False)
+        cfg = bootstrap_config.build_config(d, QUOTA, binary=script, validate=False,
+                                            platform=POSIX)
         self.assertEqual(cfg["analytics_mcp_bin"], script)
 
     def test_raises_when_the_program_cannot_be_found(self):
@@ -153,7 +163,8 @@ class TestBuildConfig(unittest.TestCase):
         d = tempfile.mkdtemp()
         with patch("bootstrap_config.detect_analytics_mcp", return_value=None):
             with self.assertRaises(bootstrap_config.BootstrapError) as ctx:
-                bootstrap_config.build_config(d, QUOTA, binary=None, validate=False)
+                bootstrap_config.build_config(d, QUOTA, binary=None, validate=False,
+                                            platform=POSIX)
         self.assertIn("analytics-mcp", str(ctx.exception))
         self.assertIn("uv tool install", str(ctx.exception))
 
@@ -163,7 +174,8 @@ class TestBuildConfig(unittest.TestCase):
         with open(path, "wb") as f:
             f.write(b"\xcf\xfa\xed\xfe")
         with self.assertRaises(bootstrap_config.BootstrapError) as ctx:
-            bootstrap_config.build_config(d, QUOTA, binary=path, validate=False)
+            bootstrap_config.build_config(d, QUOTA, binary=path, validate=False,
+                                            platform=POSIX)
         self.assertIn("interpreter", str(ctx.exception))
 
     def test_omits_quota_project_by_default(self):
@@ -173,14 +185,16 @@ class TestBuildConfig(unittest.TestCase):
         # theirs. Both GA APIs work with no quota project header at all.
         d = tempfile.mkdtemp()
         script = _fake_console_script(d, "/opt/v/bin/python")
-        cfg = bootstrap_config.build_config(d, binary=script, validate=False)
+        cfg = bootstrap_config.build_config(d, binary=script, validate=False,
+                                            platform=POSIX)
         self.assertNotIn("quota_project", cfg)
 
     def test_includes_quota_project_when_explicitly_given(self):
         # Someone who does own a Cloud project can still opt into sending it.
         d = tempfile.mkdtemp()
         script = _fake_console_script(d, "/opt/v/bin/python")
-        cfg = bootstrap_config.build_config(d, "my-own-project", binary=script, validate=False)
+        cfg = bootstrap_config.build_config(d, "my-own-project", binary=script, validate=False,
+                                            platform=POSIX)
         self.assertEqual(cfg["quota_project"], "my-own-project")
 
 
@@ -262,6 +276,8 @@ class TestWriteConfigFailures(unittest.TestCase):
                 bootstrap_config.write_config(path, {"a": 1})
         self.assertIn("nowhere to write", str(ctx.exception))
 
+    @unittest.skipIf(sys.platform.startswith("win"),
+                     "a read-only folder mode does not stop writes on Windows")
     def test_an_unwritable_directory_raises_bootstrap_error(self):
         d = tempfile.mkdtemp()
         path = os.path.join(d, "config.json")
@@ -439,6 +455,8 @@ class TestInterpreterValidation(unittest.TestCase):
     "the tools are missing".
     """
 
+    @unittest.skipIf(sys.platform.startswith("win"),
+                     "the fixture's interpreter is /usr/bin/false")
     def test_an_interpreter_that_cannot_import_the_server_is_refused(self):
         d = tempfile.mkdtemp()
         script = os.path.join(d, "analytics-mcp")
