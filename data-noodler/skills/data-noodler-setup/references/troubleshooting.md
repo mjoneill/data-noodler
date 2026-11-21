@@ -66,9 +66,9 @@ icacls.** It is Microsoft Defender's Attack Surface Reduction rule
 `01443614-CD74-433A-B99E-2ECDC07BFC25`, which blocks programs that have not
 been seen on enough other machines. pip generates
 `venv\Scripts\analytics-mcp.exe` on each machine, so it always fails that
-check where IT enforces the rule. Measured on a managed machine 2026-10-09;
+check wherever that rule is enforced. Measured on a managed machine 2026-10-09;
 the 2026-10-05 machine connected through the same `.exe`, so it varies by
-machine and can change when IT pushes policy.
+machine and can change when the machine's policy is updated.
 
 Confirm (PowerShell):
 
@@ -86,7 +86,7 @@ install whose entry names the `.exe` gets the new entry on that re-run. Then
 re-run `verify.py`.
 
 If the denied program is `python.exe` itself, there is no workaround on this
-side: IT has to allow it. Do not copy the interpreter somewhere else to get
+side: whoever manages the machine has to allow it. Do not copy the interpreter somewhere else to get
 around the rule.
 
 ## `upgrade.py` says UPGRADE FAILED (or UPGRADE INTERRUPTED)

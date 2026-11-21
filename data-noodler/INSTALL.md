@@ -73,8 +73,8 @@ registered entry names the interpreter directly, and analytics-mcp runs as
 no `.ps1` (execution policy blocks unsigned scripts); and fully quitting the
 application before registering is a hard requirement rather than prudence.
 
-Windows has been installed end to end on two IT-managed machines (2026-10-05
-and 2026-10-09), with Claude Code and Claude Desktop both answering real GA
+Windows has been installed end to end on two Windows 11 machines without
+administrator rights, with Claude Code and Claude Desktop both answering real GA
 questions. Paths containing spaces are still unproven, and this release's Codex plugin doesn't start on native Windows yet (Codex ran there with an earlier release);
 that page says which is which.
 

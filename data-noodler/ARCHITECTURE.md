@@ -79,7 +79,7 @@ confinement with Windows-style paths, the upgrade's rollback under failure,
 Ctrl-C and a hard kill, and that every documented command matches the code.
 
 Proven on real machines at the time of writing: full installs on macOS and
-on IT-managed Windows 11 (no administrator rights, Microsoft Store Claude
+on Windows 11 (no administrator rights, Microsoft Store Claude
 Desktop, Defender application control), with Claude Desktop and Claude Code
 answering real questions.
 

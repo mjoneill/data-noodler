@@ -12,7 +12,7 @@ export full results to files. It runs on each person's own machine, under
 their own Google account, read-only, with no administrator rights and no
 server to host.
 
-The design was proven on macOS and on IT-managed Windows 11, in Claude Code,
+The design was proven on macOS and on Windows 11 without administrator rights, in Claude Code,
 Claude Desktop, Codex and the ChatGPT desktop app. It went through two
 redesigns, several reviews and installs on other people's machines. Most of
 this document is what those installs taught.

@@ -193,7 +193,7 @@ class TestWindowsReference(unittest.TestCase):
     def test_it_does_not_tell_a_windows_reader_to_install_with_uv(self):
         # uv may be discussed -- explaining why it is absent is useful. What
         # must not appear is a runnable uv install command, because on the
-        # machine measured uv is absent and gated behind an IT approval.
+        # machine measured uv is absent and needs an administrator to install.
         self.assertNotIn("uv tool install", self.text)
         self.assertIn("python -m venv", self.text)
 

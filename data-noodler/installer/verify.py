@@ -114,8 +114,8 @@ def hint_for(error, command):
             "python.exe -m analytics_mcp.server instead of this launcher. See "
             "troubleshooting.md, \"Access is denied on Windows\".")
     return base + (
-        " The blocked program is the interpreter itself, so IT has to allow "
-        "it. See troubleshooting.md, \"Access is denied on Windows\".")
+        " The blocked program is the interpreter itself, so whoever manages "
+        "this machine has to allow it. See troubleshooting.md, \"Access is denied on Windows\".")
 
 
 def probe_config(config_path, names=None):

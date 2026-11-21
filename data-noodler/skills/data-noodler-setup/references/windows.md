@@ -4,9 +4,8 @@ Read this alongside SKILL.md, not instead of it. The step numbering and the
 order are the same; this page says what differs and why.
 
 Everything below was measured on real machines -- first on 2026-09-14, then
-on full installs on 2026-10-05 and 2026-10-09 -- all Windows 11 Education, no
-administrator rights, IT-managed. The full reports stay with the original
-maintainer's private records, not in this package. Where something was
+on full installs on 2026-10-05 and 2026-10-09 -- all Windows 11, no
+administrator rights. Where something was
 measured, it says so. Where it was not, it says that too.
 
 ## The short version
@@ -56,7 +55,8 @@ double-clicking in File Explorer**:
   for 3.12 and install for the current user only. "Install Now" does that
   and needs no administrator rights. The silent form that worked:
   `& "$env:USERPROFILE\Downloads\python-3.12.10-amd64.exe" /quiet InstallAllUsers=0`
-- **Software Center**, if IT offers Python there. Not measured.
+- **An app catalogue**, if whoever manages the machine offers Python there.
+  Not measured.
 
 Then **name the new interpreter by its full path** when creating the venv. A
 per-user install goes to `%LOCALAPPDATA%\Programs\Python\Python312\`, and a
@@ -73,7 +73,7 @@ bare `python` can still resolve to the Store stub:
 Windows machine with a modern Python already installed.
 
 On the machine measured, `uv` was absent, `pipx` was absent, and software
-installs were gated behind an IT-managed Software Center. Python 3.12 and
+installs needed an administrator. Python 3.12 and
 `pip` were present. So:
 
 ```powershell
@@ -120,7 +120,7 @@ bounds packages that get installed, so Windows-only dependencies like pywin32
 go unconstrained rather than conflicting.
 
 `venv` is in the standard library, so this needs no administrator rights and
-nothing from the Software Center.
+nothing from an app catalogue.
 
 **Measured, and worth knowing before you worry:** every binary dependency
 resolved to a prebuilt `win_amd64` wheel — grpcio, cryptography, pydantic_core,
@@ -179,7 +179,7 @@ launcher generated on one machine has, by construction, been seen on no
 other machine. `verify.py` reported `PermissionError: [WinError 5] Access is
 denied`, and the Defender Operational log held event 1121 naming the file.
 On the 2026-10-05 machine the same `.exe` ran, so the rule varies by machine
-and can arrive later with an IT policy push.
+and can arrive later with a policy update.
 
 So `install.py` registers analytics-mcp the way data-noodler already ran:
 
@@ -285,9 +285,8 @@ the code still handles it.
 
 ## Confirmed on a real machine, 2026-10-05
 
-The first end-to-end install, on an IT-managed Windows 11 machine with no
-administrator rights. Full reports stay with the original maintainer's
-private records, not in this package.
+The first end-to-end install, on a Windows 11 machine with no
+administrator rights.
 
 - **Claude Desktop surfaces the tools in chat.** A real GA question asked in
   Desktop chat got a real answer. This is the strongest claim available --

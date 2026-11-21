@@ -41,8 +41,8 @@ INSTALL_HINT = (
     "-c <repo>/data-noodler/installer/constraints.txt")
 
 # Windows has its own, because the macOS advice is wrong there: windows.md opens
-# with "No uv", and on the machine measured uv was absent and gated behind an
-# IT-managed Software Center. Telling a Windows user to install uv sent them
+# with "No uv", and on the machine measured uv was absent and could not be
+# installed without an administrator. Telling a Windows user to install uv sent them
 # away from the documented path. Each command here must stay byte-identical to
 # windows.md -- TestWindowsVenvIsFound asserts that.
 INSTALL_HINT_WINDOWS = (

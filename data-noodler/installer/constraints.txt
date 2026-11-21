@@ -10,7 +10,7 @@
 # This is DATA, not a program. It records a set of versions observed working
 # together, so an install is fast and identical everywhere.
 #
-# HOW TO USE IT
+# HOW TO USE THIS FILE
 #   pip install -c constraints.txt analytics-mcp==1.1.0 google-auth-oauthlib
 #
 # A constraints file only bounds packages that are actually installed; it
