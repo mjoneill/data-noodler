@@ -236,14 +236,31 @@ class TestTheTempFileHasNoPredictableName(unittest.TestCase):
             self.assertEqual(os.path.realpath(call.kwargs["dir"]),
                              os.path.realpath(self.d))
 
+    def _modes_under_umask(self, umask):
+        from unittest import mock
+        with mock.patch.object(export, "_UMASK", umask):
+            export.write_export(self.p, COLS, ROWS, META, overwrite=True)
+        return (stat.S_IMODE(os.stat(self.p).st_mode),
+                stat.S_IMODE(os.stat(self.meta_path).st_mode))
+
     @unittest.skipIf(sys.platform.startswith("win"), "POSIX modes")
     def test_the_export_is_readable_like_any_other_file(self):
         # mkstemp makes its file 0600 and os.replace keeps that mode, so
         # without an explicit chmod every export would silently become
         # owner-only.
-        export.write_export(self.p, COLS, ROWS, META)
-        self.assertEqual(stat.S_IMODE(os.stat(self.p).st_mode), 0o644)
-        self.assertEqual(stat.S_IMODE(os.stat(self.meta_path).st_mode), 0o644)
+        self.assertEqual(self._modes_under_umask(0o022), (0o644, 0o644))
+
+    @unittest.skipIf(sys.platform.startswith("win"), "POSIX modes")
+    def test_a_strict_umask_is_still_honoured(self):
+        # The old os.open(..., 0o644) was filtered by the umask; a bare
+        # chmod to 0o644 is not. A user with umask 077 must not start
+        # getting exports every account on the machine can read.
+        self.assertEqual(self._modes_under_umask(0o077), (0o600, 0o600))
+
+    def test_the_umask_is_the_process_umask(self):
+        current = os.umask(0)
+        os.umask(current)
+        self.assertEqual(export._UMASK, current)
 
     def test_an_ordinary_write_still_succeeds_and_leaves_no_tmp_files(self):
         r = export.write_export(self.p, COLS, ROWS, META)

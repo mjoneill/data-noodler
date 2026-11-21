@@ -57,6 +57,14 @@ TEMP_SUFFIX = ".ga-tmp"
 # set explicitly: an export is an ordinary file the user may hand to anyone.
 EXPORT_MODE = 0o644
 
+# ...but filtered by the umask, as the old os.open(..., 0o644) was. A bare
+# chmod is not, so under umask 077 exports would have gone from 0600 to
+# readable by every account on the machine. Read once, at import, because
+# os.umask can only be read by setting it, and setting it is process-wide:
+# at import nothing else is running yet.
+_UMASK = os.umask(0)
+os.umask(_UMASK)
+
 
 def _open_temp_beside(path):
     """Create a new, uniquely named temp file in `path`'s folder.
@@ -220,7 +228,7 @@ def write_export(path, columns, rows, meta, overwrite=False, preview_rows=5):
             writer = csv.writer(f)
             writer.writerow(columns)
             writer.writerows(rows)
-        os.chmod(tmp, EXPORT_MODE)
+        os.chmod(tmp, EXPORT_MODE & ~_UMASK)
         os.replace(tmp, path)
     except Exception as exc:
         # Broad on purpose: anything that goes wrong while producing the CSV
@@ -240,7 +248,7 @@ def write_export(path, columns, rows, meta, overwrite=False, preview_rows=5):
         with os.fdopen(meta_fd, "w", encoding="utf-8") as f:
             json.dump(receipt, f, indent=2)
             f.write("\n")
-        os.chmod(meta_tmp, EXPORT_MODE)
+        os.chmod(meta_tmp, EXPORT_MODE & ~_UMASK)
         os.replace(meta_tmp, meta_path)
     except Exception as exc:
         # Broad for the same reason as above: a non-JSON-serialisable value
