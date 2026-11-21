@@ -18,6 +18,18 @@ It is for anyone who looks after websites: an individual, a team, an organizatio
 
 It's shared as-is, with no support commitment. To report a security problem privately, see [`SECURITY.md`](SECURITY.md).
 
+## Which apps work where
+
+| App | macOS | Windows |
+|---|---|---|
+| Claude Code | Works. It's where we use it daily. | Works. Installed and run on Windows 11. |
+| Claude Desktop | Works. | Works. Installed and run on Windows 11, including the Microsoft Store version. |
+| Codex | Works, through the Codex plugin. | **Doesn't start yet.** This release's plugin starts its servers through `/bin/sh`. |
+| ChatGPT desktop app: Work and Codex modes | Works, through the same Codex plugin. | **Doesn't start yet**, for the same reason. |
+| ChatGPT desktop app: Chat mode | No. It runs in the cloud and can't reach servers on your computer. | No, for the same reason. |
+
+Linux isn't a supported target. The [Windows notes](data-noodler/skills/data-noodler-setup/references/windows.md) keep the current list of what is and isn't working on Windows, and [`ARCHITECTURE.md`](data-noodler/ARCHITECTURE.md#what-is-proven-and-what-is-not) says what has been proven, and how.
+
 ## Start here
 
 The product lives in [`data-noodler/`](data-noodler/). Begin with [`data-noodler/START-HERE.md`](data-noodler/START-HERE.md), then [`data-noodler/GOOGLE-CLOUD-SETUP.md`](data-noodler/GOOGLE-CLOUD-SETUP.md) to create your own Google app.
