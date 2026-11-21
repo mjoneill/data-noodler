@@ -235,7 +235,7 @@ class TestSessionsRoot(unittest.TestCase):
         cfg = dict(GOOD)
         cfg["sessions_root"] = "~/Desktop/work"
         # normpath, as sessions_root does: expanduser alone gives
-        # C:\\Users\\x/Desktop/work on Windows (#2008).
+        # C:\Users\x/Desktop/work on Windows (#2008).
         self.assertEqual(config.sessions_root(cfg),
                          os.path.normpath(os.path.expanduser("~/Desktop/work")))
 

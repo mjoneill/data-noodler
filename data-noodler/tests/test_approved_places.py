@@ -253,12 +253,16 @@ class TestStartSessionUsesTheRootsTheClientDeclares(unittest.TestCase):
                        "venv_python": sys.executable,
                        "properties_csv": "/x",
                        "sessions_root": os.path.join(home, "s")}, f)
-        env = dict(os.environ, DATA_NOODLER_CONFIG=cfg, HOME=home)
+        # USERPROFILE too: Windows' expanduser reads it, not HOME. Without it the
+        # server's home is the real profile, the temp project sits under its
+        # AppData, and project_reason rightly refuses AppData (#2008).
+        env = dict(os.environ, DATA_NOODLER_CONFIG=cfg, HOME=home,
+                   USERPROFILE=home)
 
         async def roots(context):
             return types.ListRootsResult(roots=[types.Root(
                 # as_uri, not "file://" + path: on Windows that gives
-                # file://C:\\..., whose host is "C:" (#2008).
+                # file://C:\..., whose host is "C:" (#2008).
                 uri=pathlib.Path(project).as_uri())])
 
         async def run():

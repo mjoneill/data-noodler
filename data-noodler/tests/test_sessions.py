@@ -256,7 +256,7 @@ class TestDenylistCoversWindowsToo(unittest.TestCase):
         # ~/.claude is where Claude Code keeps state on Windows too, so these
         # must not be traded away for the %APPDATA% ones.
         # normpath, as build_denylist does: expanduser alone gives
-        # C:\\Users\\x/.claude on Windows (#158, #2008).
+        # C:\Users\x/.claude on Windows (#158, #2008).
         got = sessions.build_denylist(env={})
         for entry in ("~/.claude", "~/.ssh", "~/.config/data-noodler"):
             self.assertIn(os.path.normpath(os.path.expanduser(entry)), got)

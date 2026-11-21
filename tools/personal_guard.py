@@ -49,7 +49,9 @@ def config_dir():
     override = os.environ.get("DATA_NOODLER_PERSONAL_GUARD_CONFIG_DIR")
     if override:
         return override
-    base = os.path.expanduser("~/.config")
+    # Joined, not expanduser("~/.config"): on Windows that keeps the "/",
+    # giving C:\Users\x/.config (#2008).
+    base = os.path.join(os.path.expanduser("~"), ".config")
     new = os.path.join(base, "data-noodler")
     old = os.path.join(base, "ga-" "mcp")
     def has_lists(d):
