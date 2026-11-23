@@ -270,6 +270,12 @@ to sign in with your own Google account.
 "<venv_python from config.json>" <repo>/data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py
 ```
 
+On Windows, in an ordinary PowerShell window:
+
+```powershell
+& "<venv_python from config.json>" "<repo>\data-noodler\marketplace\plugins\data-noodler\skills\data-noodler\scripts\mint_adc.py"
+```
+
 Read `venv_python` out of the `config.json` step 3 just wrote (it's the
 interpreter path that Step 3 discovered — no need to guess it). Quote it:
 on macOS with `pipx` it contains a space
@@ -459,6 +465,13 @@ call will say so; ask the model, or run the renewal command yourself:
 
 ```bash
 "<venv_python>" ~/.config/data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py --force
+```
+
+On Windows, in PowerShell (`~` is not expanded there, so the line names your
+profile folder instead):
+
+```powershell
+& "<venv_python>" "$env:USERPROFILE\.config\data-noodler\marketplace\plugins\data-noodler\skills\data-noodler\scripts\mint_adc.py" --force
 ```
 
 This is the copy of `mint_adc.py` that Step 5 installed under

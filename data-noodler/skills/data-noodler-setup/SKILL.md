@@ -411,6 +411,14 @@ opens a browser and you cannot click through it for them:
 "<venv_python from ~/.config/data-noodler/config.json>" <repo>/data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py --force
 ```
 
+On Windows, give this form instead. The user runs it in an ordinary PowerShell
+window, where a line starting with a quoted path is a parse error without the
+`& ` in front:
+
+```powershell
+& "<venv_python from config.json>" "<repo>\data-noodler\marketplace\plugins\data-noodler\skills\data-noodler\scripts\mint_adc.py" --force
+```
+
 Run the copy in the repo checkout, because at this point in the flow the
 payload step has not run yet, so no copy exists under `~/.config/data-noodler/`.
 Once the payload is installed, the equivalent installed copy is
