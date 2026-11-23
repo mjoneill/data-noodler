@@ -100,9 +100,19 @@ _OLD_SCRIPT_DIRS = "/plugins/ga-" "analytics/skills/google-" "analytics/"
 _NEW_SCRIPT_DIRS = "/plugins/data-noodler/skills/data-noodler/"
 
 
+def _follow_script_rename(path):
+    """The path with the pre-rename folders replaced, in whichever separator
+    the path uses: the old installer built it with os.path.join, so a
+    Windows config.json holds backslashes (#2055)."""
+    for sep in ("/", "\\"):
+        path = path.replace(_OLD_SCRIPT_DIRS.replace("/", sep),
+                            _NEW_SCRIPT_DIRS.replace("/", sep))
+    return path
+
+
 def mint_script(cfg):
     script = cfg.get("mint_script") or default_mint_script()
-    return script.replace(_OLD_SCRIPT_DIRS, _NEW_SCRIPT_DIRS)
+    return _follow_script_rename(script)
 
 
 def renewal_command(cfg, platform=None):

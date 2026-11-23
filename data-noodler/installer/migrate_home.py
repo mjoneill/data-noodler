@@ -68,7 +68,9 @@ _NEW_SCRIPT_DIRS = "/plugins/data-noodler/skills/data-noodler/"
 def _rewrite(value, old, new, tilde_old, tilde_new):
     if not isinstance(value, str):
         return value
-    value = value.replace(_OLD_SCRIPT_DIRS, _NEW_SCRIPT_DIRS)
+    for sep in ("/", "\\"):  # #2055: a Windows config holds backslashes
+        value = value.replace(_OLD_SCRIPT_DIRS.replace("/", sep),
+                              _NEW_SCRIPT_DIRS.replace("/", sep))
     for a, b in ((old, new), (tilde_old, tilde_new)):
         if value == a or value.startswith(a + os.sep) or value.startswith(a + "/"):
             return b + value[len(a):]

@@ -130,6 +130,31 @@ class TheGuardDiffersOnPurpose(unittest.TestCase):
                          os.path.join(h, ".config", "data-noodler"))
 
 
+class TheRenamedScriptFoldersAreFollowedInEitherForm(unittest.TestCase):
+    # #2055: a Windows config.json from before the rename holds backslashes.
+    def _rewrite(self, value):
+        return migrate_home._rewrite(value, "/nowhere", "/nowhere2",
+                                     "~/nowhere", "~/nowhere2")
+
+    def test_a_windows_path_is_followed(self):
+        self.assertEqual(
+            self._rewrite("C:\\h\\plugins\\ga-" "analytics\\skills\\google-"
+                          "analytics\\scripts\\mint_adc.py"),
+            "C:\\h\\plugins\\data-noodler\\skills\\data-noodler"
+            "\\scripts\\mint_adc.py")
+
+    def test_a_posix_path_is_followed(self):
+        self.assertEqual(
+            self._rewrite("/h/plugins/ga-" "analytics/skills/google-"
+                          "analytics/scripts/mint_adc.py"),
+            "/h/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py")
+
+    def test_an_already_renamed_path_is_left_alone(self):
+        for path in ("/h/plugins/data-noodler/skills/data-noodler/s.py",
+                     "C:\\h\\plugins\\data-noodler\\skills\\data-noodler\\s.py"):
+            self.assertEqual(self._rewrite(path), path)
+
+
 class TestTheMoveIsPlannedFirst(unittest.TestCase):
     def test_the_plan_changes_nothing(self):
         h = _fake_home()
