@@ -7,6 +7,7 @@ is what permits a later refresh. Nothing is ever deleted.
 """
 
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -18,8 +19,7 @@ sys.path.insert(0, os.path.join(ROOT, "installer"))
 import copy_skills  # noqa: E402
 
 SHIPPED_SKILLS = (
-    os.path.join(ROOT, "marketplace", "plugins", "data-noodler", "skills",
-                 "data-noodler"),
+    os.path.join(ROOT, "skills", "data-noodler"),
     os.path.join(ROOT, "skills", "data-noodler-setup"),
 )
 
@@ -192,10 +192,10 @@ class TestTheCompareReadsContentAndLinksAreNotFollowed(unittest.TestCase):
 class TestExitCodesNeverSayDoneWhenItIsNot(unittest.TestCase):
     """Code review #6: a skill that was not installed exited 0 ('done')."""
 
-    def _run(self, skills, ga_home):
+    def _run(self, skills, ga_home, dist=ROOT):
         return subprocess.run(
             [sys.executable, os.path.join(ROOT, "installer", "copy_skills.py"),
-             "--ga-home", ga_home, "--dist", ROOT, "--skills-dir", skills],
+             "--ga-home", ga_home, "--dist", dist, "--skills-dir", skills],
             capture_output=True, text=True)
 
     def test_a_file_in_the_way_is_a_failure(self):
@@ -206,8 +206,10 @@ class TestExitCodesNeverSayDoneWhenItIsNot(unittest.TestCase):
         self.assertIn("blocked", p.stdout)
 
     def test_a_missing_source_is_a_failure(self):
-        # ga_home without a payload: the data-noodler source is absent.
-        p = self._run(tempfile.mkdtemp(), tempfile.mkdtemp())
+        # A package with no skills/ folder: the sources are absent (#2106:
+        # both skills now come from the package, not from ga_home).
+        p = self._run(tempfile.mkdtemp(), tempfile.mkdtemp(),
+                      dist=tempfile.mkdtemp())
         self.assertEqual(p.returncode, 1, p.stdout)
         self.assertIn("missing-source", p.stdout)
 
@@ -232,13 +234,21 @@ class TestTheShippedSkillsCarryTheMarker(unittest.TestCase):
                                                         copy_skills.MARKER)),
                             path)
 
-    def test_the_build_marks_the_built_copy_never_the_master(self):
-        import build_plugin_skill as b
-        self.assertNotEqual(os.path.realpath(b.SOURCE), os.path.realpath(b.DEST))
-        with open(b.__file__, encoding="utf-8") as f:
-            code = f.read()
-        self.assertIn("os.path.join(DEST, copy_skills.MARKER)", code)
-        self.assertNotIn("os.path.join(SOURCE, copy_skills.MARKER)", code)
+    def test_the_install_places_the_marked_skill_inside_the_plugin(self):
+        # #2106: the repo holds one copy, skills/data-noodler/. Codex needs it
+        # inside the plugin, so the install puts it there, marker included, so
+        # copy_skills.py can refresh Claude Code's copy from it later.
+        import install
+        mkt = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, mkt, True)
+        install.place_plugin_skill(ROOT, mkt)
+        placed = os.path.join(mkt, *install.SKILL_IN_PLUGIN)
+        self.assertTrue(os.path.exists(os.path.join(placed, "SKILL.md")))
+        self.assertTrue(os.path.exists(os.path.join(placed, copy_skills.MARKER)))
+
+    def test_the_repo_has_no_second_copy_of_the_analytics_skill(self):
+        self.assertFalse(os.path.exists(os.path.join(
+            ROOT, "marketplace", "plugins", "data-noodler", "skills")))
 
 if __name__ == "__main__":
     unittest.main()

@@ -48,7 +48,7 @@ RETIREMENT = {
     "data-noodler/server/config.py",
     "data-noodler/server/sessions.py",
     "data-noodler/marketplace/plugins/data-noodler/.mcp.json",
-    "data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/ga_config.py",
+    "data-noodler/skills/data-noodler/scripts/ga_config.py",
     "data-noodler/tests/test_home_migration.py",
     "data-noodler/tests/test_bootstrap_config.py",
     "data-noodler/tests/test_config.py",

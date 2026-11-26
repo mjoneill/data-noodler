@@ -14,8 +14,7 @@ import unittest
 # runner has nothing installed, and on a machine that has, they would test
 # whatever version happened to be there.
 DIST = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SKILL = os.path.join(DIST, "marketplace", "plugins", "data-noodler", "skills",
-                     "data-noodler")
+SKILL = os.path.join(DIST, "skills", "data-noodler")
 
 
 class TestSkillDocumentsTheDataNoodlerServer(unittest.TestCase):
