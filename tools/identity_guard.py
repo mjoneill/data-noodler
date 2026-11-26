@@ -77,8 +77,14 @@ def commits_to_push(lines, remote):
 ACCEPTED = {
     # 2026-11-26: the merge of PR #29 was made with GitHub's merge command and
     # took the maintainer's account email. Accepted: that address is already
-    # public on the maintainer's profile. Merges are made locally from now on.
+    # public on the maintainer's profile.
     "a3cd3ed1c3a8875a8b71b009d23f8b5e00ab51ae",
+    # 2026-11-26: PR #30's rebase merge did the same, as committer. Accepted
+    # for the same reason. From now on main moves only by a fast-forward push
+    # of a commit that already passed CI on its branch, so GitHub never
+    # writes a commit of its own.
+    "2173511e7ff4dddd988a9494d7fc0fd870a38768",
+    "5616bcb489af42d4cf1bc127b2687c5fc98ff360",
 }
 
 
