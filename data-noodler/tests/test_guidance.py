@@ -395,7 +395,7 @@ class TestNoInventedCutoffs(unittest.TestCase):
 
 SKILL_MD = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "marketplace", "plugins", "data-noodler", "skills", "data-noodler",
+    "skills", "data-noodler",
     "SKILL.md")
 
 

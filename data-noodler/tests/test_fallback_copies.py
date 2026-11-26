@@ -23,8 +23,7 @@ import tempfile
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SCRIPTS = os.path.join(ROOT, "marketplace", "plugins", "data-noodler",
-                       "skills", "data-noodler", "scripts")
+SCRIPTS = os.path.join(ROOT, "skills", "data-noodler", "scripts")
 sys.path.insert(0, os.path.join(ROOT, "server"))
 import config as server_config  # noqa: E402
 

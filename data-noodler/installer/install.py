@@ -20,6 +20,20 @@ import home as home_mod
 import register
 
 PAYLOAD = ("server", "bin", "marketplace")
+
+# #2106: the analytics skill's one copy in the repo is skills/data-noodler/,
+# beside the setup skill. Codex needs it INSIDE its plugin, so the install
+# places it there while it builds marketplace/. The installed path is the same
+# as before, so configs that name its mint_adc.py keep working.
+SKILL_SRC = ("skills", "data-noodler")
+SKILL_IN_PLUGIN = ("plugins", "data-noodler", "skills", "data-noodler")
+
+
+def place_plugin_skill(src_root, marketplace_dir):
+    """Copy the analytics skill into a built marketplace/ for Codex."""
+    shutil.copytree(os.path.join(src_root, *SKILL_SRC),
+                    os.path.join(marketplace_dir, *SKILL_IN_PLUGIN),
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
 # #1999: the server folder's name before the product had one name. An install
 # of ours under that name is moved aside (never deleted) by install_payload.
 LEGACY_PAYLOAD = ("companion",)
@@ -180,6 +194,9 @@ def describe_payload_plan(repo_root, ga_home, home=None):
             lines.append(f"  replace  {dest}  (copied from {src})")
         else:
             lines.append(f"  create   {dest}  (copied from {src})")
+        if name == "marketplace":
+            lines.append(f"  add      {os.path.join(dest, *SKILL_IN_PLUGIN)}  "
+                         f"(copied from {os.path.join(src_root, *SKILL_SRC)})")
     lines.append("  keep every earlier copy -- the installer never removes a "
                  "backup")
     return lines
@@ -233,6 +250,8 @@ def install_payload(repo_root, ga_home, home=None, platform=None):
             os.makedirs(ga_home, exist_ok=True)
             shutil.copytree(src, staging,
                             ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            if name == "marketplace":
+                place_plugin_skill(src_root, staging)
             with open(os.path.join(staging, MARKER), "w", encoding="utf-8") as f:
                 f.write("Written by Data Noodler's install.py. Its presence is what "
                         "permits this directory to be replaced by a reinstall.\n")

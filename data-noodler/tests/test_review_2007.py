@@ -96,8 +96,7 @@ class TestAnalyticsMcpVersionIsWrittenOnceInEffect(unittest.TestCase):
     SITES = [
         ("data-noodler", "installer", "upgrade.py"),
         ("data-noodler", "installer", "bootstrap_config.py"),
-        ("data-noodler", "marketplace", "plugins", "data-noodler", "skills",
-         "data-noodler", "scripts", "mint_adc.py"),
+        ("data-noodler", "skills", "data-noodler", "scripts", "mint_adc.py"),
         (".github", "workflows", "ci.yml"),
         (".github", "workflows", "refresh-pins.yml"),
     ]

@@ -265,13 +265,13 @@ This is the one step that needs your input: it opens a browser and asks you
 to sign in with your own Google account.
 
 ```bash
-"<venv_python from config.json>" <repo>/data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py
+"<venv_python from config.json>" <repo>/data-noodler/skills/data-noodler/scripts/mint_adc.py
 ```
 
 On Windows, in an ordinary PowerShell window:
 
 ```powershell
-& "<venv_python from config.json>" "<repo>\data-noodler\marketplace\plugins\data-noodler\skills\data-noodler\scripts\mint_adc.py"
+& "<venv_python from config.json>" "<repo>\data-noodler\skills\data-noodler\scripts\mint_adc.py"
 ```
 
 Read `venv_python` out of the `config.json` step 3 just wrote (it's the
@@ -307,7 +307,7 @@ again.
 ```
 
 Copies the data-noodler server, launcher scripts, and the Codex plugin
-directory into `~/.config/data-noodler/`. Safe to re-run any time you update the
+directory (with the `data-noodler` skill placed inside it) into `~/.config/data-noodler/`. Safe to re-run any time you update the
 repo.
 
 ## 6. Install the skills for Claude Code

@@ -25,8 +25,7 @@ import gsc  # noqa: E402
 import guidance  # noqa: E402
 import data_noodler  # noqa: E402
 
-SKILL_MD = os.path.join(ROOT, "marketplace", "plugins", "data-noodler",
-                        "skills", "data-noodler", "SKILL.md")
+SKILL_MD = os.path.join(ROOT, "skills", "data-noodler", "SKILL.md")
 
 
 def _site(url):

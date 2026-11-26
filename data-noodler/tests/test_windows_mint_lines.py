@@ -26,6 +26,9 @@ DOCS = ("INSTALL.md", os.path.join("skills", "data-noodler-setup", "SKILL.md"))
 FENCE = re.compile(r"^```(\w*)\n(.*?)^```", re.S | re.M)
 SCRIPT_TAIL = ("marketplace", "plugins", "data-noodler", "skills",
                "data-noodler", "scripts", "mint_adc.py")
+# #2106: in the repo, before anything is installed, the skill is at
+# skills/data-noodler/; the install places it inside the plugin.
+REPO_SCRIPT_TAIL = ("skills", "data-noodler", "scripts", "mint_adc.py")
 
 
 def consent_pairs(doc):
@@ -90,7 +93,7 @@ class ThePowerShellLinesRun(unittest.TestCase):
                     f"open({self.out!r}, 'w').write(' '.join(sys.argv[1:]))\n")
         for script in (
                 os.path.join(self.home, ".config", "data-noodler", *SCRIPT_TAIL),
-                os.path.join(self.repo, "data-noodler", *SCRIPT_TAIL)):
+                os.path.join(self.repo, "data-noodler", *REPO_SCRIPT_TAIL)):
             os.makedirs(os.path.dirname(script))
             with open(script, "w") as f:
                 f.write(stand_in)

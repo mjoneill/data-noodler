@@ -199,6 +199,21 @@ def plugin_digest(root):
     return h.hexdigest()
 
 
+def built_plugin(test):
+    """The plugin as an install builds it: its own files plus the analytics
+    skill, which the install places inside it (#2106). This is what Codex
+    installs, so it is what the fingerprint must cover."""
+    import shutil
+    sys.path.insert(0, os.path.join(ROOT, "installer"))
+    import install
+    tmp = tempfile.mkdtemp()
+    test.addCleanup(shutil.rmtree, tmp, True)
+    mkt = os.path.join(tmp, "marketplace")
+    shutil.copytree(MKT, mkt)
+    install.place_plugin_skill(ROOT, mkt)
+    return os.path.join(mkt, "plugins", "data-noodler")
+
+
 class TestPluginVersionMovesWithItsContents(unittest.TestCase):
     """The plugin's version must change whenever what it ships changes.
 
@@ -225,7 +240,7 @@ class TestPluginVersionMovesWithItsContents(unittest.TestCase):
         with open(os.path.join(self.PLUGIN, ".codex-plugin", "plugin.json"),
                   encoding="utf-8") as f:
             version = json.load(f)["version"]
-        actual = plugin_digest(self.PLUGIN)
+        actual = plugin_digest(built_plugin(self))
 
         if actual == recorded["sha256"]:
             return

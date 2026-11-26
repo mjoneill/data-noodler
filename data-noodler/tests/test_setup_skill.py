@@ -558,8 +558,7 @@ class TestTheGoogleCloudGuideMatchesTheCode(unittest.TestCase):
             self.assertIn(f"{host}.googleapis.com", self.guide, host)
 
     def test_the_scopes_it_mentions_are_the_ones_consent_requests(self):
-        mint = os.path.join(ROOT, "marketplace", "plugins", "data-noodler",
-                            "skills", "data-noodler", "scripts",
+        mint = os.path.join(ROOT, "skills", "data-noodler", "scripts",
                             "mint_adc.py")
         with open(mint, encoding="utf-8") as f:
             scopes = set(re.findall(r"auth/([a-z.]+)\"", f.read()))

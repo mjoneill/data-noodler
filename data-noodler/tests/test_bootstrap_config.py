@@ -143,7 +143,14 @@ class TestBuildConfig(unittest.TestCase):
         # which is the destination install.py copies "marketplace" into.
         parts = bootstrap_config.MINT_SCRIPT_PARTS
         self.assertEqual(parts[:3], (".config", "data-noodler", "marketplace"))
-        in_repo = os.path.join(dist_root, *parts[2:])
+        # #2106: the install builds marketplace/ from the repo's marketplace
+        # tree plus the analytics skill, which it places inside the plugin.
+        sys.path.insert(0, os.path.join(dist_root, "installer"))
+        import install
+        rel = parts[3:]
+        n = len(install.SKILL_IN_PLUGIN)
+        self.assertEqual(tuple(rel[:n]), install.SKILL_IN_PLUGIN)
+        in_repo = os.path.join(dist_root, *install.SKILL_SRC, *rel[n:])
         self.assertTrue(os.path.exists(in_repo),
                         f"payload source missing: {in_repo}")
 

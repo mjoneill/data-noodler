@@ -281,9 +281,9 @@ def missing_skills(names, skills_dir=None):
                 text = f.read()
         except OSError:
             problems.append(
-                f"skill {name}: not installed -- expected {path}. Copy it from "
-                "the package's marketplace/plugins/data-noodler/skills/ "
-                "(INSTALL.md, the Claude Code skills step).")
+                f"skill {name}: not installed -- expected {path}. Install it "
+                "with the package's installer/copy_skills.py (INSTALL.md, the "
+                "Claude Code skills step).")
             continue
         if not text.strip():
             problems.append(f"skill {name}: {path} is empty")

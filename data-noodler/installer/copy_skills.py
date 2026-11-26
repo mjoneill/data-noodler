@@ -7,9 +7,9 @@ not upgrade.py: skills are per app, and only Claude Code reads
 
 The rule (decided 2026-10-25): a skill folder is refreshed only when this
 package put it there, which the marker file inside it records. A folder
-without the marker is someone's own -- on the maintainer's machine,
-~/.claude/skills/data-noodler is the MASTER copy everything is built
-from, and an upgrade that overwrote it would silently replace unbuilt edits.
+without the marker is someone's own -- edits a user made to their copy, or a
+copy they wrote themselves -- and an upgrade that overwrote it would silently
+replace them. (The skills' source is the repo's skills/ folder, #2106.)
 Those are reported, never touched; the agent tells the user and, only on a
 yes, re-runs with --replace NAME.
 
@@ -43,10 +43,12 @@ MARKER_TEXT = ("Installed by Data Noodler. Its presence lets a later "
 
 
 def sources(ga_home, dist):
+    # #2106: both skills install from the package's own skills/ folder. The
+    # analytics skill used to come from the Codex plugin inside ga_home; the
+    # install still puts a copy there for Codex, but this is its source.
+    # ga_home is kept for callers; retire_legacy still needs it.
     return {
-        "data-noodler": os.path.join(
-            ga_home, "marketplace", "plugins", "data-noodler", "skills",
-            "data-noodler"),
+        "data-noodler": os.path.join(dist, "skills", "data-noodler"),
         "data-noodler-setup": os.path.join(dist, "skills", "data-noodler-setup"),
     }
 

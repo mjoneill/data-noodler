@@ -32,6 +32,11 @@ def make_repo(root=None, extra=None):
         os.makedirs(d, exist_ok=True)
         with open(os.path.join(d, f"{name}.txt"), "w", encoding="utf-8") as f:
             f.write(name)
+    # #2106: the analytics skill, which the install places inside the plugin.
+    skill = os.path.join(dist, *install.SKILL_SRC)
+    os.makedirs(skill, exist_ok=True)
+    with open(os.path.join(skill, "SKILL.md"), "w", encoding="utf-8") as f:
+        f.write("skill")
     bindir = os.path.join(dist, "bin")
     for launcher in ("launch-analytics-mcp", "launch-data-noodler"):
         p = os.path.join(bindir, launcher)
