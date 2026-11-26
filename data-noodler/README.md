@@ -1,14 +1,6 @@
-# The `data-noodler/` folder
+# Package contents
 
-This folder is Data Noodler itself. The project's README, with what Data
-Noodler is, which apps it works with and how to get started, is
-[one level up](../README.md).
-
-**Setting up?** Open this folder in Claude Code or Codex and say:
-
-> Read START-HERE.md and help me set this up.
-
-To install by hand instead, follow [`INSTALL.md`](INSTALL.md).
+Welcome to the data-noodler folder.  Look around. Isn't it snazzy? 
 
 ## What's in here
 
@@ -22,3 +14,11 @@ To install by hand instead, follow [`INSTALL.md`](INSTALL.md).
 | `tests/` | The test suite. Run it with the interpreter `analytics-mcp` is installed under. |
 
 [`ARCHITECTURE.md`](ARCHITECTURE.md) explains why it's shaped this way.
+
+## Setting up, installing, or upgrading Data Noodler?
+
+Open this folder in Claude Code or Codex and tell your agent:
+
+> Read START-HERE.md and help me set this up.
+
+To install by hand instead, follow [`INSTALL.md`](INSTALL.md).
