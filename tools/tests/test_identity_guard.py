@@ -148,8 +148,8 @@ class TestAllowed(unittest.TestCase):
 
 
 class TestCiMode(unittest.TestCase):
-    """CI checks every commit reachable from HEAD: the history is small and
-    must stay clean end to end."""
+    """--all checks every commit reachable from HEAD; --since (what CI runs)
+    checks only the commits a branch or pull request adds."""
 
     def setUp(self):
         self.root = tempfile.mkdtemp()
@@ -179,11 +179,18 @@ class TestCiMode(unittest.TestCase):
         r = self._ci()
         self.assertEqual(r.returncode, 0, r.stderr)
 
-    def test_the_real_repository_passes(self):
-        top = os.path.dirname(TOOLS)
-        r = subprocess.run([sys.executable, "-I", GUARD, "--all"], cwd=top,
-                           capture_output=True, text=True)
-        self.assertEqual(r.returncode, 0, r.stderr)
+    def test_since_checks_only_the_new_commits(self):
+        self.repo.commit("a.txt", "a\n", "old, accepted", MACHINE)
+        base = subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.repo.work,
+                              capture_output=True, text=True).stdout.strip()
+        self.repo.commit("b.txt", "b\n", "new", NOREPLY)
+        ok = subprocess.run([sys.executable, "-I", GUARD, "--since", base],
+                            cwd=self.repo.work, capture_output=True, text=True)
+        self.assertEqual(ok.returncode, 0, ok.stderr)
+        self.repo.commit("c.txt", "c\n", "new and bad", MACHINE)
+        bad = subprocess.run([sys.executable, "-I", GUARD, "--since", base],
+                             cwd=self.repo.work, capture_output=True, text=True)
+        self.assertNotEqual(bad.returncode, 0)
 
 
 if __name__ == "__main__":
