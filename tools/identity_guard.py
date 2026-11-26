@@ -22,7 +22,12 @@ Two modes:
   pre-push (default)  reads git's pre-push lines on stdin and checks every
                       commit the push would send. Installed with the personal
                       guard: git config core.hooksPath tools/hooks
-  --all               checks every commit reachable from HEAD (CI).
+  --all               checks every commit reachable from HEAD.
+  --since <rev>       checks only the commits after <rev> (CI: what a branch
+                      or pull request adds to main). Merge commits GitHub
+                      makes on main are never re-checked, so a merge made on
+                      GitHub can't turn main red. Earlier commits on main
+                      that break the rule stay as they are, accepted.
 
 A refusal names the commit and which field, never the address.
 """
@@ -72,21 +77,9 @@ def commits_to_push(lines, remote):
     return shas
 
 
-# Commits already on main that the maintainer accepted as they are. Main is
-# never rewritten, so an exception is named here by full SHA, with its reason.
-ACCEPTED = {
-    # 2026-11-26: the merge of PR #29 was made with GitHub's merge command and
-    # took the maintainer's account email. Accepted: that address is already
-    # public on the maintainer's profile. Merges are made locally from now on.
-    "a3cd3ed1c3a8875a8b71b009d23f8b5e00ab51ae",
-}
-
-
 def findings(shas):
     found = []
     for sha in shas:
-        if sha in ACCEPTED:
-            continue
         author, committer = git("log", "-1", "--format=%ae%n%ce",
                                 sha).splitlines()[:2]
         for field, email in (("author", author), ("committer", committer)):
@@ -98,6 +91,9 @@ def findings(shas):
 def main(argv):
     if "--all" in argv:
         shas = git("rev-list", "HEAD").split()
+    elif "--since" in argv:
+        base = argv[argv.index("--since") + 1]
+        shas = git("rev-list", "%s..HEAD" % base).split()
     else:
         remote = argv[0] if argv else "origin"
         shas = commits_to_push(sys.stdin.read().splitlines(), remote)

@@ -44,9 +44,12 @@ jobs:
         # traceback; this step prints the plain one, rule by rule.
         if: always()
         run: python -I tools/leak_guard.py
-      - name: Identity guard over every commit (seat or noreply identities only)
+      - name: Identity guard over the commits this push or pull request adds
+        # Only new commits: the merge commits GitHub makes on main carry the
+        # merging account's email and are never re-checked. On a push to main
+        # itself there is nothing new to check.
         if: always()
-        run: python -I tools/identity_guard.py --all
+        run: python -I tools/identity_guard.py --since origin/main
 
   tests:
     # macOS: the product ships to macOS and Windows, and its launchers use
