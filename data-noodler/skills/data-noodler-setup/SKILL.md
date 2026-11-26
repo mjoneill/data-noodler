@@ -1,6 +1,6 @@
 ---
 name: data-noodler-setup
-description: Install or repair Data Noodler (Google Analytics and Search Console tools) across local LLM harnesses — Claude Code, Claude Desktop, Codex TUI, and the ChatGPT desktop app's Work and Codex modes. Use when the user wants to set up GA access, add GA to another app, says GA tools are missing or a connector is broken, or when analytics tools fail in a way that is not a simple credential expiry. Also use for first-time setup on a new machine.
+description: Install or repair Data Noodler (Google Analytics and Search Console tools) across local LLM harnesses — Claude Code, Claude Desktop, Codex TUI, and the ChatGPT desktop app. Use when the user wants to set up GA access, add GA to another app, says GA tools are missing or a connector is broken, or when analytics tools fail in a way that is not a simple credential expiry. Also use for first-time setup on a new machine.
 ---
 
 # Installing GA access into local harnesses
@@ -36,12 +36,13 @@ machine is wrong, correct it with its flags (`--venv-python`,
 `--base-python`, `CLAUDE_USER_DATA_DIR`), and if no flag fits, stop and
 report rather than working around it.
 
-**Cloud and web chat surfaces cannot be served.** ChatGPT's Chat mode (in the
-desktop app as well as the browser) and claude.ai in a browser execute tools
-on the vendor's servers and cannot reach a local process. Do not attempt it;
-say so plainly if asked. The ChatGPT desktop app's **Work** mode is different:
-it runs on the app's local Codex runtime, so the Codex plugin serves it
-(confirmed 2026-10-29). Tell a ChatGPT user to use Work, not Chat.
+**Browser surfaces cannot be served.** ChatGPT and claude.ai in a browser
+execute tools on the vendor's servers and cannot reach a local process. Do not
+attempt it; say so plainly if asked. The ChatGPT desktop app is different: it
+runs on the app's local Codex runtime, so the Codex plugin serves it
+(confirmed 2026-10-29). Older versions of the app had separate Chat and Work
+modes, and only Work could reach local tools; the two have since merged. If a
+user on an older version reports missing tools, have them update the app.
 
 **On Windows, read `references/windows.md` before Step 2 and keep it open.**
 The steps and their order are the same there; the differences each have a
@@ -524,9 +525,8 @@ take "it worked" on trust.
 Attack Surface Reduction rule blocks the pip-generated `.exe` on managed
 machines (see `references/troubleshooting.md`, "Access is denied on Windows").
 
-**Codex TUI and the ChatGPT app's Work and Codex modes** — one install serves
-all of them, because the ChatGPT app runs its own codex runtime sharing
-`~/.codex`, for Work as well as its Codex view:
+**Codex TUI and the ChatGPT desktop app** — one install serves both, because
+the ChatGPT app runs its own codex runtime sharing `~/.codex`:
 
 **No `codex` command?** On a Mac with only the ChatGPT app (no separate Codex
 install), `codex` may not be on the PATH. The app carries its own copy, which
@@ -674,22 +674,20 @@ did it.
 | Claude Code | yes | yes |
 | Claude Desktop, normal chat | yes | via `reporting_guide` and tool descriptions |
 | Codex TUI | yes | yes, from the plugin |
-| ChatGPT app, Work mode | yes (confirmed 2026-10-29) | yes, from the plugin |
-| ChatGPT app, Codex view | yes | yes, from the plugin |
-| ChatGPT app, Chat mode | **no** -- hosted; see below | -- |
+| ChatGPT desktop app | yes (confirmed 2026-10-29) | yes, from the plugin |
+| ChatGPT or claude.ai in a browser | **no** -- hosted; see below | -- |
 
 In Claude Desktop chat there is no shell, so `lookup_property`,
 `credential_status` and `refresh_property_snapshot` are the only route to that
 capability. That is what the data-noodler server is for.
 
-A local install does not serve ChatGPT's Chat mode (desktop or browser), or
-claude.ai in a browser. Those run tools on the vendor's servers and cannot reach anything on
+A local install does not serve ChatGPT or claude.ai in a browser. Those run tools on the vendor's servers and cannot reach anything on
 this machine — that is a hard boundary, not a configuration gap, and no amount
 of retrying closes it. For ChatGPT the only route OpenAI documents is Secure
 MCP Tunnel (Business/Enterprise workspaces, with a hosted connection), which
 this package does not provide.
 
-**Where Work-mode exports land.** Each Work conversation runs in its own
+**Where ChatGPT desktop app exports land.** Each conversation runs in its own
 folder under `~/Documents/Codex/<date>/<topic>/`, which counts as the
 project, so exports go to an `_outputs` folder inside that conversation's
 folder (measured 2026-10-29). The receipt names the path. A user who wants

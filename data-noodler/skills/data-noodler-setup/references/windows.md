@@ -55,7 +55,7 @@ double-clicking in File Explorer**:
   for 3.12 and install for the current user only. "Install Now" does that
   and needs no administrator rights. The silent form that worked:
   `& "$env:USERPROFILE\Downloads\python-3.12.10-amd64.exe" /quiet InstallAllUsers=0`
-- **An app catalogue**, if whoever manages the machine offers Python there.
+- **An app catalog**, if whoever manages the machine offers Python there.
   Not measured.
 
 Then **name the new interpreter by its full path** when creating the venv. A
@@ -120,7 +120,7 @@ bounds packages that get installed, so Windows-only dependencies like pywin32
 go unconstrained rather than conflicting.
 
 `venv` is in the standard library, so this needs no administrator rights and
-nothing from an app catalogue.
+nothing from an app catalog.
 
 **Measured, and worth knowing before you worry:** every binary dependency
 resolved to a prebuilt `win_amd64` wheel — grpcio, cryptography, pydantic_core,

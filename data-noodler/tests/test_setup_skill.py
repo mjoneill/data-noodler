@@ -591,15 +591,16 @@ class TestTheGoogleCloudGuideMatchesTheCode(unittest.TestCase):
 
 
 class TestChatGPTSurfacesAreStatedHonestly(unittest.TestCase):
-    """2026-10-29: the ChatGPT desktop app's Work mode uses the Codex plugin;
-    its Chat mode is hosted and cannot. The docs must say both."""
+    """2026-10-29: the ChatGPT desktop app uses the Codex plugin; ChatGPT in a
+    browser is hosted and cannot. 2026-11-26: the app's separate Chat and Work
+    modes have merged, so the docs name the app, not a mode. They must say both."""
 
-    def test_the_skill_says_work_yes_chat_no(self):
+    def test_the_skill_says_desktop_yes_browser_no(self):
         with open(SKILL_MD, encoding="utf-8") as f:
             text = f.read()
-        self.assertIn("ChatGPT app, Work mode | yes", text)
-        self.assertIn("ChatGPT app, Chat mode | **no**", text)
-        self.assertIn("Tell a ChatGPT user to use Work, not Chat", text)
+        self.assertIn("| ChatGPT desktop app | yes", text)
+        self.assertIn("| ChatGPT or claude.ai in a browser | **no**", text)
+        self.assertIn("Browser surfaces cannot be served", text)
 
     def test_a_chatgpt_only_mac_is_told_where_codex_is(self):
         for path in (SKILL_MD, os.path.join(ROOT, "INSTALL.md")):
@@ -610,8 +611,8 @@ class TestChatGPTSurfacesAreStatedHonestly(unittest.TestCase):
     def test_install_md_says_the_same(self):
         with open(os.path.join(ROOT, "INSTALL.md"), encoding="utf-8") as f:
             text = f.read()
-        self.assertIn("ChatGPT app — **Work**", text)
-        self.assertIn("ChatGPT app — **Chat**", text)
+        self.assertIn("| ChatGPT desktop app | **Confirmed working**", text)
+        self.assertIn("| claude.ai / ChatGPT web (browser) | **Cannot work, by design.**", text)
 
 
 class TestEveryCommandBlockStandsOnItsOwn(unittest.TestCase):

@@ -12,7 +12,7 @@ checkable in the code and tests it names.
 | Launchers | `bin/` (macOS) | Two `/bin/sh` scripts that set the environment and start each server. On Windows there are no launchers; the registered entry names the interpreter directly. |
 | Installer | `installer/` | `probe.py` (read-only facts about the machine), `bootstrap_config.py` (writes the machine's config), `install.py` (copies the payload, registers the apps), `verify.py` (proves each registered server starts and serves the expected tools), `upgrade.py` (replaces an existing install, with rollback), `copy_skills.py`. |
 | Skills | `skills/data-noodler-setup/` (the install), and `data-noodler` inside the Codex plugin | Instructions an agent follows: how to install, and how to query well. |
-| Codex plugin | `marketplace/` | Packages the servers and the query skill for Codex and the ChatGPT desktop app's Work and Codex modes (its Chat mode is hosted and cannot reach local servers). |
+| Codex plugin | `marketplace/` | Packages the servers and the query skill for Codex and the ChatGPT desktop app (ChatGPT in a browser is hosted and cannot reach local servers). |
 
 Why a second server exists: Claude Desktop's chat has MCP tools but no shell
 and no skills, so anything the query skill's scripts did had to become a

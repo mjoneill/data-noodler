@@ -94,9 +94,7 @@ so if they find one.
 | Claude Code | **Confirmed working.** Verified with a real question and a real answer. |
 | Claude Desktop, normal chat | **Confirmed working**, after a full quit and reopen, on **two** machines — the second an install completed and run entirely by someone other than the author. |
 | Codex TUI | Installed and reachable, but not exercised with a real GA question on this machine (the account was usage-throttled when this was last tried). Treat as "should work, not yet proven." |
-| ChatGPT app — **Work** | **Confirmed working** (macOS, ChatGPT 26.1021, 2026-10-29): a real question answered with a GA tool. Work runs on the app's local Codex runtime, so the Codex plugin serves it; nothing extra to install. |
-| ChatGPT app — **Codex** view | Served by the same plugin; same runtime as Work. |
-| ChatGPT app — **Chat** | **Does not see the local servers, by design.** Chat is hosted: OpenAI's docs say it reaches only remote MCP servers, or local ones through Secure MCP Tunnel (Business/Enterprise workspaces, plus a hosted connection this package does not provide). Use Work instead. |
+| ChatGPT desktop app | **Confirmed working** (macOS, ChatGPT 26.1021, 2026-10-29; Windows 11, reported by users): a real question answered with a GA tool. The app runs on its own local Codex runtime, so the Codex plugin serves it; nothing extra to install. (Earlier versions had separate Chat and Work modes; they have since merged.) |
 | claude.ai / ChatGPT web (browser) | **Cannot work, by design.** Browser-based chat runs tools on the vendor's servers and cannot reach a process on your machine. This is not a bug to file. |
 
 ## Before you start: get yourself onto the test-user list
@@ -370,11 +368,11 @@ Two data directories can exist on the same machine (`Claude` and
 tools simply never show up. `install.py` prints the path it chose; read
 that line. If it looks wrong, set `CLAUDE_USER_DATA_DIR` to override it.
 
-## 8. Register Codex (also covers the ChatGPT app's Work and Codex)
+## 8. Register Codex (also covers the ChatGPT desktop app)
 
-One install serves all three, because the ChatGPT app runs its own `codex`
-runtime sharing the same `~/.codex` state -- for its Codex view and its Work
-mode alike. Not its Chat mode, which is hosted (see the table at the top):
+One install serves both, because the ChatGPT desktop app runs its own `codex`
+runtime sharing the same `~/.codex` state. ChatGPT in a browser is hosted and
+can't be served (see the table at the top):
 
 **No `codex` command?** On a Mac with only the ChatGPT app (no separate Codex
 install), `codex` may not be on the PATH. The app carries its own copy, which

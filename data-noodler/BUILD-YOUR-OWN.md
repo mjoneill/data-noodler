@@ -175,7 +175,7 @@ Things that bit us when hardcoding crept in:
 
 ### Guidance has to reach the model through two channels
 
-The model's behaviour, not just the code, decides whether answers are right.
+The model's behavior, not just the code, decides whether answers are right.
 There are two delivery channels, and each fails in a different client:
 
 - **Server `instructions`** are dropped or truncated by some clients. Keep
@@ -423,7 +423,7 @@ Per-app registration notes:
   inside the app container
   (`%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude`), which
   ordinary PowerShell can't see at `%APPDATA%\Claude`. Detect it, and refuse
-  loudly rather than "skip, not installed". Honour `CLAUDE_USER_DATA_DIR`.
+  loudly rather than "skip, not installed". Honor `CLAUDE_USER_DATA_DIR`.
 - **Codex**: package both servers and the query skill as a **plugin** in a
   local "marketplace" folder (an index file plus the plugin directory). Let
   the `codex plugin marketplace add` / `codex plugin add name@marketplace`
@@ -433,9 +433,8 @@ Per-app registration notes:
   version on every content change**: Codex caches by version, so changes
   shipped at an unchanged version never reach existing installs. A test that
   fingerprints plugin contents against the version will catch this.
-- **ChatGPT desktop app**: its Codex/Work modes share Codex's plugin config.
-  Its plain Chat mode runs on OpenAI's servers and can't reach a local
-  process.
+- **ChatGPT desktop app**: shares Codex's plugin config. ChatGPT in a
+  browser runs on OpenAI's servers and can't reach a local process.
 
 **Quit apps before registering.** Claude Desktop and the ChatGPT app write
 their own settings back to the same config files, and a running app's later
@@ -507,7 +506,7 @@ file, and never overwrite a folder that lacks it.
 | `uv` not found after its installer | Installer doesn't add it to the current shell's PATH | Use the absolute path it printed |
 | First export fails for a new user | Sessions root didn't exist (author made it by hand) | Create it during install, and have the error say exactly what to create |
 | Excel mangles accented characters | UTF-8 CSV without BOM | Write a BOM, or offer `.xlsx` |
-| Same install command, different behaviour | Unpinned Python version | Pin it (`uv tool install --python X.Y`) |
+| Same install command, different behavior | Unpinned Python version | Pin it (`uv tool install --python X.Y`) |
 
 ---
 
