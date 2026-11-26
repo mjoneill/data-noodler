@@ -78,13 +78,13 @@ real MCP handshake, the installer's refusals and backups, the export
 confinement with Windows-style paths, the upgrade's rollback under failure,
 Ctrl-C and a hard kill, and that every documented command matches the code.
 
-Proven on real machines at the time of writing: full installs on macOS and
-on Windows 11 (no administrator rights, Microsoft Store Claude
-Desktop, Defender application control), with Claude Desktop and Claude Code
-answering real questions.
+Proven on real machines at the time of writing: full installs on macOS, with
+Claude Desktop and Claude Code answering real questions, and on Windows 11 (no
+administrator rights, Microsoft Store Claude Desktop, Defender application
+control), with Claude Desktop answering real questions.
 
-**Reported working by users of this release:** Codex and the ChatGPT desktop
-app on Windows 11.
+**Reported working by users of this release:** the ChatGPT desktop app on
+Windows 11. Claude Code and Codex in the terminal on Windows should work, but nobody has reported an install yet. If you try it, tell us how it went.
 
 **Not proven, and documented as such:** install paths containing spaces on Windows;
 `upgrade.py` and the project-folder export logic on a real Windows machine.
