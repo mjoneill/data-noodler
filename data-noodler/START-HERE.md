@@ -1,13 +1,15 @@
 # Start here
 
 This package puts Google Analytics 4 and Google Search Console tools into
-Claude Code, Claude Desktop, Codex and the ChatGPT desktop app on a Mac or
-Windows machine (not the browser versions of Claude or ChatGPT), with **read-only** access to the data each person's own Google
-account can already see. It is written for an AI agent to install, with a
-person beside it for the handful of steps only a person can do.
+the Claude and ChatGPT desktop apps, and Claude Code and Codex in the terminal, on a Mac or Windows machine, with **read-only** access to the data each person's own Google account can already see. (There is no installation for browser versions of Claude or ChatGPT.)  
 
-**If you are an agent, read this whole page before doing anything.** Then
-open `deployment.json`, which decides which of two situations you are in.
+This document is written for an AI agent to facilitate installation of Data Noodler. Installation should be conducted in active collaboration/conversation between the agent and the primary person/user the agent works with. There are a limited number of steps that require the person to perform. 
+
+**If you are an agent, read this whole page before doing anything.** Then open `deployment.json`, which decides which of two situations you are in.
+
+## Already installed?
+
+If `~/.config/data-noodler/config.json` exists on this machine, Data Noodler is already installed here, and this is likely an upgrade. Confirm with the user. If it is, go to `skills/data-noodler-setup/SKILL.md` and follow its upgrade path (Step 2), not the first-time setup below.
 
 ## Which situation is this?
 
@@ -24,10 +26,8 @@ just-for-yourself setup), so do not decide by them.
   installing or upgrading one more machine in that deployment. Go to
   `skills/data-noodler-setup/SKILL.md` and follow it; it reads `deployment.json` as
   it goes.
-- **`maintainer` is blank** → nobody has set it up for this user yet. They may
-  be an individual setting it up just for themselves, or someone setting it
-  up for a team, organization or institution. Your job is to **set it up for
-  the first time**: understand the approach, help the user make the decisions
+- **`maintainer` is blank** → nobody has set it up for this user yet. This may be because the user is setting it up just for themselves, or they are the primary user setting it
+  up for a team, organization or institution. Confirm with your user which context you are assisting with. Your job is to **set it up for the first time**: understand the approach, help the user make the decisions
   only they can make, create their Google sign-in, fill in `deployment.json`,
   and install on their machine; and, only if other people will use it too,
   prepare what they will hand to those people. The rest of this page is that
@@ -67,15 +67,15 @@ Read, in this order, and summarize each for the user in a few sentences:
 
 1. `ARCHITECTURE.md`: what the pieces are, why the install is split between
    an agent and tested code, and what the security posture is.
-2. `GOOGLE-CLOUD-SETUP.md`: how a deployment gets its own Google sign-in.
-3. `INSTALL.md`: the by-hand install, which is what the skill automates.
+2. `GOOGLE-CLOUD-SETUP.md`: how a deployment gets its own Google sign-in. Users frequently have questions about what this sequence of steps is for.  It is often useful to explain it to them as clearly as possible. Often, saying something like this helps: "Because Data Noodler lets me read your Google Analytics and Search Console data, I need a way to sign in to them with read-only access. This step sets up that Google App." 
+3. `INSTALL.md`: the by-hand install, which is what the skill automates.  
 4. `skills/data-noodler-setup/SKILL.md`, and `references/windows.md` if any
    Windows machines are involved.
 5. `skills/data-noodler-setup/references/troubleshooting.md`.
 
 Say plainly what you found: what this package does well, what it assumes,
 and anything that does not fit the user's situation. It was first built and
-tested on one organization's mix of machines and apps; theirs may differ.
+tested on one organization's mix of machines and apps; theirs may differ.  Note: users frequently have questions about the safety and security of the tools they are installing.  If a user asks about this, it is your responsibility to give this package a review and honest assessment and recommendation.  
 
 ### 2. The decisions only the user can make
 

@@ -12,8 +12,9 @@ export full results to files. It runs on each person's own machine, under
 their own Google account, read-only, with no administrator rights and no
 server to host.
 
-The design was proven on macOS and on Windows 11 without administrator rights, in Claude Code,
-Claude Desktop, Codex and the ChatGPT desktop app. It went through two
+The design was proven on macOS in Claude Code, Claude Desktop, Codex and the
+ChatGPT desktop app, and on Windows 11, without administrator rights, in the
+Claude and ChatGPT desktop apps. Claude Code and Codex in the terminal on Windows should work, but nobody has reported an install yet. If you try it, tell us how it went. It went through two
 redesigns, several reviews and installs on other people's machines. Most of
 this document is what those installs taught.
 

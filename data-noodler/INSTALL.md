@@ -91,7 +91,7 @@ so if they find one.
 
 | Surface | Status |
 |---|---|
-| Claude Code | **Confirmed working.** Verified with a real question and a real answer. |
+| Claude Code | **Confirmed working** on macOS. Verified with a real question and a real answer. Claude Code and Codex in the terminal on Windows should work, but nobody has reported an install yet. If you try it, tell us how it went. |
 | Claude Desktop, normal chat | **Confirmed working**, after a full quit and reopen, on **two** machines — the second an install completed and run entirely by someone other than the author. |
 | Codex TUI | Installed and reachable, but not exercised with a real GA question on this machine (the account was usage-throttled when this was last tried). Treat as "should work, not yet proven." |
 | ChatGPT desktop app | **Confirmed working** (macOS, ChatGPT 26.1021, 2026-10-29; Windows 11, reported by users): a real question answered with a GA tool. The app runs on its own local Codex runtime, so the Codex plugin serves it; nothing extra to install. (Earlier versions had separate Chat and Work modes; they have since merged.) |

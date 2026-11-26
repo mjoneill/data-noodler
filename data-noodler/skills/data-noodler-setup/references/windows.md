@@ -343,8 +343,9 @@ actually take, not only the one an agent takes.
 - **Paths containing spaces.** Everything installed so far sits under
   space-free paths, though real machines have projects under paths like
   `OneDrive - Example Org`.
-- **Why Codex and the ChatGPT desktop app work on Windows.** Users of this
-  release confirm both working on Windows 11. The Codex plugin starts its
+- **Why the ChatGPT desktop app works on Windows.** Users of this release
+  confirm it working on Windows 11 (Codex in the terminal on Windows has not
+  been reported yet). The Codex plugin starts its
   servers through `/bin/sh` (so that Codex runs them in the project folder,
   #165), which native Windows does not provide, and how that resolves on the
   machines where it works hasn't been recorded yet. If the plugin fails to
