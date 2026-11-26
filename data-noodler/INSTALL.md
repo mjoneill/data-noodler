@@ -75,8 +75,8 @@ application before registering is a hard requirement rather than prudence.
 
 Windows has been installed end to end on two Windows 11 machines without
 administrator rights, with Claude Code and Claude Desktop both answering real GA
-questions. Paths containing spaces are still unproven, and this release's Codex plugin doesn't start on native Windows yet (Codex ran there with an earlier release);
-that page says which is which.
+questions. Users of this release also confirm Codex and the ChatGPT desktop app working on
+Windows 11. Paths containing spaces are still unproven; that page says which is which.
 
 **If you'd rather have an agent do this instead:** Claude Code or Codex can
 run the `data-noodler-setup` skill for you once the plugin/skill is installed. This

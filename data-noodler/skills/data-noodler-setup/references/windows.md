@@ -343,10 +343,13 @@ actually take, not only the one an agent takes.
 - **Paths containing spaces.** Everything installed so far sits under
   space-free paths, though real machines have projects under paths like
   `OneDrive - Example Org`.
-- **Codex on Windows.** Codex has run on Windows with an earlier release,
-  but this release's plugin is not supported there yet: the Codex plugin starts its servers through `/bin/sh` (so
-  that Codex runs them in the project folder, #165), which does not exist on
-  native Windows. Use Claude Code or Claude Desktop there.
+- **Why Codex and the ChatGPT desktop app work on Windows.** Users of this
+  release confirm both working on Windows 11. The Codex plugin starts its
+  servers through `/bin/sh` (so that Codex runs them in the project folder,
+  #165), which native Windows does not provide, and how that resolves on the
+  machines where it works hasn't been recorded yet. If the plugin fails to
+  start on your machine, that launcher is the first place to look, and an
+  issue saying what you found would help.
 
 ## Credential file permissions
 

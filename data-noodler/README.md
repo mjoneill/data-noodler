@@ -54,7 +54,7 @@ and what has and has not been proven on real machines.
 ## Requirements
 
 macOS 12 or later, or Windows 11. No administrator rights are needed on
-either. Codex has run on Windows with an earlier release, but this release's Codex plugin doesn't start there yet (it needs `/bin/sh`); `ARCHITECTURE.md` keeps the list.
+either. `ARCHITECTURE.md` keeps the list of what is and isn't proven.
 
 ## Status
 
