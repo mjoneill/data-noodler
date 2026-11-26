@@ -1,9 +1,8 @@
 # Start here
 
 This package puts Google Analytics 4 and Google Search Console tools into
-Claude Code, Claude Desktop, Codex and the ChatGPT desktop app (its Work and
-Codex modes; not Chat, which is hosted) on a Mac or Windows
-machine, with **read-only** access to the data each person's own Google
+Claude Code, Claude Desktop, Codex and the ChatGPT desktop app on a Mac or
+Windows machine (not the browser versions of Claude or ChatGPT), with **read-only** access to the data each person's own Google
 account can already see. It is written for an AI agent to install, with a
 person beside it for the handful of steps only a person can do.
 

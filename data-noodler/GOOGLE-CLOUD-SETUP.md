@@ -1,4 +1,8 @@
-# Setting up your own Google sign-in (OAuth client)
+# Setting up your own Google App (OAuth client)
+
+The README calls this your **Google App**. In Google's own terms it is an
+**OAuth client** inside a **Google Cloud project**, and that's what the steps
+below call it, because those are the names on Google's screens.
 
 **Who this is for:** anyone setting these tools up without an existing
 maintainer to get the sign-in file from: an individual setting it up just for

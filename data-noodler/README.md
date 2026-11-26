@@ -1,34 +1,8 @@
-# Google Analytics and Search Console tools for local AI apps
+# Package contents
 
-This package puts Google Analytics 4 and Google Search Console tools into
-Claude Code, Claude Desktop, Codex and the ChatGPT desktop app (its Work and
-Codex modes) on a Mac or Windows machine. Access is **read-only**, and each
-person sees only what their own Google account can already see.
+Welcome to the data-noodler folder.  Look around. Isn't it snazzy? 
 
-It is written for an AI agent to install, with a person beside it for the few
-steps only a person can do.
-
-## Start
-
-Open this folder in Claude Code or Codex and say:
-
-> Read START-HERE.md and help me set this up.
-
-`START-HERE.md` tells the agent which of two situations it is in:
-
-- **`deployment.json` names a `maintainer`**: someone has already set this
-  package up (for themselves, or for your team, organization or institution),
-  and you are installing one more machine. Blank team fields
-  (`maintainer_contact`, `install_reports_to`) just mean a one-person setup.
-- **`deployment.json` has no `maintainer`**: nobody has set it up for you yet. Whether
-  it's just for you or for a group, the agent walks you through creating your
-  own Google sign-in (`GOOGLE-CLOUD-SETUP.md`, about 20 minutes in the Google
-  Cloud console), filling in the profile and installing; and, only if other
-  people will use it too, preparing the hand-off to them.
-
-To install by hand instead, follow `INSTALL.md`.
-
-## What is in it
+## What's in here
 
 | | |
 |---|---|
@@ -39,23 +13,12 @@ To install by hand instead, follow `INSTALL.md`.
 | `marketplace/` | A Codex plugin that packages both servers and the query skill. |
 | `tests/` | The test suite. Run it with the interpreter `analytics-mcp` is installed under. |
 
-`ARCHITECTURE.md` explains why it is shaped this way, the security posture,
-and what has and has not been proven on real machines.
+[`ARCHITECTURE.md`](ARCHITECTURE.md) explains why it's shaped this way.
 
-## What is not in it
+## Setting up, installing, or upgrading Data Noodler?
 
-- **No credentials and no data.** There is no shared account. Each person
-  signs in with their own Google account, and the token stays on their
-  machine.
-- **No Google sign-in file.** `data-noodler-client.json` belongs to a deployment's
-  own Google Cloud project. You create your own, and it never goes into a
-  repository; `.gitignore` here excludes it.
+Open this folder in Claude Code or Codex and tell your agent:
 
-## Requirements
+> Read START-HERE.md and help me set this up.
 
-macOS 12 or later, or Windows 11. No administrator rights are needed on
-either. Codex has run on Windows with an earlier release, but this release's Codex plugin doesn't start there yet (it needs `/bin/sh`); `ARCHITECTURE.md` keeps the list.
-
-## Status
-
-Shared as-is, with no support commitment. MIT; see `LICENSE`. It installs, but does not include, Google's analytics-mcp server, which is separately licensed under the Apache License 2.0.
+To install by hand instead, follow [`INSTALL.md`](INSTALL.md).
