@@ -41,7 +41,7 @@ The tests in `tests/` run in CI on every push. They cover the tool surface over 
 
 **In daily use:** macOS with Claude Desktop and Claude Code, and Windows 11 with Claude Desktop (no administrator rights, Microsoft Store Claude Desktop, Defender application control).
 
-**Reported working by users:** the ChatGPT desktop app on Windows 11. Claude Code and Codex in the terminal on Windows should work, but nobody has reported an install yet. If you try it, [let us know](../README.md#feedback).
+**Reported working by users:** the ChatGPT desktop app on Windows 11, including its built-in Codex. Claude Code and Codex in the terminal haven't been tried on Windows yet. If you try either, [let us know](../README.md#feedback).
 
 **Not yet confirmed on a real machine:** install paths containing spaces on Windows, and `upgrade.py` and the project-folder export logic on Windows. The [Windows notes](skills/data-noodler-setup/references/windows.md) keep the current list.
 
