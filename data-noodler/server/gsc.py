@@ -373,7 +373,7 @@ def _rich_results(rich):
     """[verdict, types, issues] from richResultsResult; blanks if absent.
 
     Absent is the common case -- most pages carry no structured data Google
-    recognises -- and is not an error.
+    recognizes -- and is not an error.
     """
     detected = rich.get("detectedItems", []) or []
     types = [d.get("richResultType", "") for d in detected]
@@ -479,7 +479,7 @@ def aggregation_note(dimensions):
 
     Issue #3. Grouped by [date] a property summed to 126,431 impressions;
     grouped by [page], over the same range, to 128,326. Documented Google
-    behaviour, and silent in the receipt -- so a by-page number got divided by
+    behavior, and silent in the receipt -- so a by-page number got divided by
     a by-date total. The note runs both directions because the effect does.
     """
     dims = set(dimensions or [])

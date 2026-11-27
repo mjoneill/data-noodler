@@ -529,7 +529,7 @@ class TestWindowsVenvIsFound(unittest.TestCase):
             home=self.home, platform="win32", which=self.NO_PATH)
         self.assertEqual(got, exe)
 
-    def test_an_uppercase_exe_from_pathext_is_normalised(self):
+    def test_an_uppercase_exe_from_pathext_is_normalized(self):
         # shutil.which appends PATHEXT's own spelling, so a real result reads
         # ...\\analytics-mcp.EXE -- harmless, but the config looks inconsistent.
         got = bootstrap_config.detect_analytics_mcp(

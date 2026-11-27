@@ -113,7 +113,7 @@ def next_step(meta, rows_written):
     if repeats > 0:
         return (f"REPEATED ROWS: {repeats:,} of the {rows_written:,} rows in "
                 "this file repeat another row's full key, which a correct "
-                "report never does, so its totals are inflated. Do not analyse "
+                "report never does, so its totals are inflated. Do not analyze "
                 "this file. Tell the user, and report it as a bug.")
     reason = meta.get("incomplete_reason")
     matched = meta.get("rows_matched")
@@ -134,7 +134,7 @@ def next_step(meta, rows_written):
                 "and never present it as the whole result.")
     if rows_written > CHAT_ROW_THRESHOLD:
         return (f"Complete: all {rows_written:,} rows are in the file. That is "
-                "more than belongs in a chat reply. Summarise from the file, or "
+                "more than belongs in a chat reply. Summarize from the file, or "
                 "ask the user how they want it cut -- but never cut the data "
                 "itself. The file keeps every row.")
     return None
@@ -251,7 +251,7 @@ def write_export(path, columns, rows, meta, overwrite=False, preview_rows=5):
         os.chmod(meta_tmp, EXPORT_MODE & ~_UMASK)
         os.replace(meta_tmp, meta_path)
     except Exception as exc:
-        # Broad for the same reason as above: a non-JSON-serialisable value
+        # Broad for the same reason as above: a non-JSON-serializable value
         # in `meta` (e.g. a datetime.date) raises TypeError here, not
         # OSError, and must still surface as ExportError rather than a raw
         # Python internals message. Written through a tmp file and

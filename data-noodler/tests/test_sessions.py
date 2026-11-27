@@ -170,7 +170,7 @@ class TestCheckWritable(unittest.TestCase):
 
     def test_rejects_denylisted_locations_regardless_of_case(self):
         # APFS is case-insensitive but case-preserving: realpath() does not
-        # normalise the case of a non-symlink component, so ~/.Claude and
+        # normalize the case of a non-symlink component, so ~/.Claude and
         # ~/.claude resolve to the same directory on disk. The denylist
         # check must fold case rather than compare the raw string.
         with self.assertRaises(sessions.SessionError) as ctx:
@@ -321,7 +321,7 @@ class TestRelativeOutFileLandsUnderTheSessionsRoot(unittest.TestCase):
             self._resolve(".")
 
     def test_an_absolute_path_outside_every_approved_place_is_refused(self):
-        # Was "honoured as given" until 2026-10-25 (#156): a model steered by
+        # Was "honored as given" until 2026-10-25 (#156): a model steered by
         # text inside GA data could overwrite any CSV the user owned.
         with self.assertRaises(sessions.SessionError) as ctx:
             self._resolve(os.path.join(self.elsewhere, "mine.csv"))

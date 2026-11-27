@@ -298,7 +298,7 @@ class TestAggregationNote(unittest.TestCase):
     impressions summed to 126,431; grouped by [page] they summed to 128,326. A
     field agent nearly computed one page's share as a by-page number over a
     by-date total, which mixes two aggregations. It is documented Google
-    behaviour, and nothing in the receipt said so at the moment it mattered.
+    behavior, and nothing in the receipt said so at the moment it mattered.
 
     The effect runs BOTH ways, so the note has to say which one applies:
     grouping by page counts one search once per page it showed, so totals can

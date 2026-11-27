@@ -46,7 +46,7 @@ def _fake_response(dimension_headers, metric_headers, rows,
 class _FakeClient:
     """Stands in for the client `run()` gets from upstream. No network.
 
-    Honours offset and limit the way the real API does, so a paging loop sees
+    Honors offset and limit the way the real API does, so a paging loop sees
     realistic pages. page_cap models a server that returns fewer rows than were
     asked for -- GA4's default of 10,000 when no limit is sent is one such cap.
     """
@@ -254,7 +254,7 @@ class TestRun(unittest.TestCase):
             client=client)
         self.assertTrue(meta["row_limit_hit"])
 
-    def test_receipts_dimension_filter_is_json_serialisable(self):
+    def test_receipts_dimension_filter_is_json_serializable(self):
         real_filter = FilterExpression(filter=Filter(field_name="hostName"))
         resp = _fake_response(["date"], ["sessions"], [["2026-08-06", "1"]])
         resp.row_count = 1
@@ -336,7 +336,7 @@ class TestRunAcceptsBothFilterSpellings(unittest.TestCase):
 class TestFilterForMeta(unittest.TestCase):
     """The sidecar promises the structured filter as sent, so the query can be
     re-run exactly. A dict is already JSON and is kept as one; a protobuf
-    message is not JSON-serialisable at all and must be stringified or the
+    message is not JSON-serializable at all and must be stringified or the
     sidecar write aborts."""
 
     def test_a_dict_filter_is_recorded_verbatim(self):
@@ -572,7 +572,7 @@ class TestExportFetchesEveryRow(unittest.TestCase):
         self.assertEqual(len({r[0] for r in rows}), 23000,
                          "a row was duplicated or skipped across pages")
 
-    def test_an_explicit_limit_is_honoured_and_flagged(self):
+    def test_an_explicit_limit_is_honored_and_flagged(self):
         client = _FakeClient(_numbered_response(23000), page_cap=10000)
         _, rows, meta = self._run(client, limit=100)
         self.assertEqual(len(rows), 100)
@@ -877,4 +877,4 @@ class TestTheExportToolTellsTheAgentAboutRepeats(unittest.TestCase):
         import guidance
         doc = " ".join(guidance.GSC_TOOL_DOCS["export_report"].split())
         self.assertIn("duplicate_rows is above 0", doc)
-        self.assertIn("do not analyse it", doc)
+        self.assertIn("do not analyze it", doc)

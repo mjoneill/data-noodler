@@ -5,7 +5,7 @@ only one with no tests at all. It called shutil.rmtree() on three directories
 under an unvalidated --ga-home before copying, so `--ga-home ~` would have
 recursively deleted ~/companion, ~/bin and ~/marketplace.
 
-The first class below is characterization: it pins the behaviour that already
+The first class below is characterization: it pins the behavior that already
 existed, written before the rewrite so the rewrite could not quietly change
 it. The rest are the guarantees the rewrite adds.
 """
@@ -60,7 +60,7 @@ def make_repo(root=None, extra=None):
 
 
 class TestPayloadCopyCharacterization(unittest.TestCase):
-    """Behaviour that predates the rewrite and must survive it."""
+    """Behavior that predates the rewrite and must survive it."""
 
     def setUp(self):
         self.repo = make_repo()

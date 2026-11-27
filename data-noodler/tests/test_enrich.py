@@ -63,7 +63,7 @@ class TestCandidateFacts(unittest.TestCase):
 
 
 class TestDescribe(unittest.TestCase):
-    def test_leads_with_the_name_and_recognisable_numbers(self):
+    def test_leads_with_the_name_and_recognizable_numbers(self):
         line = enrich.describe(CANDIDATE, {
             "sessions": 15598, "hostnames": ["admissions.example.edu"],
             "error": None})

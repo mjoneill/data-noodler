@@ -39,7 +39,7 @@ def version_key(version):
                  re.findall(r"\d+", str(version).split("+")[0])[:4])
 
 
-def normalise(name):
+def normalize(name):
     return name.strip().lower().replace("_", "-")
 
 
@@ -50,7 +50,7 @@ def below_floor(versions):
     it (not installed) are not reported -- a floor on a package nothing
     installs constrains nothing.
     """
-    found = {normalise(k): v for k, v in versions.items() if v}
+    found = {normalize(k): v for k, v in versions.items() if v}
     return {name: (found[name], floor) for name, floor in FLOORS.items()
             if name in found and version_key(found[name]) < version_key(floor)}
 

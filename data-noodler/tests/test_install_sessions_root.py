@@ -52,7 +52,7 @@ class TempConfigMixin:
 
 
 class TestResolveSessionsRoot(TempConfigMixin, unittest.TestCase):
-    def test_honours_a_configured_non_default_root(self):
+    def test_honors_a_configured_non_default_root(self):
         tmp = tempfile.mkdtemp()
         custom = os.path.join(tmp, "custom-sessions")
         cfg = dict(GOOD)

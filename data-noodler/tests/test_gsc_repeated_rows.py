@@ -92,7 +92,7 @@ class AServerThatResetsPartWay(unittest.TestCase):
     def test_the_repeats_are_counted(self):
         self.assertEqual(self.meta["duplicate_rows"], 5)
 
-    def test_the_receipt_says_do_not_analyse(self):
+    def test_the_receipt_says_do_not_analyze(self):
         step = export.next_step(self.meta, len(self.rows))
         self.assertTrue(step.startswith("REPEATED ROWS"), step)
 

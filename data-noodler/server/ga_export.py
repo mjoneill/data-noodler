@@ -68,9 +68,9 @@ def _filter_mentions_hostname(dimension_filter):
     self-referential structure and a pathologically deep one with a single
     comparison, and running past it returns False -- mixed_unscoped -- which
     understates the scoping rather than overstating it, matching how every
-    other unrecognised filter shape is treated. Real filters nest three to
+    other unrecognized filter shape is treated. Real filters nest three to
     five levels; proto-plus refuses to build much beyond sixty. Do not turn
-    this into a raise: exceeding the cap is exactly as unrecognised as any
+    this into a raise: exceeding the cap is exactly as unrecognized as any
     other shape this function doesn't understand.
     """
     def walk(node, depth):
@@ -111,7 +111,7 @@ def filter_for_meta(dimension_filter):
     A dict -- what an MCP caller can actually send -- is recorded verbatim,
     because it is already JSON and the query can therefore be re-run exactly
     from the provenance record. A protobuf FilterExpression is not
-    JSON-serialisable at all, so it is recorded as str(); the sidecar is
+    JSON-serializable at all, so it is recorded as str(); the sidecar is
     written with json.dump and a raw message would abort the write.
     """
     if dimension_filter is None:
@@ -378,7 +378,7 @@ def run(property_id, start_date, end_date, metrics, dimensions,
         "metrics": list(metrics),
         "dimensions": list(dimensions or []),
         # Never the raw object: a real FilterExpression is a protobuf
-        # message, not JSON-serialisable, and this fragment is written to a
+        # message, not JSON-serializable, and this fragment is written to a
         # .meta.json sidecar.
         "dimension_filter": filter_for_meta(dimension_filter),
         "metric_filter": filter_for_meta(metric_filter),
