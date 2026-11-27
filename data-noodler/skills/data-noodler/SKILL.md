@@ -3,11 +3,11 @@ name: data-noodler
 description: Data Noodler. Query Google Analytics 4 data through the analytics-mcp and data-noodler MCP servers — traffic reports, users, sessions, pageviews, conversions, realtime, funnels — plus resolving property names to IDs cheaply and fixing expired credentials. Also covers Google Search Console — indexed, indexing, coverage, crawl, canonical, sitemap, impressions, clicks, average position, "showing up in Google", "why isn't this page ranking" — and exporting either source's results to a file. Use this skill whenever the user asks about Google Analytics, GA4, website traffic, visitors, sessions, pageviews, bounce rate, or analytics for any specific site or property, even if they don't mention GA by name. Also use it when GA tools fail with invalid_grant or "token expired", when the user needs to set up or re-authenticate Data Noodler, or when a question mentions a domain or subdomain whose analytics they want.
 ---
 
-# Google Analytics via MCP
+# Data Noodler: Google Analytics and Search Console
 
 The `analytics-mcp` server exposes 10 read-only tools over the Google Analytics Admin and Data APIs: `get_account_summaries`, `get_property_details`, `list_property_annotations`, `list_google_ads_links`, `list_key_events`, `get_custom_dimensions_and_metrics`, `run_report`, `run_realtime_report`, `run_funnel_report`, `run_conversions_report`.
 
-Everything is read-only by construction — the credential holds only `analytics.readonly`, so no query can alter GA configuration. Explore freely; the risk is a confusing answer, never a destructive one.
+Everything is read-only by construction. The credential holds only two read-only permissions, `analytics.readonly` and `webmasters.readonly`, so no query can change anything in GA or Search Console. Explore freely; the risk is a confusing answer, never a destructive one.
 
 Machine-specific paths live in `~/.config/data-noodler/config.json`. If that file is missing, this machine hasn't been set up — read `references/setup.md`.
 
@@ -88,7 +88,7 @@ This only scratches the surface — call `reporting_guide("gsc")` for the full t
 
 ## Reporting discipline
 
-**State the property ID, the exact metric name, and the exact date range alongside every number you report.** This isn't bureaucratic bookkeeping. A bare figure hides choices the user can't see, and those choices routinely move the answer more than whatever trend they're asking about.
+**State the property ID, the exact metric name, and the exact date range alongside every number you report.** A bare figure hides choices the user can't see, and those choices routinely move the answer more than whatever trend they're asking about.
 
 "How many visitors last month?" contains three ambiguities:
 
@@ -134,13 +134,13 @@ On a large property, a long date range can come back sampled: on a 12-month quer
 
 Credentials are the most *documented* failure here, which makes them the default suspect for any breakage. Resist that: match the error text first.
 
-**`Could not contact DNS servers` (or a 503 "errors resolving ...") is a resolver problem, not a credential problem.** The tell is that the message names DNS and never says `invalid_grant`. gRPC's default c-ares resolver reads `/etc/resolv.conf`, which macOS itself ignores, so `nslookup` and `curl` to the same host can both succeed while every API call fails — meaning ordinary connectivity checks will tell you the network is fine. Fix it with `GRPC_DNS_RESOLVER=native` in the server's env (see `references/setup.md` §7), then restart the session. Re-minting the credential cannot help and has been mistaken for the fix before.
+**`Could not contact DNS servers` (or a 503 "errors resolving ...") is a resolver problem.** The tell is that the message names DNS and never says `invalid_grant`. gRPC's default c-ares resolver reads `/etc/resolv.conf`, which macOS itself ignores, so `nslookup` and `curl` to the same host can both succeed while every API call fails — meaning ordinary connectivity checks will tell you the network is fine. Fix it with `GRPC_DNS_RESOLVER=native` in the server's env (see `references/setup.md` §7), then restart the session. Re-minting the credential cannot help and has been mistaken for the fix before.
 
 A fast way to tell the two apart: if `lookup_property.py` still works while every report fails, the credential and the local snapshot are fine and the problem is network-side — that script never touches the network.
 
 ## When tools fail with invalid_grant
 
-An `invalid_grant` or "Token has been expired or revoked" error means the refresh token expired, not that anything is misconfigured. Google issues 7-day refresh tokens to OAuth apps whose publishing status is "Testing" when they request anything beyond basic profile scopes.
+An `invalid_grant` or "Token has been expired or revoked" error means the refresh token expired. Nothing is misconfigured. Google issues 7-day refresh tokens to OAuth apps whose publishing status is "Testing" when they request anything beyond basic profile scopes.
 
 Renewal opens a browser for consent, so the user has to run it — offer the command rather than trying to run it unattended:
 
@@ -152,8 +152,8 @@ Prefer the exact line `credential_status` prints: it has both paths filled in an
 
 Afterward the client session must restart. The MCP server process reads the credential file when it spawns, so a session that was already running keeps the expired token in memory and will keep failing in a way that looks like the renewal didn't work.
 
-If the user would rather stop renewing weekly, `references/setup.md` covers the two durable alternatives and their tradeoffs.
+Weekly renewal is deliberate: the setup stays in Google's Testing status on purpose, so a leaked credential stops working within a week. If a deployment decides otherwise, `references/setup.md` describes the alternatives and their tradeoffs.
 
 ## First-time setup
 
-`references/setup.md` has the full procedure: creating the OAuth desktop client, enabling the two required APIs, minting a narrow-scope credential, and registering the MCP server. Read it when `~/.config/data-noodler/config.json` is absent, when setting up a new machine, or when the user hits an auth error that isn't simple expiry. It also documents several traps that cost real time — including two errors in Google's own README.
+`references/setup.md` has the full procedure: creating the OAuth desktop client, enabling the three required APIs, minting a narrow-scope credential, and registering the MCP server. Read it when `~/.config/data-noodler/config.json` is absent, when setting up a new machine, or when the user hits an auth error that isn't simple expiry. It also documents several traps that cost real time.
