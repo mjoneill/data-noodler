@@ -74,7 +74,8 @@ if os.path.exists(out_file) and not force:
 if not os.path.exists(client_file):
     sys.exit(
         f"Missing OAuth client file: {client_file}\n"
-        "Create a Desktop app OAuth client first -- see references/setup.md."
+        "Get the OAuth client file from your maintainer, or create your own -- "
+        "see GOOGLE-CLOUD-SETUP.md in the Data Noodler package."
     )
 
 print("Requesting exactly these scopes:")

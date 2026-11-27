@@ -50,14 +50,15 @@ def load():
     # "Could not contact DNS servers" even though nslookup and curl work. Using
     # the system resolver avoids that. setdefault so an explicit env still wins.
     # This covers these scripts only -- the MCP server never imports this module,
-    # so its registration must set the variable too (see references/setup.md).
+    # so its registration must set the variable too (the installer's launchers and
+    # Windows entries do).
     os.environ.setdefault("GRPC_DNS_RESOLVER", "native")
 
     if not os.path.exists(CONFIG_PATH):
         sys.exit(
             f"No config at {CONFIG_PATH}.\n"
-            "This machine has not been set up yet -- see references/setup.md "
-            "in the data-noodler skill."
+            "This machine has not been set up yet -- run the data-noodler-setup "
+            "skill, or follow INSTALL.md in the Data Noodler package."
         )
     # The same checks, in the same order, as the server's config.py (#2007 R3):
     # a terminal user with a half-written file deserves at least the guidance
