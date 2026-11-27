@@ -2,24 +2,27 @@
 
 Step 10 of SKILL.md. Fill this in at the end of every install and every upgrade, and save it as `~/.config/data-noodler/install-reports/<YYYY-MM-DD>-<fresh|upgrade>.md`. The user sends it to the maintainer named in `deployment.json`.
 
-The template follows the best report received so far (Windows, 2026-10-09). Every fix made after that install came out of it. Keep its habits:
+The template follows the best report received so far (Windows, 2026-10-09). Every fix made after that install came out of it. This report is a chance to improve installing and upgrading Data Noodler for everyone. Keep that report's habits:
 
 - **Evidence over adjectives.** Give the exact error text, the log lines and event IDs, and the command that produced them. "It failed" cannot be fixed; `exit 3, MSI 2203 ... path not found` can.
-- **Workarounds are findings.** Anything you did that SKILL.md or `references/windows.md` did not say to do goes in the step log and in "Issues". That includes helper files you created and where they are.
+- **Workarounds are findings.** Anything you did that SKILL.md or `references/windows.md` did not say to do goes in the step log and in "Issues". That includes any helper files you created and where they are.
 - **Record who ran each step.** A step the user had to run by hand, such as an installer or the Desktop registration, is information.
 
 ## Privacy: what never goes in
 
+These are hard rules.
+
 - The contents of `data-noodler-client.json` or of the credential file. No tokens, no client secret. File paths and `client_id` are fine.
 - Any Google Analytics or Search Console data, including the answers to the test question. Say that a query worked, and give its row count if useful.
 - The user's account name. In paths, write `<user>`: `C:\Users\<user>\...`, `/Users/<user>/...`.
+- Other personal or identifying details: the user's Google account email, the computer's name, and the name of their organization or network domain. Write `managed` or `personal` instead.
 
 Show the user the finished report before they send it.
 
 ---
 
 ```markdown
-# GA MCP install report: <OS> (<fresh install | upgrade from DATE/VERSION>)
+# Data Noodler install report: <OS> (<fresh install | upgrade from DATE/VERSION>)
 
 <YYYY-MM-DD> · written by <Claude Code | Codex> at the end of the install
 
@@ -40,6 +43,7 @@ Workarounds needed: <none | one line each>.
 | Python used | <version, where it came from, who installed it> |
 | Claude Desktop | <not installed / standard / Microsoft Store (MSIX)>; config path used |
 | Codex / ChatGPT.app | <not installed / version> |
+| Codex registration | <`codex mcp add` / the plugin / adapted at install time: exactly what was changed>. On Windows this is still unmeasured, so record it |
 | Security software | <Windows: Defender ASR rule IDs and actions from Get-MpPreference, if readable> |
 | Package | <zip name, file count, newest file date> unpacked to <path> |
 | Driver | <Claude Code in a terminal / Claude Code in Desktop's Code tab / Codex> |
