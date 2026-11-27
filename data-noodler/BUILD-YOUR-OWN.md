@@ -1,10 +1,10 @@
 # Build your own: Google Analytics and Search Console for local AI apps
 
-This is a design brief for building a similar system yourself, not install instructions for an existing one. Give it to a coding agent (Claude Code, Codex or similar) together with your goal. Every decision below has its reason next to it, so you can depart from the ones that don't fit your situation and keep the ones that do.
+This is a design brief for building a similar system yourself. (To install Data Noodler itself, see [INSTALL.md](INSTALL.md).) Give it to a coding agent (Claude Code, Codex or similar) together with your goal. Every decision below has its reason next to it, so you can depart from the ones that don't fit your situation and keep the ones that do.
 
 What gets built: the ability to ask a desktop AI app questions about your Google Analytics 4 and Search Console data, answered from live data, and to export full results to files. It runs on each person's own machine, under their own Google account, read-only, with no administrator rights and no server to host.
 
-The design was proven on macOS in Claude Code, Claude Desktop, Codex and the ChatGPT desktop app, and on Windows 11, without administrator rights, in the Claude and ChatGPT desktop apps. Claude Code and Codex in the terminal on Windows should work, but nobody has reported an install yet. If you try it, tell us how it went. It went through two redesigns, several reviews and installs on other people's machines. Most of this document is what those installs taught.
+The design is in daily use on macOS in Claude Code, Claude Desktop, Codex and the ChatGPT desktop app, and on Windows 11, without administrator rights, in Claude Desktop. Users report it working in the ChatGPT desktop app on Windows 11, including its built-in Codex. Claude Code and Codex in the terminal haven't been tried on Windows yet. If you try either, [let us know](../README.md#feedback). It went through two redesigns, several reviews and installs on other people's machines. Most of this document is what those installs taught.
 
 ---
 
@@ -14,13 +14,13 @@ The design was proven on macOS in Claude Code, Claude Desktop, Codex and the Cha
  Each AI app (Claude Code, Claude Desktop, Codex, ...)
    │  starts as child processes, over stdio:
    ├── analytics-mcp     Google's own GA4 MCP server, unmodified, pinned
-   └── data-noodler server  yours: lookup, credential check, exports, Search Console
+   └── data-noodler      yours: lookup, credential check, exports, Search Console
           │
           ▼  both read:
    ~/.config/<yourtool>/
        config.json        this machine's paths (credential, venv python, snapshot)
        properties.csv     local snapshot of every GA property the user can see
-       server/         data-noodler's code (a copy, made by the installer)
+       server/            data-noodler's code (a copy, made by the installer)
        bin/               launcher scripts that set the environment, then exec
        marketplace/       the Codex plugin (optional)
    ~/.config/gcloud/
@@ -32,7 +32,7 @@ The design was proven on macOS in Claude Code, Claude Desktop, Codex and the Cha
    query skill           how to query well, for apps that support skills
 ```
 
-**Nothing is a service.** An MCP stdio server is a child process of the AI app: it starts when the app starts and exits when the app exits. "Installing" means a program on disk plus one config entry per app. There is no launchd job, no Windows service, no port and no listener, and nothing needs administrator rights. Everything lives under the user's home directory. This is the property that makes it deployable to people on locked-down machines.
+**Nothing is a service.** An MCP stdio server is a child process of the AI app. In Claude Desktop the MCP server starts when the app opens and exits when the app is fully quit. In Claude Code TUI and Codex TUI, each session (each terminal window running the app) starts its own copy, which exits when that session ends. In between it sits idle, waiting for the app to call a tool. "Installing" means a program on disk plus one config entry per app. There is no launchd job, no Windows service, no port and no listener, and nothing needs administrator rights. Everything lives under the user's home directory. This is the property that makes it deployable to users with machines in managed environments.
 
 ---
 
@@ -40,9 +40,9 @@ The design was proven on macOS in Claude Code, Claude Desktop, Codex and the Cha
 
 ### Use Google's server and add your own beside it
 
-Google publishes `analytics-mcp` on PyPI (about 9 tools: reports, realtime, funnels, property details, custom dimensions). Use it unmodified and **pin an exact version**. Never enable its optional write tool.
+Google publishes `analytics-mcp` on PyPI (at the time of this writing, 10 read-only tools in version 1.1.0: reports, realtime, funnels, conversions, property details, key events, custom dimensions). Use it unmodified and **pin an exact version**. Never enable its optional write tools.
 
-Then build a second server, the "server", for everything Google's server doesn't do. Don't fork Google's server. A fork has to be maintained, while a sibling server only has to keep working.
+Then build a second server of your own (here, `data-noodler`) for everything Google's server doesn't do. Don't fork Google's server because a fork has to be maintained, while a sibling server only has to keep working.
 
 ### Why the data-noodler server exists: some apps have tools but no shell
 
@@ -54,9 +54,11 @@ Claude Desktop's normal chat can call MCP tools, but it has **no shell and no sk
 - **Exactly two scopes, both read-only:** `https://www.googleapis.com/auth/analytics.readonly` and `https://www.googleapis.com/auth/webmasters.readonly`. One credential, one consent, one renewal. If you ever add a write scope, revisit this decision first.
 - **Your own Google Cloud project** with the Analytics Data API, Analytics Admin API and Search Console API enabled, and an OAuth client of type **Desktop app** (it gives the `http://localhost` redirect flow; a "Web application" client fails with `redirect_uri_mismatch`). Leave the consent screen's "Data access" scope list **empty**. Declaring scopes there is what triggers Google's verification requirements. The scopes are requested at sign-in instead.
 - **Internal vs External audience.** If everyone is in one Google Workspace organization, an *Internal* app avoids most of the friction below. An *External* app in **Testing** status has three consequences you must design for:
-  1. Refresh tokens **expire every 7 days**. Weekly renewal is normal operation, not a fault. Make the renewal one command and make the expiry legible (see `credential_status` below).
+  1. Refresh tokens **expire every 7 days**. Weekly renewal is normal operation. Make the renewal one command and make the expiry legible (see `credential_status` below).
   2. Google refuses sign-in, with `Error 403: access_denied`, to any account not on the project's **test user list**, including the project owner. The list caps at 100. Being on it is the real access gate, so tell people before they install.
   3. "Google hasn't verified this app" is an expected screen to click through. `access_denied` is a wall. Document the difference.
+
+  **We stay in Testing on purpose.** The 7-day expiry is enforced by Google, upstream of anything we write, so no bug or shortcut in our code can turn a credential into one that never expires. A credential that leaks stops working within a week, and each person re-approves the access every week. The cost is the weekly renewal, so make it one command and make the expiry visible.
 - **You can't mint this token with `gcloud`.** `gcloud auth application-default login` insists on adding the `cloud-platform` scope. Write a small mint script using `google_auth_oauthlib.flow.InstalledAppFlow` with exactly your two scopes. Have it write the credential with owner-only permissions (on Windows, `icacls <file> /inheritance:r /grant:r %USERNAME%:F`, because POSIX mode bits mean little there) and **print the scopes actually granted**.
 - **Don't bake a quota project into the credential.** If the mint script sets `quota_project_id` to the project owner's project, every other user needs an IAM permission (`serviceusage.services.use`) on a project they don't own, and every GA call fails for them. The owner never notices, because they own the project.
 - **The credential never passes through the model.** The agent runs a command that opens a browser, and Google's flow does the rest.
@@ -147,7 +149,7 @@ Search Console has no generated Python client. Rather than adding `google-api-py
 Search Console traps the guidance must carry:
 
 - **Property type sets coverage, the reverse of GA.** `sc-domain:example.org` covers every subdomain and both protocols. `https://example.org/` covers only that exact prefix. Show type and coverage in the site list.
-- **`coverageState` is the actionable field**, not the binary verdict. "Crawled — currently not indexed" and "Discovered — currently not indexed" need different responses.
+- **`coverageState` is the actionable field.** The binary indexed/not-indexed verdict hides the reason. "Crawled — currently not indexed" and "Discovered — currently not indexed" need different responses.
 - Data **lags 2–3 days**. `dataState: all` includes fresh, incomplete data, so record which one was used.
 - When Google's chosen canonical differs from the declared one, that's usually the real explanation.
 - GA reports paths and Search Console reports full URLs. They share no identifier. Make columns joinable (split the path out of the URL) but don't build a join tool until you've done the join by hand enough times to know the rules (trailing slashes, query strings).
@@ -161,7 +163,7 @@ Give every tool honest annotations, which apps use to decide what needs approval
 
 ### Errors are the interface
 
-In a shell-less app, the tool's error text is the user's **only** diagnostic. A raw `KeyError: 'property_name'` or `ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)` is a dead end. Use one user-readable exception type per module, convert it to a sentence at each tool's boundary, and test malformed input (short CSV rows, non-dict JSON, unreadable files) on every "always explain" path. In review, this was the most common defect class by far, found in nine of fifteen build tasks.
+In a shell-less app, the tool's error text is the user's **only** diagnostic. A raw `KeyError: 'property_name'` or `ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)` is a dead end. Use one user-readable exception type per module, convert it to a sentence at each tool's boundary, and test malformed input (short CSV rows, non-dict JSON, unreadable files) on every "always explain" path. In our own reviews, this was the most common defect we found.
 
 Never use a bare `assert` for a safety check. `python -O` strips it.
 
@@ -169,7 +171,7 @@ Never use a bare `assert` for a safety check. `python -O` strips it.
 
 ## 3. The tool surface we ended with
 
-Google's `analytics-mcp`: `get_account_summaries`, `get_property_details`, `get_custom_dimensions_and_metrics`, `list_google_ads_links`, `list_property_annotations`, `run_report`, `run_realtime_report`, `run_funnel_report`, `run_conversions_report` (the set varies by version, so pin it).
+Google's `analytics-mcp`: `get_account_summaries`, `get_property_details`, `get_custom_dimensions_and_metrics`, `list_google_ads_links`, `list_key_events`, `list_property_annotations`, `run_report`, `run_realtime_report`, `run_funnel_report`, `run_conversions_report` (the set varies by version, so pin it).
 
 data-noodler (15):
 
@@ -183,13 +185,13 @@ data-noodler (15):
 | `export_report` | GA4 report → CSV + receipt |
 | `export_cohort_report`, `export_realtime_report`, `export_funnel_report` | the other GA4 report types → CSV + receipt |
 | `check_compatibility` | which dimension/metric combinations GA4 will accept, before running a query |
-| `property_setup` | read-only view of a property's configuration (data streams, key events, retention) |
+| `property_setup` | read-only view of a property's configuration (data streams, key events, retention, audiences, channel groups) |
 | `gsc_list_sites` | Search Console sites with type, coverage and permission |
 | `gsc_inspect_urls` | URL Inspection over a list → CSV + receipt |
 | `gsc_search_analytics` | clicks/impressions/position → CSV + receipt, paginated |
 | `gsc_list_sitemaps` | submitted sitemaps and their status |
 
-About 24 tools across two servers is fine. Above that, tool-selection reliability starts to suffer, so add carefully.
+About 25 tools across two servers is fine. Above that, tool-selection reliability starts to suffer, so add carefully.
 
 ---
 
@@ -211,7 +213,7 @@ Per-app registration notes:
 - **Codex**: package both servers and the query skill as a **plugin** in a local "marketplace" folder (an index file plus the plugin directory). Let the `codex plugin marketplace add` / `codex plugin add name@marketplace` CLI write `~/.codex/config.toml`, and never edit that file yourself. The plugin's `plugin.json` **must** declare `"mcpServers": "./.mcp.json"`. Without it the plugin installs cleanly and registers zero servers. **Bump the plugin version on every content change**: Codex caches by version, so changes shipped at an unchanged version never reach existing installs. A test that fingerprints plugin contents against the version will catch this.
 - **ChatGPT desktop app**: shares Codex's plugin config. ChatGPT in a browser runs on OpenAI's servers and can't reach a local process.
 
-**Quit apps before registering.** Claude Desktop and the ChatGPT app write their own settings back to the same config files, and a running app's later flush can drop the entry you just added. Afterwards, apps must be **fully quit** (Cmd-Q, or the tray icon on Windows), not just have their windows closed, to pick up new config, new code or a renewed credential.
+**Quit apps before registering.** Claude Desktop and the ChatGPT app write their own settings back to the same config files, and a running app's later flush can drop the entry you just added. Afterwards, apps must be **fully quit** (Cmd-Q, or the tray icon on Windows) to pick up new config, new code or a renewed credential.
 
 **Keep the master copies of your skills in one place and build copies from them**, never edit the copies. Mark installed skill folders with a marker file, and never overwrite a folder that lacks it.
 
@@ -221,17 +223,17 @@ Per-app registration notes:
 
 - **Python first, installed by the user** from an ordinary PowerShell window or File Explorer. The `python.exe` in `WindowsApps` is a Store stub. An installer started from inside the Store version of Claude Desktop fails, because the app container redirects `AppData` writes where Windows Installer can't see them. Afterwards, name the new interpreter by full path.
 - **No uv, no launchers, no `.ps1` scripts.** Stock `python -m venv`. Execution policy blocks unsigned PowerShell scripts.
-- **Run the server as `python.exe -m analytics_mcp.server`**, not the pip-generated `analytics-mcp.exe`. Defender's Attack Surface Reduction rule for low-prevalence executables blocks per-machine generated `.exe` files with `[WinError 5] Access is denied`, which looks like a file permission problem and isn't.
+- **Run the server as `python.exe -m analytics_mcp.server`**, not the pip-generated `analytics-mcp.exe`. Defender's Attack Surface Reduction rule for low-prevalence executables blocks per-machine generated `.exe` files with `[WinError 5] Access is denied`, which looks like a file permission problem. The cause is the Defender rule.
 - **Codex plugins that start servers through `/bin/sh` don't work on native Windows.** Plan for that or exclude Codex there.
 - Test paths containing spaces (`OneDrive - Org Name`). We hadn't when this was written.
-- **Test the path a person takes by hand, not just the one an agent takes.** An agent running inside the Store app inherits its container and never sees the config-location bug that a person in PowerShell hits immediately.
+- **Test the path a person takes by hand as well as the one an agent takes.** An agent running inside the Store app inherits its container and never sees the config-location bug that a person in PowerShell hits immediately.
 
 ---
 
 ## 6. Supply chain
 
 - Pin the whole dependency set with a constraints file and check it against vulnerability databases before each release. Enforce minimum safe versions with a test.
-- A fresh venv starts with whatever pip the Python installer bundled, which may trust stale or compromised certificate roots (this happened in October 2026 with a certificate authority's compromised intermediate keys). **Install pip itself by exact wheel URL and SHA-256** before anything else, and never `pip install --upgrade pip` with the bundled one.
+- **Install pip itself by hash, before anything else.** The constraints file can't protect the tool doing the downloading. A fresh venv starts with whatever pip its Python installer bundled, and pip trusts its own bundled certificate list, so if that list is out of date, everything it downloads, including a newer pip, can be intercepted. Install pip first from an exact wheel URL with its SHA-256 checksum, which rejects a tampered file even over an intercepted connection. (A real case: [Python's October 2026 advisory](https://discuss.python.org/t/109576).)
 - Turn off what you don't use. The MCP Python library includes OpenTelemetry trace-context middleware, and if you export no traces, remove it so nothing parses that header.
 
 ---
@@ -242,7 +244,7 @@ Per-app registration notes:
 |---|---|---|
 | `503 ... Could not contact DNS servers`, while curl works | gRPC c-ares reads `/etc/resolv.conf` on split DNS | `GRPC_DNS_RESOLVER=native` in every launcher |
 | `invalid_grant` weekly | Testing-status 7-day refresh tokens | One-command renewal, then **fully quit** the apps |
-| Renewal "didn't work" | The running app holds the old token in memory | Quit and reopen, not close the window |
+| Renewal "didn't work" | The running app holds the old token in memory | Quit the app fully, then reopen it |
 | `Error 403: access_denied` at consent | Account isn't a test user | Owner adds it, once per person |
 | Server "failed to start", no detail | Something wrote to stdout | stderr only. Test it directly |
 | Plugin installed, no tools | `plugin.json` lacks `mcpServers` pointer | Declare it, and test cross-file agreement |
