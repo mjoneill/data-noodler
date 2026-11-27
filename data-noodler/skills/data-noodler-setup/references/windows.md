@@ -196,7 +196,7 @@ Both blocked the documented path and both were invisible from macOS. If your cop
 - **`bootstrap_config.py` could not find a venv-local `analytics-mcp.exe`.** It searched only `PATH` and `~/.local/bin`, and refused before it ever read `--venv-python`. It now searches the venv this page creates, and `--venv-python` is enough on its own. *Old workaround:* `$env:PATH = "$env:USERPROFILE\.config\data-noodler\venv\Scripts;$env:PATH"`
 - **A Microsoft Store (MSIX) Claude Desktop hid its config.** `%APPDATA%\Claude` resolves only *inside* the app container, so an install run from ordinary PowerShell said `claude_desktop: not installed, skipping` and exited 0. The installer now also searches the real directory, `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude`, and refuses loudly instead of skipping if the app is installed but no config is found. *Old workaround, and still the override if detection ever misses:* set `CLAUDE_USER_DATA_DIR` to that directory, with Claude Desktop fully quit.
 
-The lesson that outlasts both: **an agent running the install from inside Claude Code would never have hit the second one** -- it inherits the app container. A person following INSTALL.md by hand does. Test the path people actually take as well as the one an agent takes.
+The lesson that outlasts both: **an agent running the install from inside Claude Code would never have hit the second one** -- it inherits the app container. A person following the steps by hand does. Test the path people actually take as well as the one an agent takes.
 
 ## Still unproven
 

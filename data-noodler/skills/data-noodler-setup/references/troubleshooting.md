@@ -116,6 +116,10 @@ The bare name is rejected; the qualified form is what actually works.
 
 The local snapshot is stale. Call `refresh_property_snapshot`, or run `refresh_properties.py` in a shell.
 
+## Claude Code shows two `data-noodler` skills
+
+Something inside `~/.claude/skills/` is a copy, often a backup folder such as `data-noodler.backup/`. Claude Code loads every folder there as a live skill, so the copy registers as a second skill with the same description, and the two compete. Move the copy out of `~/.claude/skills/`, for example to `~/.claude/skill-backups/`, and keep backups there from now on.
+
 ## Several server processes are running, or a fix "didn't take"
 
 Each server process reads its credential and environment once, when it starts. A process that has been running for a week still uses the week-old token and whatever environment it started with, so a renewed credential or a changed setting needs a new process.

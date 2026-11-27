@@ -282,8 +282,8 @@ def missing_skills(names, skills_dir=None):
         except OSError:
             problems.append(
                 f"skill {name}: not installed -- expected {path}. Install it "
-                "with the package's installer/copy_skills.py (INSTALL.md, the "
-                "Claude Code skills step).")
+                "with the package's installer/copy_skills.py (the setup "
+                "skill's Claude Code skills step).")
             continue
         if not text.strip():
             problems.append(f"skill {name}: {path} is empty")

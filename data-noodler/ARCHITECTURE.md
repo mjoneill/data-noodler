@@ -49,8 +49,7 @@ The tests in `tests/` run in CI on every push. They cover the tool surface over 
 
 | Question | File |
 |---|---|
-| How do I install by hand? | [`INSTALL.md`](INSTALL.md) |
-| How does an agent install or upgrade? | [`skills/data-noodler-setup/SKILL.md`](skills/data-noodler-setup/SKILL.md) |
+| How do I install or upgrade, with an agent or by hand? | [`skills/data-noodler-setup/SKILL.md`](skills/data-noodler-setup/SKILL.md) |
 | Windows differences, each with its measured reason | [`skills/data-noodler-setup/references/windows.md`](skills/data-noodler-setup/references/windows.md) |
 | Something failed | [`skills/data-noodler-setup/references/troubleshooting.md`](skills/data-noodler-setup/references/troubleshooting.md) |
 | How do I get my own Google sign-in? | [`GOOGLE-CLOUD-SETUP.md`](GOOGLE-CLOUD-SETUP.md) |

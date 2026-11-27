@@ -24,7 +24,6 @@ import security_floors  # noqa: E402
 DOCS = (
     os.path.join(ROOT, "skills", "data-noodler-setup", "references", "windows.md"),
     os.path.join(ROOT, "skills", "data-noodler-setup", "SKILL.md"),
-    os.path.join(ROOT, "INSTALL.md"),
     os.path.join(REPO, "docs", "runbooks", "INSTALL-DAY.md"),
 )
 
@@ -49,7 +48,7 @@ class TestThePinnedPip(unittest.TestCase):
         self.assertEqual(security_floors.FLOORS["pip"], "26.2.2")
 
     def test_every_windows_venv_step_installs_pip_by_hash(self):
-        for path in _present((DOCS[0], DOCS[3])):
+        for path in _present((DOCS[0], DOCS[2])):
             text = _read(path)
             if "-m venv" not in text:
                 continue
@@ -84,7 +83,7 @@ class TestUvFloor(unittest.TestCase):
         self.assertIsNone(out["below_floor"])
 
     def test_the_mac_install_docs_check_the_uv_version(self):
-        for path in _present((DOCS[1], DOCS[2], DOCS[3])):
+        for path in _present((DOCS[1], DOCS[2])):
             self.assertIn("0.13.4", _read(path), path)
 
 

@@ -135,7 +135,7 @@ class TestEveryInstallPathUsesThePins(unittest.TestCase):
                 if l.strip().startswith("uv tool install analytics-mcp")]
 
     def test_every_macos_install_command_names_the_constraints(self):
-        for doc in (("INSTALL.md",), ("skills", "data-noodler-setup", "SKILL.md")):
+        for doc in (("skills", "data-noodler-setup", "SKILL.md"),):
             lines = self._uv_install_lines(self._read(self.DIST, *doc))
             self.assertTrue(lines, doc)
             for line in lines:

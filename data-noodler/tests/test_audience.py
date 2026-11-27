@@ -25,7 +25,6 @@ def read(*parts):
 FIRST_RUN_DOCS = (
     ("START-HERE.md",),
     ("README.md",),
-    ("INSTALL.md",),
     ("GOOGLE-CLOUD-SETUP.md",),
     ("skills", "data-noodler-setup", "SKILL.md"),
 )
@@ -167,12 +166,6 @@ class TestBlankTeamFieldsAreAFinishedSetup(unittest.TestCase):
         self.assertRegex(step, r"(?i)never send it yourself")
         self.assertRegex(step, r"(?i)it is the user's choice")
         self.assertRegex(step, r"(?i)don't ask twice")
-
-    def test_the_manual_install_skips_sending_when_just_you(self):
-        text = read("INSTALL.md")
-        m = re.search(r"(?ms)^## 11\. Tell your maintainer.*?(?=^## )", text)
-        self.assertIsNotNone(m)
-        self.assertRegex(m.group(0), r"(?is)just for yourself.{0,200}skip sending")
 
 if __name__ == "__main__":
     unittest.main()

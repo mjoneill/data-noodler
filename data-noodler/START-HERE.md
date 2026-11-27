@@ -68,10 +68,9 @@ Read, in this order, and summarize each for the user in a few sentences:
 1. `ARCHITECTURE.md`: what the pieces are, why the install is split between
    an agent and tested code, and what the security posture is.
 2. `GOOGLE-CLOUD-SETUP.md`: how a deployment gets its own Google sign-in. Users frequently have questions about what this sequence of steps is for.  It is often useful to explain it to them as clearly as possible. Often, saying something like this helps: "Because Data Noodler lets me read your Google Analytics and Search Console data, I need a way to sign in to them with read-only access. This step sets up that Google App." 
-3. `INSTALL.md`: the by-hand install, which is what the skill automates.  
-4. `skills/data-noodler-setup/SKILL.md`, and `references/windows.md` if any
+3. `skills/data-noodler-setup/SKILL.md`, and `references/windows.md` if any
    Windows machines are involved.
-5. `skills/data-noodler-setup/references/troubleshooting.md`.
+4. `skills/data-noodler-setup/references/troubleshooting.md`.
 
 Say plainly what you found: what this package does well, what it assumes,
 and anything that does not fit the user's situation. It was first built and

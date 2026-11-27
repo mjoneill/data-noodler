@@ -22,7 +22,7 @@ import tempfile
 import unittest
 
 DIST = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DOCS = ("INSTALL.md", os.path.join("skills", "data-noodler-setup", "SKILL.md"))
+DOCS = (os.path.join("skills", "data-noodler-setup", "SKILL.md"),)
 FENCE = re.compile(r"^```(\w*)\n(.*?)^```", re.S | re.M)
 SCRIPT_TAIL = ("marketplace", "plugins", "data-noodler", "skills",
                "data-noodler", "scripts", "mint_adc.py")

@@ -58,7 +58,7 @@ def load():
         sys.exit(
             f"No config at {CONFIG_PATH}.\n"
             "This machine has not been set up yet -- run the data-noodler-setup "
-            "skill, or follow INSTALL.md in the Data Noodler package."
+            "skill (an agent runs it, or follow its steps yourself)."
         )
     # The same checks, in the same order, as the server's config.py (#2007 R3):
     # a terminal user with a half-written file deserves at least the guidance

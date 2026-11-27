@@ -21,4 +21,4 @@ Open this folder in Claude Code or Codex and tell your agent:
 
 > Read START-HERE.md and help me set this up.
 
-To install by hand instead, follow [`INSTALL.md`](INSTALL.md).
+To install by hand instead, follow the same steps the agent does: [`skills/data-noodler-setup/SKILL.md`](skills/data-noodler-setup/SKILL.md).
