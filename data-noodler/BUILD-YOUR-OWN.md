@@ -224,7 +224,7 @@ Per-app registration notes:
 - **Python first, installed by the user** from an ordinary PowerShell window or File Explorer. The `python.exe` in `WindowsApps` is a Store stub. An installer started from inside the Store version of Claude Desktop fails, because the app container redirects `AppData` writes where Windows Installer can't see them. Afterwards, name the new interpreter by full path.
 - **No uv, no launchers, no `.ps1` scripts.** Stock `python -m venv`. Execution policy blocks unsigned PowerShell scripts.
 - **Run the server as `python.exe -m analytics_mcp.server`**, not the pip-generated `analytics-mcp.exe`. Defender's Attack Surface Reduction rule for low-prevalence executables blocks per-machine generated `.exe` files with `[WinError 5] Access is denied`, which looks like a file permission problem. The cause is the Defender rule.
-- **Codex plugins that start servers through `/bin/sh` don't work on native Windows.** Plan for that or exclude Codex there.
+- **A Codex plugin that starts its servers through `/bin/sh` shouldn't work on native Windows**, which has no `/bin/sh`. Yet users report ours working in the ChatGPT desktop app on Windows 11, and why hasn't been recorded. Test it on Windows before you rely on it.
 - Test paths containing spaces (`OneDrive - Org Name`). We hadn't when this was written.
 - **Test the path a person takes by hand as well as the one an agent takes.** An agent running inside the Store app inherits its container and never sees the config-location bug that a person in PowerShell hits immediately.
 

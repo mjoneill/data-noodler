@@ -638,8 +638,7 @@ class TestEveryCommandBlockStandsOnItsOwn(unittest.TestCase):
         with open(SKILL_MD, encoding="utf-8") as f:
             skill = f.read()
         step1 = skill[skill.index("## Step 1"):skill.index("## Step 2")]
-        self.assertIn("On Windows the command is `python`, not `python3`",
-                      step1)
+        self.assertIn("On Windows, use `python`.", step1)
 
     def test_the_minimum_macos_is_stated(self):
         with open(os.path.join(ROOT, "INSTALL.md"), encoding="utf-8") as f:

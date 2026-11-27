@@ -5,7 +5,7 @@ description: Install or repair Data Noodler (Google Analytics and Search Console
 
 # Installing GA access into local harnesses
 
-Nothing here needs administrator privilege. Every path written is under the user's home directory. An MCP stdio server is a child process of the LLM application, not a service — "installing" it is a program on disk plus a config entry naming a command to launch.
+Nothing here needs administrator privilege. Every path written is under the user's home directory. An MCP stdio server is a child process of the LLM application: "installing" it means a program on disk plus a config entry naming a command to launch.
 
 ## Before you start
 
@@ -13,7 +13,7 @@ Nothing here needs administrator privilege. Every path written is under the user
 
 Run the whole flow from Claude Code or Codex -- these instructions are for whichever agent is installing, and where a step applies to only one app (Claude Code skills, the Codex plugin) it says so. Claude Desktop's normal chat has no shell, so it cannot install anything -- but it is a valid *target*, and this session will configure it.
 
-**The division of labour.** You read the machine and decide; tested code in `installer/` makes every change; `verify.py` decides "done". Run the code -- do not re-create its steps by hand, even when they look simple: the code's order, refusals and undo are the point, and an improvised version is a different install nobody can support afterwards. When the code's view of the machine is wrong, correct it with its flags (`--venv-python`, `--base-python`, `CLAUDE_USER_DATA_DIR`), and if no flag fits, stop and report rather than working around it.
+**The division of labor.** You read the machine and decide; tested code in `installer/` makes every change; `verify.py` decides "done". Run the code -- do not re-create its steps by hand, even when they look simple: the code's order, refusals and undo are the point, and an improvised version is a different install nobody can support afterwards. When the code's view of the machine is wrong, correct it with its flags (`--venv-python`, `--base-python`, `CLAUDE_USER_DATA_DIR`), and if no flag fits, stop and report rather than working around it.
 
 **Browser surfaces cannot be served.** ChatGPT and claude.ai in a browser execute tools on the vendor's servers and cannot reach a local process. Do not attempt it; say so plainly if asked. The ChatGPT desktop app is different: it runs on the app's local Codex runtime, so the Codex plugin serves it (confirmed 2026-10-29). Older versions of the app had separate Chat and Work modes, and only Work could reach local tools; the two have since merged. If a user on an older version reports missing tools, have them update the app.
 
@@ -40,7 +40,7 @@ python3 <repo>/data-noodler/installer/probe.py
 
 Any Python 3 will do; this one only reads. Add `--json` for compact output.
 
-**On Windows the command is `python`, not `python3`** -- a python.org install has no `python3.exe`, and the name may instead be the Microsoft Store stub, which prints nothing. `references/windows.md` has the rest.
+**On Windows, use `python`.** Whether `python3` exists depends on how Python was installed: the classic python.org installer doesn't create it, the newer Python install manager does but [Python's own docs](https://docs.python.org/3/using/windows.html) say not to rely on it, and on a machine with no Python it may be the Microsoft Store placeholder, which prints nothing. `references/windows.md` has the rest.
 
 **On a Mac with no usable Python yet** -- `xcode-select -p` errors, so `/usr/bin/python3` is only a stub that offers to install Apple's developer tools (common on a ChatGPT-only Mac, measured 2026-10-29) -- do Step 2 first: it installs uv, which brings its own Python. Then run this step with `"$(uv python find)"` in place of `python3`. You do not need Apple's developer tools for anything here.
 
@@ -136,7 +136,7 @@ If it is nowhere, **stop and ask the user for it** -- do not try to generate, do
 
 What to tell them: `deployment.json` names the maintainer and says how the file is handed over -- directly, by password manager, AirDrop, or in person, never over Slack or a mailing list. Save it as `data-noodler-client.json` at `~/.config/gcloud/data-noodler-client.json` (`mkdir -p ~/.config/gcloud` first). `START-HERE.md` says what it is and why it is kept out of the package.
 
-Tell them to ask, in the same message, to be added to the test-user list. It is the other thing only the maintainer can do, and without it Step 5 fails with `access_denied` -- which reads like a local fault and is not one.
+Tell them to ask, in the same message, to be added to the test-user list. It is the other thing only the maintainer can do, and without it Step 5 fails with `access_denied`, which reads like a local fault. Only the maintainer can fix it.
 
 A correct file has a top-level `"installed"` key, not `"web"`, and `"redirect_uris": ["http://localhost"]`. It is a Desktop-app OAuth client, so it cannot hold a confidential secret (RFC 8252), but it still belongs outside any git repo and anywhere world-readable.
 
@@ -160,7 +160,7 @@ else
 fi
 ```
 
-A plain system Python -- the same one Step 2 says not to run the server on -- is deliberate and correct here, not a shortcut. `bootstrap_config.py` uses only the standard library, and its whole job is to go *find* the interpreter `analytics-mcp` runs under, by reading the console script's shebang: the one place that always names it, whether the install came from `uv` or from `pipx`, and the reason nothing later has to guess. It does not need to run inside that interpreter. (The launchers themselves no longer need Python to read the config: they use `plutil`, which every Mac has.)
+A plain system Python -- the same one Step 2 says not to run the server on -- is deliberate and correct here. `bootstrap_config.py` uses only the standard library, and its whole job is to go *find* the interpreter `analytics-mcp` runs under, by reading the console script's shebang: the one place that always names it, whether the install came from `uv` or from `pipx`, and the reason nothing later has to guess. It does not need to run inside that interpreter. (The launchers themselves no longer need Python to read the config: they use `plutil`, which every Mac has.)
 
 It writes `oauth_client_file`, `adc_file`, `venv_python`, `properties_csv`, `analytics_mcp_bin` and `mint_script`. Read `venv_python` out of it afterwards: that is the `<venv_python>` every later step substitutes.
 
@@ -211,7 +211,7 @@ On Windows, give this form instead. The user runs it in an ordinary PowerShell w
 
 Run the copy in the repo checkout, because at this point in the flow the payload step has not run yet, so no copy exists under `~/.config/data-noodler/`. Once the payload is installed, the equivalent installed copy is `~/.config/data-noodler/marketplace/plugins/data-noodler/skills/data-noodler/scripts/mint_adc.py` — which is what `config.json`'s `mint_script` names and what `credential_status` hands the user for weekly renewal. Do not point anyone at `~/.claude/skills/data-noodler/scripts/mint_adc.py`: nothing in this install creates that path.
 
-Expect a "Google hasn't verified this app" warning: it is the OAuth client in Testing status. Continue via Advanced. The consent screen now lists **two** permissions, not one — the script requests both `analytics.readonly` and `webmasters.readonly`, and prints what it actually got; confirm both appear before telling the user it worked. The 7-day expiry is a property of Testing status, not a misconfiguration — it will look exactly like a broken install every seven days, and it is not one.
+Expect a "Google hasn't verified this app" warning: it is the OAuth client in Testing status. Continue via Advanced. The consent screen lists **two** permissions: the script requests both `analytics.readonly` and `webmasters.readonly`, and prints what it actually got; confirm both appear before telling the user it worked. The 7-day expiry comes from Testing status, which is deliberate. Every seven days it will look exactly like a broken install, and the fix is renewal.
 
 **Before sending anyone into consent, check they are on the project's test-user list.** Testing publishing status means Google refuses consent to any Google account the Cloud project has not listed as a test user, and returns `Error 403: access_denied` — which to the user is indistinguishable from a broken install. Having GA access to the properties does not help. Nothing you or they can run locally fixes it: the project's maintainer must add that Google account under **Google Auth Platform → Audience → Test users**, once, ever, per person. So if `access_denied` appears, say exactly that and who to ask — do not re-run consent, and do not start debugging the config. (For the project's own maintainer on their own machine, this is already done and will not come up.) The list caps at 100 test users.
 
@@ -262,6 +262,18 @@ On macOS the same block runs in Terminal, after quitting Claude with Cmd-Q. `ver
 
 **Codex TUI and the ChatGPT desktop app** — one install serves both, because the ChatGPT app runs its own codex runtime sharing `~/.codex`:
 
+**On Windows, try `codex mcp add` first.** Codex runs natively on Windows (in PowerShell, not WSL), and the plugin below starts its servers through `/bin/sh`, which native Windows doesn't have. So register each server directly, the same way Claude is registered on Windows, with the full paths from `config.json` (Codex doesn't expand `~` or `%USERPROFILE%`):
+
+```powershell
+codex mcp add analytics-mcp --env GOOGLE_APPLICATION_CREDENTIALS="<adc_file>" --env GRPC_DNS_RESOLVER=native --env OTEL_PROPAGATORS=none --env ANALYTICS_MCP_ALLOW_WRITE=false -- "<venv_python>" -m analytics_mcp.server
+codex mcp add data-noodler --env GOOGLE_APPLICATION_CREDENTIALS="<adc_file>" --env GRPC_DNS_RESOLVER=native --env OTEL_PROPAGATORS=none --env ANALYTICS_MCP_ALLOW_WRITE=false -- "<venv_python>" "<data-noodler home>\server\data_noodler.py"
+```
+
+Then check with `codex mcp list` and ask one GA question in Codex (`verify.py` reads Claude's configs only). This path hasn't been tested on Windows yet, so record in the install report exactly what you ran and what happened, including whether the plugin's skill can be added without its servers clashing with these.
+
+If `codex mcp add` isn't available or the servers don't start, fall back to the plugin as below. At the time of writing, we don't know how the plugin's `/bin/sh` start has worked on the Windows machines that reported success. We suspect the installing agent adapted it at install time. If you adapt anything, write down exactly what in the install report.
+
+
 **No `codex` command?** On a Mac with only the ChatGPT app (no separate Codex install), `codex` may not be on the PATH. The app carries its own copy, which reads the same `~/.codex` settings (checked 2026-10-29: it lists the same plugins and marketplaces). Use it in place of `codex` in the commands below: `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex`.
 
 ```bash
@@ -298,11 +310,11 @@ Let the codex CLI write `~/.codex/config.toml`. **Never edit that file directly*
 
 **Use `--require`, and treat the exit code as the answer.** Without it success is a sentence you have to read and agree with, and you are the least impartial reader of your own output there is. With it, done is exit 0 and nothing else.
 
-A server that starts but serves the wrong number of tools is reported as UNMET rather than OK. That case means the payload on disk is not the expected one — it is not a credential problem, and should not be treated as one.
+A server that starts but serves the wrong number of tools is reported as UNMET rather than OK. That case means the payload on disk is not the expected one. Renewing the credential won't help.
 
-A `FAIL` with `[WinError 5] Access is denied` comes with a `why:` line. It is Microsoft Defender, not the credential. Follow `references/troubleshooting.md`, "Access is denied on Windows".
+A `FAIL` with `[WinError 5] Access is denied` comes with a `why:` line. The cause is Microsoft Defender. Follow `references/troubleshooting.md`, "Access is denied on Windows".
 
-This proves the entry is launchable. It cannot prove the tools appear in an app's UI, so finish by telling the user to **restart each application** and ask one GA question. Restart is not optional: a running client holds its old config and its old child server processes — quitting the app fully (not just closing its window) and reopening it is required, not a nicety.
+This proves the entry is launchable. It cannot prove the tools appear in an app's UI, so finish by telling the user to **restart each application** and ask one GA question. Restart is not optional: a running client holds its old config and its old child server processes — quitting the app fully and reopening it is required. Closing its window leaves it running.
 
 ## Step 9: Clean up, with the user's say-so
 
@@ -349,7 +361,7 @@ Write what actually happened, not what should have happened. If you deviated fro
 
 In Claude Desktop chat there is no shell, so `lookup_property`, `credential_status` and `refresh_property_snapshot` are the only route to that capability. That is what the data-noodler server is for.
 
-A local install does not serve ChatGPT or claude.ai in a browser. Those run tools on the vendor's servers and cannot reach anything on this machine — that is a hard boundary, not a configuration gap, and no amount of retrying closes it. For ChatGPT the only route OpenAI documents is Secure MCP Tunnel (Business/Enterprise workspaces, with a hosted connection), which this package does not provide.
+A local install does not serve ChatGPT or claude.ai in a browser. Those run tools on the vendor's servers and cannot reach anything on this machine. That is a hard boundary, and no configuration or retrying closes it. For ChatGPT on the web, OpenAI documents two ways to reach a custom MCP server: give the server a public HTTPS address, or run OpenAI's Secure MCP Tunnel from inside your network ([OpenAI help, "Developer mode and full MCP connectors"](https://help.openai.com/en/articles/12584461-developer-mode-and-full-mcp-connectors-in-chatgpt), checked 2026-11-27). Full MCP access there is for Business, Enterprise and Edu workspaces. This package provides neither route.
 
 **Where ChatGPT desktop app exports land.** Each conversation runs in its own folder under `~/Documents/Codex/<date>/<topic>/`, which counts as the project, so exports go to an `_outputs` folder inside that conversation's folder (measured 2026-10-29). The receipt names the path. A user who wants everything in one place asks for `save_to: sessions`.
 
@@ -357,7 +369,7 @@ A local install does not serve ChatGPT or claude.ai in a browser. Those run tool
 
 Nothing further for installation: Step 4 generates the config, so this skill covers the whole path on a machine where nothing was set up before.
 
-A colleague who would rather not run an agent through it at all can follow `data-noodler/INSTALL.md` instead — the same path written out as copy-pasteable steps, including the same `bootstrap_config.py` call. The two documents are alternatives, not halves: either is sufficient on its own, and a change to one belongs in the other.
+A colleague who would rather not run an agent through it at all can follow `data-noodler/INSTALL.md` instead — the same path written out as copy-pasteable steps, including the same `bootstrap_config.py` call. The two documents are alternatives: either is sufficient on its own, and a change to one belongs in the other.
 
 ## When something fails
 
