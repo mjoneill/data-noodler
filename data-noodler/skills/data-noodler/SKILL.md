@@ -9,7 +9,7 @@ The `analytics-mcp` server exposes 10 read-only tools over the Google Analytics 
 
 Everything is read-only by construction. The credential holds only two read-only permissions, `analytics.readonly` and `webmasters.readonly`, so no query can change anything in GA or Search Console. Explore freely; the risk is a confusing answer, never a destructive one.
 
-Machine-specific paths live in `~/.config/data-noodler/config.json`. If that file is missing, this machine hasn't been set up — read `references/setup.md`.
+Machine-specific paths live in `~/.config/data-noodler/config.json`. If that file is missing, this machine hasn't been set up: use the `data-noodler-setup` skill, which runs the tested installer, or the package's `INSTALL.md` to do it by hand.
 
 ## Resolving property names to IDs
 
@@ -134,7 +134,7 @@ On a large property, a long date range can come back sampled: on a 12-month quer
 
 Credentials are the most *documented* failure here, which makes them the default suspect for any breakage. Resist that: match the error text first.
 
-**`Could not contact DNS servers` (or a 503 "errors resolving ...") is a resolver problem.** The tell is that the message names DNS and never says `invalid_grant`. gRPC's default c-ares resolver reads `/etc/resolv.conf`, which macOS itself ignores, so `nslookup` and `curl` to the same host can both succeed while every API call fails — meaning ordinary connectivity checks will tell you the network is fine. Fix it with `GRPC_DNS_RESOLVER=native` in the server's env (see `references/setup.md` §7), then restart the session. Re-minting the credential cannot help and has been mistaken for the fix before.
+**`Could not contact DNS servers` (or a 503 "errors resolving ...") is a resolver problem.** The tell is that the message names DNS and never says `invalid_grant`. gRPC's default c-ares resolver reads `/etc/resolv.conf`, which macOS itself ignores, so `nslookup` and `curl` to the same host can both succeed while every API call fails — meaning ordinary connectivity checks will tell you the network is fine. Fix it with `GRPC_DNS_RESOLVER=native` in the server's env (the setup skill's `references/troubleshooting.md` has the details), then restart the session. Re-minting the credential cannot help and has been mistaken for the fix before.
 
 A fast way to tell the two apart: if `lookup_property.py` still works while every report fails, the credential and the local snapshot are fine and the problem is network-side — that script never touches the network.
 
@@ -152,8 +152,8 @@ Prefer the exact line `credential_status` prints: it has both paths filled in an
 
 Afterward the client session must restart. The MCP server process reads the credential file when it spawns, so a session that was already running keeps the expired token in memory and will keep failing in a way that looks like the renewal didn't work.
 
-Weekly renewal is deliberate: the setup stays in Google's Testing status on purpose, so a leaked credential stops working within a week. If a deployment decides otherwise, `references/setup.md` describes the alternatives and their tradeoffs.
+Weekly renewal is deliberate: the setup stays in Google's Testing status on purpose, so a leaked credential stops working within a week.
 
 ## First-time setup
 
-`references/setup.md` has the full procedure: creating the OAuth desktop client, enabling the three required APIs, minting a narrow-scope credential, and registering the MCP server. Read it when `~/.config/data-noodler/config.json` is absent, when setting up a new machine, or when the user hits an auth error that isn't simple expiry. It also documents several traps that cost real time.
+Setting up is the `data-noodler-setup` skill's job: it runs the tested installer and verifies the result. The package's `INSTALL.md` is the same path by hand, and `GOOGLE-CLOUD-SETUP.md` covers creating the Google App (the OAuth client). Use them when `~/.config/data-noodler/config.json` is absent, when setting up a new machine, or when the user hits an auth error that isn't simple expiry.

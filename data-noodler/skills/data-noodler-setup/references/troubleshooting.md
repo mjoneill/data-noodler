@@ -116,6 +116,17 @@ The bare name is rejected; the qualified form is what actually works.
 
 The local snapshot is stale. Call `refresh_property_snapshot`, or run `refresh_properties.py` in a shell.
 
+## Several server processes are running, or a fix "didn't take"
+
+Each server process reads its credential and environment once, when it starts. A process that has been running for a week still uses the week-old token and whatever environment it started with, so a renewed credential or a changed setting needs a new process.
+
+Two things observed in Claude Code on a Mac:
+
+- A session that stays open for days keeps its server processes alive for days. Several processes of different ages are normal. Check their parent process before concluding something leaked.
+- `/mcp` reconnect starts a replacement **without stopping the previous one**, so one session can own several. The newest is the one in use, and the older ones sit idle.
+
+A reconnect is enough to pick up a change, but only for the session that reconnects. Other open sessions keep their old processes until they reconnect or close.
+
 ## Codex plugin installed but no GA tools
 
 Confirm the plugin is enabled:
