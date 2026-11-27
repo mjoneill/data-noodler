@@ -168,7 +168,7 @@ exactly what their own Google account can already see. Therefore, if you are man
 Install the tools on your own machine. Follow `INSTALL.md`, or point Claude
 Code or Codex at `skills/data-noodler-setup/SKILL.md`. At the sign-in step:
 
-1. A browser opens with your app name. Expect "Google hasn't verified this app". Click **Advanced → Go to … (unsafe)**, which is expected for a Testing app.
+1. A browser opens with your app name. Expect "Google hasn't verified this app", which is normal for an app in Testing. Click **Continue** (the other button is **Back to safety**). Older versions of this screen hid the way forward behind **Advanced**; if you see that link instead, click it, then the link to go to your app.
 2. Approve the two permissions: viewing Google Analytics data and viewing
    Search Console data. Nothing else should be listed. If anything else is,
    stop and check you're using the right file.
@@ -201,7 +201,7 @@ answer, your file is ready to hand out.
 | Someone's credential may have been exposed | `data-noodler-credential.json` left their machine | They revoke the app at [myaccount.google.com/permissions](https://myaccount.google.com/permissions), which cuts it off at once, then sign in again at the next use |
 | Signs in, but no properties | Their Google account has no GA/Search Console access | Step 6 |
 | `redirect_uri_mismatch` | The OAuth client isn't a **Desktop app** | Create a Desktop app client (step 4) in Google Cloud console and replace the file |
-| "Google hasn't verified this app" | Normal for an app in Testing | **Advanced → Continue**. Only publishing and verification remove it |
+| "Google hasn't verified this app" | Normal for an app in Testing | Click **Continue** (or **Advanced**, then go to the app, on older versions of the screen). Only publishing and verification remove it |
 
 For problems on a user's machine (installing, upgrading, or tools that don't appear), see [troubleshooting.md](skills/data-noodler-setup/references/troubleshooting.md).
 
