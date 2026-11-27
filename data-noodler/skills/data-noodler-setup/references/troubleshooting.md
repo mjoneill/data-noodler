@@ -24,7 +24,7 @@ Fix: have the user run the `mint_adc.py --force` command, then **restart the app
 
 **Nothing on this machine can fix it.** The shared OAuth client is in Google's "Testing" publishing status, and Google refuses consent to any Google account the Cloud project has not listed as a **test user**. Having GA access to the properties is not enough. Being the project owner is not enough either.
 
-Do not confuse it with the warning that *is* expected: "Google hasn't verified this app" is a screen to click through (Advanced → Continue). `access_denied` is a wall — the flow ends there and no credential file is written.
+Do not confuse it with the warning that *is* expected: "Google hasn't verified this app" is a screen to click through: **Continue** (on older versions of the screen, **Advanced** first). `access_denied` is a wall — the flow ends there and no credential file is written.
 
 Fix: the user asks the project's maintainer for exactly this — *"please add `<the Google account address I sign in with>` to the Test users list for the Data Noodler Cloud project, under Google Auth Platform → Audience → Test users."* The address must be the same account that holds the GA access they want to read. It is one action per person, ever: not per install, not per machine, not per weekly renewal. Once it is done, re-run the consent command. The maintainer's side of this is in [GOOGLE-CLOUD-SETUP.md](../../../GOOGLE-CLOUD-SETUP.md#troubleshooting).
 

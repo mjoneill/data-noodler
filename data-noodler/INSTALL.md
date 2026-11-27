@@ -289,7 +289,7 @@ by then your repo clone may not still be nearby.
 
 Expect a "Google hasn't verified this app" warning — that's expected; it's
 the shared OAuth client in Testing status, not a sign anything is wrong.
-Continue through it (Advanced → Continue). The consent screen now lists
+Click **Continue** (on older versions of the screen, **Advanced** first). The consent screen now lists
 **two** permissions, not one. The script prints the scopes it actually got —
 confirm it says `analytics.readonly` and `webmasters.readonly`, and nothing
 wider.
