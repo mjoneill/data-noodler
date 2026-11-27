@@ -1,6 +1,6 @@
 # Installing on Windows
 
-Read this alongside SKILL.md, not instead of it. The step numbering and the order are the same; this page says what differs and why.
+Read this alongside SKILL.md. The step numbering and the order are the same; this page says what differs and why.
 
 Everything below was measured on real machines -- first on 2026-09-14, then on full installs on 2026-10-05 and 2026-10-09 -- all Windows 11, no administrator rights. Where something was measured, it says so. Where it was not, it says that too.
 
@@ -11,7 +11,7 @@ Everything below was measured on real machines -- first on 2026-09-14, then on f
 - **No launchers.** The MCP entries name the interpreter directly.
 - **analytics-mcp runs as `python.exe -m analytics_mcp.server`.** Defender can block the pip-generated `.exe`.
 - **No `.ps1`.** Execution policy blocks unsigned scripts.
-- **Quit the app before registering.** On Windows this is a hard requirement, not prudence. If you are running inside Claude Desktop, hand that step to the user.
+- **Quit the app before registering.** On Windows this is a hard requirement. If you are running inside Claude Desktop, hand that step to the user.
 
 ## Before Step 2: a real Python
 
@@ -50,11 +50,13 @@ python -m venv "$env:USERPROFILE\.config\data-noodler\venv"
 & "$env:USERPROFILE\.config\data-noodler\venv\Scripts\python.exe" -m pip install -c <repo>\data-noodler\installer\constraints.txt --upgrade analytics-mcp==1.1.0 google-auth-oauthlib
 ```
 
-**Why pip is installed by URL and hash, before anything else.** In October 2026 eight eMudhra/emSign intermediate certificate keys were compromised. pip always trusts the certificate list it carries inside itself, and a new venv starts with whatever pip the Python installer bundled -- measured: pip 25.0.1 on Python 3.12.13, which still trusts the compromised keys. So that first pip must not be trusted to download anything, not even a newer pip. Naming the exact wheel with its SHA-256 means a tampered download is rejected even if the connection is intercepted. The URL and hash come from the Python security team's advisory (discuss.python.org/t/109576) and were checked against PyPI's own records; `installer/security_floors.py` holds them, and a test keeps every document in step. Never swap that line for `pip install --upgrade pip`.
+**Why pip is installed by URL and hash, before anything else.** In October 2026 eMudhra/emSign intermediate certificates were compromised. pip always trusts the certificate list it carries inside itself, and a new venv starts with whatever pip the Python installer bundled -- measured: pip 25.0.1 on Python 3.12.13, which still trusts the compromised keys. So that first pip must not be trusted to download anything, not even a newer pip. Naming the exact wheel with its SHA-256 means a tampered download is rejected even if the connection is intercepted. The URL and hash come from the Python security team's advisory (discuss.python.org/t/109576) and were checked against PyPI's own records; `installer/security_floors.py` holds them, and a test keeps every document in step. Never swap that line for `pip install --upgrade pip`.
+
+**To check the hash yourself**, without trusting this document: open [pypi.org/project/pip/26.2.2/#files](https://pypi.org/project/pip/26.2.2/#files), find `pip-26.2.2-py3-none-any.whl`, view its hashes, and compare the SHA256 with the one above. PyPI never lets a released file be replaced, so a match means this is the file the pip project published.
 
 ## Upgrading an existing install
 
-One command, run by the user from an ordinary PowerShell window with Claude Desktop, every Claude Code window and Codex fully quit:
+One command, run by the user from an ordinary PowerShell window with Claude Desktop, every Claude Code window, Codex and the ChatGPT app fully quit:
 
 ```powershell
 & "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" "<package>\data-noodler\installer\upgrade.py"
@@ -62,7 +64,7 @@ One command, run by the user from an ordinary PowerShell window with Claude Desk
 
 Run `upgrade.py --plan` first (read-only) and use the `base python` it prints if it differs. The run builds a fresh venv at the same path the same way as above, proves both servers, re-registers, verifies, and on any failure puts everything back; it never deletes the old venv (Step 9 offers that). Its pre-flight lists running processes with `Get-CimInstance Win32_Process` and refuses while any runs from the venv -- unmeasured on Windows until the first real upgrade, so if it misses one, the venv rename fails instead and nothing is changed. Afterwards the agent runs `copy_skills.py`. Details in SKILL.md Step 2, "On an upgrade".
 
-The `-c constraints.txt` is what stops the slow resolve described below. It is data, not a program: a set of versions observed working together. It only bounds packages that get installed, so Windows-only dependencies like pywin32 go unconstrained rather than conflicting.
+The `-c constraints.txt` is what stops the slow resolve described below. It is data: a set of versions observed working together. It only bounds packages that get installed, so Windows-only dependencies like pywin32 go unconstrained rather than conflicting.
 
 `venv` is in the standard library, so this needs no administrator rights and nothing from an app catalog.
 
@@ -78,9 +80,9 @@ They were not ported, and the alternatives were rejected for measured reasons:
 
 - **A `.ps1` launcher** — execution policy on the machine measured is `RemoteSigned`, which blocks an unsigned script that arrived in a zip.
 - **A `.cmd` launcher** — batch is poor at reading JSON, and quoting gets hazardous with real paths on that machine, e.g. `C:\Users\<user>\OneDrive - Example Org\Documents\...`.
-- **Git Bash** — present on the machine, and a trap. It would run the existing `/bin/sh` launchers, so testing one there appears to work. But Claude Desktop spawns MCP servers **natively through Windows, not through Git Bash**, so a launcher that runs under Git Bash tells you nothing about whether Desktop can start it. Do not let a passing test in Claude Code be read as proof.
+- **Git Bash** — present on the machine, and a trap. It would run the existing `/bin/sh` launchers, so testing one there appears to work. But Claude Desktop spawns MCP servers **natively through Windows, without Git Bash**, so a launcher that runs under Git Bash tells you nothing about whether Desktop can start it. Do not let a passing test in Claude Code be read as proof.
 
-Instead the registered entry names the interpreter directly. This shape was **observed connecting**, not designed: reconnaissance registered it through `claude mcp add` and Claude Code reported ✓ Connected.
+Instead the registered entry names the interpreter directly. This shape was **observed connecting** before it was written down: reconnaissance registered it through `claude mcp add` and Claude Code reported ✓ Connected.
 
 ```json
 "data-noodler": {
@@ -89,6 +91,8 @@ Instead the registered entry names the interpreter directly. This shape was **ob
   "args": ["C:\\Users\\<user>\\.config\\data-noodler\\server\\data_noodler.py"],
   "env": {
     "GRPC_DNS_RESOLVER": "native",
+    "OTEL_PROPAGATORS": "none",
+    "ANALYTICS_MCP_ALLOW_WRITE": "false",
     "GOOGLE_APPLICATION_CREDENTIALS": "C:\\Users\\<user>\\.config\\gcloud\\data-noodler-credential.json"
   }
 }
@@ -128,7 +132,7 @@ The macOS install finds the interpreter by reading the console script's shebang,
 
 What is there instead is positional: `python.exe` sits in the same `Scripts\` directory. `bootstrap_config.py` uses that.
 
-When it cannot, **the recourse is a flag, not an inference**:
+When it cannot, **the recourse is a flag**:
 
 ```powershell
 python bootstrap_config.py --venv-python "C:\Users\<user>\.config\data-noodler\venv\Scripts\python.exe"
@@ -142,7 +146,7 @@ On macOS this is advice. On Windows it is a requirement, for a mechanical reason
 
 The failure lands *after* the backup has been written. The original config is untouched and nothing is lost, but the message will be about permissions and the cause is the running app. (An older version could leave a `<name>.ga-tmp` file beside the config; it is safe to delete.)
 
-Fully quit — not just close the window — then register, then reopen.
+Fully quit (closing the window leaves the app running), then register, then reopen.
 
 **If you are running inside Claude Desktop** (its Code tab), quitting Desktop ends your session. Register Claude Code yourself, then hand the Desktop registration to the user as a block to paste into an ordinary PowerShell window. SKILL.md Step 7 has the block. This is what happened on 2026-10-09, and it worked: run from ordinary PowerShell, `install.py` found the Microsoft Store config path on its own.
 
@@ -192,14 +196,12 @@ Both blocked the documented path and both were invisible from macOS. If your cop
 - **`bootstrap_config.py` could not find a venv-local `analytics-mcp.exe`.** It searched only `PATH` and `~/.local/bin`, and refused before it ever read `--venv-python`. It now searches the venv this page creates, and `--venv-python` is enough on its own. *Old workaround:* `$env:PATH = "$env:USERPROFILE\.config\data-noodler\venv\Scripts;$env:PATH"`
 - **A Microsoft Store (MSIX) Claude Desktop hid its config.** `%APPDATA%\Claude` resolves only *inside* the app container, so an install run from ordinary PowerShell said `claude_desktop: not installed, skipping` and exited 0. The installer now also searches the real directory, `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude`, and refuses loudly instead of skipping if the app is installed but no config is found. *Old workaround, and still the override if detection ever misses:* set `CLAUDE_USER_DATA_DIR` to that directory, with Claude Desktop fully quit.
 
-The lesson that outlasts both: **an agent running the install from inside Claude Code would never have hit the second one** -- it inherits the app container. A person following INSTALL.md by hand does. Test the path people actually take, not only the one an agent takes.
+The lesson that outlasts both: **an agent running the install from inside Claude Code would never have hit the second one** -- it inherits the app container. A person following INSTALL.md by hand does. Test the path people actually take as well as the one an agent takes.
 
 ## Still unproven
 
 - **Paths containing spaces.** Everything installed so far sits under space-free paths, though real machines have projects under paths like `OneDrive - Example Org`.
-- **Why the ChatGPT desktop app works on Windows.** Users of this release confirm it working on Windows 11 (Codex in the terminal on Windows has not been reported yet). The Codex plugin starts its servers through `/bin/sh` (so that Codex runs them in the project folder,
-  #165), which native Windows does not provide, and how that resolves on the
-  machines where it works hasn't been recorded yet. If the plugin fails to start on your machine, that launcher is the first place to look, and an issue saying what you found would help.
+- **Codex on Windows.** Users report Data Noodler working in the ChatGPT desktop app on Windows 11. Codex in the terminal on Windows hasn't been tried yet. Codex runs natively on Windows (in PowerShell, without WSL), and the Codex plugin starts its servers through `/bin/sh` (so that Codex runs them in the project folder), which native Windows doesn't have. How that worked on the machines that reported success hasn't been recorded; we suspect the installing agent adapted it at install time. SKILL.md Step 7 now has the installing agent try `codex mcp add` first and fall back to the plugin. Either way, record what was done in the install report. A GitHub issue saying what you found would help too.
 
 ## Credential file permissions
 
