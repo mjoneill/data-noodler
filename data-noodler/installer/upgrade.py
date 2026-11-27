@@ -297,7 +297,7 @@ def preflight(plan, config_paths, running=None):
             "still verified")
     codex = shutil.which("codex")
     add(None, "Codex", f"installed ({codex}) -- refresh its plugin after "
-        "(and retire the old-named one; see INSTALL.md section 8)"
+        "(and retire the old-named one; see the setup skill's Step 7)"
         if codex else "not installed")
 
     hits = (running_servers(plan.venv_dir, plan.ga_home, plan.platform)

@@ -123,7 +123,7 @@ class TestSetupSkillStructure(unittest.TestCase):
 class TestOAuthClientFileStep(unittest.TestCase):
     """The agent path must not assume the OAuth client file is already there.
 
-    INSTALL.md carries this as a full step. SKILL.md had none, so an
+    INSTALL.md (since retired) carried this as a full step. SKILL.md had none, so an
     agent-driven install silently assumed the file was present. It usually is
     on the author's machine, which is why the gap survived two installs.
 
@@ -374,21 +374,18 @@ class TestDocumentedVerifyChecksTheSkill(unittest.TestCase):
     def test_skill_md_verifies_the_claude_code_skill(self):
         self.assertIn("--require-skill data-noodler", self._text(SKILL_MD))
 
-    def test_install_md_verifies_the_claude_code_skill(self):
-        self.assertIn("--require-skill data-noodler",
-                      self._text(ROOT, "INSTALL.md"))
-
-    def test_install_md_verify_uses_require_at_all(self):
-        # It predated --require entirely, so a passing run proved only that
-        # each server started -- not that it served the expected tools.
-        self.assertIn("--require analytics-mcp=10", self._text(ROOT, "INSTALL.md"))
+    def test_skill_md_verify_uses_require_at_all(self):
+        # The by-hand doc once predated --require entirely, so a passing run
+        # proved only that each server started -- not that it served the
+        # expected tools.
+        self.assertIn("--require analytics-mcp=10", self._text(SKILL_MD))
 
 
 class TestSecondWindowsInstallLessons(unittest.TestCase):
     """What the 2026-10-09 install taught, pinned so it cannot quietly go.
 
     That install worked only because its agent improvised four times: it
-    copied the skills from INSTALL.md, handed the Python installer and the
+    copied the skills from INSTALL.md (since retired), handed the Python installer and the
     Desktop registration to the user, and repointed analytics-mcp past
     Defender. Each improvisation is now an instruction. These tests check the
     instructions are still there -- and that the report which surfaced all of
@@ -404,7 +401,6 @@ class TestSecondWindowsInstallLessons(unittest.TestCase):
         self.skill = read(SKILL_MD)
         self.windows = read(self.REFS, "windows.md")
         self.trouble = read(self.REFS, "troubleshooting.md")
-        self.install_md = read(ROOT, "INSTALL.md")
 
     def _step(self, n):
         m = re.search(r"^## Step %d:.*?(?=^## )" % n, self.skill, re.M | re.S)
@@ -458,15 +454,15 @@ class TestSecondWindowsInstallLessons(unittest.TestCase):
             self.assertIn(place, step, place)
         self.assertIn("Never print", step)
 
-    def test_the_by_hand_path_says_to_delete_the_downloaded_copy(self):
-        self.assertIn("delete that copy", self.install_md)
+    def test_the_loose_client_file_copy_is_dealt_with(self):
+        self.assertIn("Loose copies of the OAuth client file", self._step(9))
 
     # -- skills are installed by the flow that verifies them -------------
 
     def test_the_skill_installs_the_skill_its_verify_step_requires(self):
         # Step 8 runs --require-skill data-noodler; until 2026-10-09
         # nothing in SKILL.md put it there, and the agent borrowed the step
-        # from INSTALL.md.
+        # from INSTALL.md (since retired).
         self.assertIn("--require-skill data-noodler", self.skill)
         step6 = self._step(6)
         self.assertIn(".claude/skills", step6)
@@ -506,8 +502,6 @@ class TestUpgradeIsSupervisedNotImprovised(unittest.TestCase):
     def setUp(self):
         with open(SKILL_MD, encoding="utf-8") as f:
             self.skill = f.read()
-        with open(os.path.join(ROOT, "INSTALL.md"), encoding="utf-8") as f:
-            self.install_md = f.read()
 
     def test_the_skill_says_run_the_code_not_a_hand_copy_of_it(self):
         self.assertIn("do not re-create its steps by hand", self.skill)
@@ -525,13 +519,8 @@ class TestUpgradeIsSupervisedNotImprovised(unittest.TestCase):
         self.assertIn("copy_skills.py", after)
         self.assertIn("--replace", after)
 
-    def test_the_by_hand_document_starts_with_upgrade_instead(self):
-        self.assertLess(self.install_md.index("Upgrade instead"),
-                        self.install_md.index("## 1."))
-        self.assertIn("upgrade.py --plan", self.install_md)
-
     def test_no_document_copies_skills_with_cp_any_more(self):
-        for text in (self.skill, self.install_md):
+        for text in (self.skill,):
             self.assertNotIn("cp -R ~/.config/data-noodler/marketplace", text)
             self.assertNotIn("Copy-Item -Recurse -Force", text)
 
@@ -577,10 +566,8 @@ class TestTheGoogleCloudGuideMatchesTheCode(unittest.TestCase):
         self.assertIn("Desktop app", self.guide)
         self.assertIn('"installed"', self.guide)
 
-    def test_it_is_reachable_from_both_install_paths(self):
+    def test_it_is_reachable_from_the_install(self):
         with open(SKILL_MD, encoding="utf-8") as f:
-            self.assertIn("GOOGLE-CLOUD-SETUP.md", f.read())
-        with open(os.path.join(ROOT, "INSTALL.md"), encoding="utf-8") as f:
             self.assertIn("GOOGLE-CLOUD-SETUP.md", f.read())
 
     def test_it_names_no_one_and_no_real_project(self):
@@ -602,16 +589,10 @@ class TestChatGPTSurfacesAreStatedHonestly(unittest.TestCase):
         self.assertIn("Browser surfaces cannot be served", text)
 
     def test_a_chatgpt_only_mac_is_told_where_codex_is(self):
-        for path in (SKILL_MD, os.path.join(ROOT, "INSTALL.md")):
+        for path in (SKILL_MD,):
             with open(path, encoding="utf-8") as f:
                 self.assertIn("ChatGPT.app/Contents/Resources/codex-cli/bin/codex",
                               f.read(), path)
-
-    def test_install_md_says_the_same(self):
-        with open(os.path.join(ROOT, "INSTALL.md"), encoding="utf-8") as f:
-            text = f.read()
-        self.assertIn("| ChatGPT desktop app | **Confirmed working**", text)
-        self.assertIn("| claude.ai / ChatGPT web (browser) | **Cannot work, by design.**", text)
 
 
 class TestEveryCommandBlockStandsOnItsOwn(unittest.TestCase):
@@ -625,7 +606,7 @@ class TestEveryCommandBlockStandsOnItsOwn(unittest.TestCase):
             return re.findall(r"```(?:bash)?\n(.*?)```", f.read(), re.S)
 
     def test_a_block_that_runs_py3_sets_it(self):
-        for path in (SKILL_MD, os.path.join(ROOT, "INSTALL.md")):
+        for path in (SKILL_MD,):
             using = [b for b in self._blocks(path) if '"$PY3"' in b]
             self.assertTrue(using, path)
             for block in using:
@@ -641,5 +622,5 @@ class TestEveryCommandBlockStandsOnItsOwn(unittest.TestCase):
         self.assertIn("On Windows, use `python`.", step1)
 
     def test_the_minimum_macos_is_stated(self):
-        with open(os.path.join(ROOT, "INSTALL.md"), encoding="utf-8") as f:
+        with open(SKILL_MD, encoding="utf-8") as f:
             self.assertIn("macOS 12", f.read())

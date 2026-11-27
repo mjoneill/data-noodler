@@ -9,7 +9,9 @@ Nothing here needs administrator privilege. Every path written is under the user
 
 ## Before you start
 
-**Read `deployment.json` first** (beside this package's `INSTALL.md`). It names this deployment's maintainer and says where the OAuth client file comes from. If its `maintainer` is blank, nobody has set this package up for this user yet, whether just for themselves or for a team, organization or institution: stop, and follow `START-HERE.md`, which walks the user through that, before installing anything. Blank `maintainer_contact` and `install_reports_to` with a filled `maintainer` is a finished just-for-yourself setup: carry on.
+Data Noodler needs macOS 12 (Monterey) or later, or Windows 11.
+
+**Read `deployment.json` first** (in the package's `data-noodler/` folder, beside `START-HERE.md`). It names this deployment's maintainer and says where the OAuth client file comes from. If its `maintainer` is blank, nobody has set this package up for this user yet, whether just for themselves or for a team, organization or institution: stop, and follow `START-HERE.md`, which walks the user through that, before installing anything. Blank `maintainer_contact` and `install_reports_to` with a filled `maintainer` is a finished just-for-yourself setup: carry on.
 
 Run the whole flow from Claude Code or Codex -- these instructions are for whichever agent is installing, and where a step applies to only one app (Claude Code skills, the Codex plugin) it says so. Claude Desktop's normal chat has no shell, so it cannot install anything -- but it is a valid *target*, and this session will configure it.
 
@@ -83,11 +85,13 @@ uv tool install analytics-mcp==1.1.0 --with google-auth-oauthlib -c <repo>/data-
 uv tool update-shell    # puts the tool dir on PATH permanently
 ```
 
-`uv` provisions its own Python. This matters: stock macOS ships Python 3.9.6 and `analytics-mcp` requires 3.10+. Do not try to use the system Python.
+`uv` finds a Python 3.10 or later for `analytics-mcp`: one already on the machine (Homebrew's, for example), or one it downloads if there is none. This matters: stock macOS ships Python 3.9.6, which is too old, so never build on the system Python.
 
 **uv must be 0.13.4 or later** (Step 1's `uv.below_floor`). Older uv trusts the compromised eMudhra/emSign certificate keys and downloads packages itself. If it is older: `brew upgrade uv` for a Homebrew uv, otherwise `UV_SYSTEM_CERTS=true uv self update`.
 
 `-c constraints.txt` pins every library underneath to a tested, scanned set. Without it `uv` takes whatever is newest that day, and the install keeps it until something refreshes it.
+
+**Use `uv tool install`, never `pipx run analytics-mcp`**, even though some docs suggest it. `pipx run` fetches the newest version from PyPI on every launch, so the program that reads the user's credential would update itself without anyone choosing to.
 
 ### On an upgrade: refresh the libraries too -- one command, which you supervise
 
@@ -363,13 +367,13 @@ In Claude Desktop chat there is no shell, so `lookup_property`, `credential_stat
 
 A local install does not serve ChatGPT or claude.ai in a browser. Those run tools on the vendor's servers and cannot reach anything on this machine. That is a hard boundary, and no configuration or retrying closes it. For ChatGPT on the web, OpenAI documents two ways to reach a custom MCP server: give the server a public HTTPS address, or run OpenAI's Secure MCP Tunnel from inside your network ([OpenAI help, "Developer mode and full MCP connectors"](https://help.openai.com/en/articles/12584461-developer-mode-and-full-mcp-connectors-in-chatgpt), checked 2026-11-27). Full MCP access there is for Business, Enterprise and Edu workspaces. This package provides neither route.
 
-**Where ChatGPT desktop app exports land.** Each conversation runs in its own folder under `~/Documents/Codex/<date>/<topic>/`, which counts as the project, so exports go to an `_outputs` folder inside that conversation's folder (measured 2026-10-29). The receipt names the path. A user who wants everything in one place asks for `save_to: sessions`.
+**Where exports land.** Nothing goes to Downloads: the server writes each file straight to disk, and the receipt names the full path. When the app is working in a folder, exports go to that project's `_outputs/` folder, in a dated subfolder per session (`<project>/_outputs/<YYYY-MM-DD>-<topic>/`). That covers Claude Code and Codex, and the ChatGPT desktop app too: it runs each conversation in its own folder under `~/Documents/Codex/<date>/<topic>/`, which counts as the project (measured 2026-10-29). Only when there is no project, as in Claude Desktop chat, do exports fall back to the sessions folder: `~/Documents/analyst-sessions/`, again in dated subfolders, unless `sessions_root` in `~/.config/data-noodler/config.json` names another. A user who wants everything in one place asks for `save_to: sessions`.
 
 ## What comes next
 
 Nothing further for installation: Step 4 generates the config, so this skill covers the whole path on a machine where nothing was set up before.
 
-A colleague who would rather not run an agent through it at all can follow `data-noodler/INSTALL.md` instead — the same path written out as copy-pasteable steps, including the same `bootstrap_config.py` call. The two documents are alternatives: either is sufficient on its own, and a change to one belongs in the other.
+This is the only install procedure. A person who would rather not run an agent can follow these same steps themselves, in order: every command here can be copy-pasted into a terminal.
 
 ## When something fails
 

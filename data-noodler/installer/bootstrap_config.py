@@ -26,8 +26,8 @@ import home as home_mod  # noqa: E402
 import safe_write  # noqa: E402
 import security_floors  # noqa: E402
 
-# One command, and it must stay byte-identical to the one in SKILL.md and
-# INSTALL.md -- test_bootstrap_config.TestInstallHintIsRunnable asserts that.
+# One command, and it must stay byte-identical to the one in the setup
+# skill's SKILL.md -- test_bootstrap_config.TestInstallHintIsRunnable asserts that.
 # This previously named `uv tool inject`, which does not exist: inject is
 # pipx's verb and uv rejects it. The documents were corrected in 8f47d00 and
 # this string was not, so anyone who hit this wall was handed a command that

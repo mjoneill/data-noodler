@@ -1,6 +1,6 @@
 {
   "name": "data-noodler",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "description": "Data Noodler: ask about your Google Analytics 4 and Search Console data, read-only, with reporting discipline and credential self-service.",
   "author": {
     "name": "Data Noodler maintainers (see deployment.json)"

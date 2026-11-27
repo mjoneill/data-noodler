@@ -35,7 +35,6 @@ RETIREMENT = {
     "data-noodler/installer/register.py",
     "data-noodler/installer/copy_skills.py",
     "data-noodler/skills/data-noodler-setup/SKILL.md",
-    "data-noodler/INSTALL.md",
     "data-noodler/tests/test_one_name.py",
     "data-noodler/tests/test_install_payload.py",
     "data-noodler/tests/test_upgrade.py",

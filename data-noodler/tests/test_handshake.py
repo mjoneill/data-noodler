@@ -468,7 +468,7 @@ class TestRequireContracts(unittest.TestCase):
 class TestRequireSkill(unittest.TestCase):
     """Issue #5: verify passed with the Claude Code skill missing.
 
-    An install skipped INSTALL.md's step 6, "Install the skills for Claude
+    An install skipped the by-hand guide's step 6 (INSTALL.md, since retired), "Install the skills for Claude
     Code". verify.py --require analytics-mcp=9 --require data-noodler=9 exited
     0, because it only counts MCP tools. Claude Code then had the tools all day
     but not the skill that says which tool to use -- which fed straight into

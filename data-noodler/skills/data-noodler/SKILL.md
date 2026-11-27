@@ -9,7 +9,7 @@ The `analytics-mcp` server exposes 10 read-only tools over the Google Analytics 
 
 Everything is read-only by construction. The credential holds only two read-only permissions, `analytics.readonly` and `webmasters.readonly`, so no query can change anything in GA or Search Console. Explore freely; the risk is a confusing answer, never a destructive one.
 
-Machine-specific paths live in `~/.config/data-noodler/config.json`. If that file is missing, this machine hasn't been set up: use the `data-noodler-setup` skill, which runs the tested installer, or the package's `INSTALL.md` to do it by hand.
+Machine-specific paths live in `~/.config/data-noodler/config.json`. If that file is missing, this machine hasn't been set up: use the `data-noodler-setup` skill, which runs the tested installer (a person can also follow its steps by hand).
 
 ## Resolving property names to IDs
 
@@ -156,4 +156,4 @@ Weekly renewal is deliberate: the setup stays in Google's Testing status on purp
 
 ## First-time setup
 
-Setting up is the `data-noodler-setup` skill's job: it runs the tested installer and verifies the result. The package's `INSTALL.md` is the same path by hand, and `GOOGLE-CLOUD-SETUP.md` covers creating the Google App (the OAuth client). Use them when `~/.config/data-noodler/config.json` is absent, when setting up a new machine, or when the user hits an auth error that isn't simple expiry.
+Setting up is the `data-noodler-setup` skill's job: it runs the tested installer and verifies the result. A person can follow the same skill by hand, and `GOOGLE-CLOUD-SETUP.md` covers creating the Google App (the OAuth client). Use them when `~/.config/data-noodler/config.json` is absent, when setting up a new machine, or when the user hits an auth error that isn't simple expiry.

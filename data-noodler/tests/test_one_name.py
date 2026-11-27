@@ -181,7 +181,7 @@ class TestTheOldSkillsAreRetired(unittest.TestCase):
 
     def test_an_old_skill_of_ours_leaves_the_skills_folder(self):
         # Moved OUT of the skills folder: a copy left beside it would still
-        # register as a second skill (INSTALL.md, the .backup trap).
+        # register as a second skill (troubleshooting.md, the .backup trap).
         old = self._skill("google-analytics", marked=True)
         results = copy_skills.retire_legacy(self.skills, self.ga_home)
         self.assertFalse(os.path.exists(old))

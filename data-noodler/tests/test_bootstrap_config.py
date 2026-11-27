@@ -329,7 +329,6 @@ class TestInstallHintIsRunnable(unittest.TestCase):
 
     DIST = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     SKILL = os.path.join(DIST, "skills", "data-noodler-setup", "SKILL.md")
-    INSTALL = os.path.join(DIST, "INSTALL.md")
 
     def test_the_hint_does_not_name_a_command_that_does_not_exist(self):
         self.assertNotIn(
@@ -338,7 +337,7 @@ class TestInstallHintIsRunnable(unittest.TestCase):
 
     def test_every_install_command_in_the_hint_appears_in_the_documents(self):
         docs = ""
-        for path in (self.SKILL, self.INSTALL):
+        for path in (self.SKILL,):
             with open(path, encoding="utf-8") as f:
                 docs += f.read()
         commands = [line.strip() for line in
@@ -349,7 +348,7 @@ class TestInstallHintIsRunnable(unittest.TestCase):
             self.assertIn(
                 command, docs,
                 f"the hint tells the reader to run {command!r}, which appears "
-                "in neither SKILL.md nor INSTALL.md -- one of the three has "
+                "nowhere in SKILL.md -- the two have "
                 "drifted and the reader is the one who pays for it.")
 
 

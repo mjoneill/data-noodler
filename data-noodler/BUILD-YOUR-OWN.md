@@ -1,6 +1,6 @@
 # Build your own: Google Analytics and Search Console for local AI apps
 
-This is a design brief for building a similar system yourself. (To install Data Noodler itself, see [INSTALL.md](INSTALL.md).) Give it to a coding agent (Claude Code, Codex or similar) together with your goal. Every decision below has its reason next to it, so you can depart from the ones that don't fit your situation and keep the ones that do.
+This is a design brief for building a similar system yourself. (To install Data Noodler itself, see [START-HERE.md](START-HERE.md).) Give it to a coding agent (Claude Code, Codex or similar) together with your goal. Every decision below has its reason next to it, so you can depart from the ones that don't fit your situation and keep the ones that do.
 
 What gets built: the ability to ask a desktop AI app questions about your Google Analytics 4 and Search Console data, answered from live data, and to export full results to files. It runs on each person's own machine, under their own Google account, read-only, with no administrator rights and no server to host.
 

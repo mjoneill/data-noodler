@@ -156,7 +156,7 @@ There are two JSON files in this system, and they are not alike.
 | Lifetime | Until you delete the client in the Cloud console | **7 days**, then the person runs the renewal command (their AI agent can give it to them) and fully quits and reopens their apps |
 | If it leaks | Someone could show a consent screen wearing your app's name, or use your project's quota. Fix: delete the client in **Clients**, create a new one, re-issue the file | Someone could read that person's analytics data until it expires. Fix: the person revokes the app at [myaccount.google.com/permissions](https://myaccount.google.com/permissions), which kills the token at once, then signs in again |
 
-So: treat the client file like a building key card (keep it off public channels, re-issue if lost) and the credential like a password (it never moves). The install does the credential part for you; `INSTALL.md` step 4 ("Run consent") and the setup skill's Step 5 are where it happens, and anyone can ask their AI agent to check theirs afterwards (the agent uses its `credential_status` tool).
+So: treat the client file like a building key card (keep it off public channels, re-issue if lost) and the credential like a password (it never moves). The install does the credential part for you; the setup skill's Step 5 is where it happens, and anyone can ask their AI agent to check theirs afterwards (the agent uses its `credential_status` tool).
 
 ## 6. If others will use it: give them access in Google Analytics and Search Console
 
@@ -165,8 +165,8 @@ exactly what their own Google account can already see. Therefore, if you are man
 
 ## 7. Try it yourself first
 
-Install the tools on your own machine. Follow `INSTALL.md`, or point Claude
-Code or Codex at `skills/data-noodler-setup/SKILL.md`. At the sign-in step:
+Install the tools on your own machine: point Claude Code or Codex at
+`START-HERE.md`, or follow `skills/data-noodler-setup/SKILL.md` yourself. At the sign-in step:
 
 1. A browser opens with your app name. Expect "Google hasn't verified this app", which is normal for an app in Testing. Click **Continue** (the other button is **Back to safety**). Older versions of this screen hid the way forward behind **Advanced**; if you see that link instead, click it, then the link to go to your app.
 2. Approve the two permissions: viewing Google Analytics data and viewing
