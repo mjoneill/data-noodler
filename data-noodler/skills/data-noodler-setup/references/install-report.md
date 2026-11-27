@@ -1,30 +1,18 @@
 # Install report template
 
-Step 10 of SKILL.md. Fill this in at the end of every install and every
-upgrade, and save it as
-`~/.config/data-noodler/install-reports/<YYYY-MM-DD>-<fresh|upgrade>.md`. The user
-sends it to the maintainer named in `deployment.json`.
+Step 10 of SKILL.md. Fill this in at the end of every install and every upgrade, and save it as `~/.config/data-noodler/install-reports/<YYYY-MM-DD>-<fresh|upgrade>.md`. The user sends it to the maintainer named in `deployment.json`.
 
-The template follows the best report received so far (Windows, 2026-10-09).
-Every fix made after that install came out of it. Keep its habits:
+The template follows the best report received so far (Windows, 2026-10-09). Every fix made after that install came out of it. Keep its habits:
 
-- **Evidence over adjectives.** Give the exact error text, the log lines and
-  event IDs, and the command that produced them. "It failed" cannot be
-  fixed; `exit 3, MSI 2203 ... path not found` can.
-- **Workarounds are findings.** Anything you did that SKILL.md or
-  `references/windows.md` did not say to do goes in the step log and in
-  "Issues". That includes helper files you created and where they are.
-- **Record who ran each step.** A step the user had to run by hand, such as
-  an installer or the Desktop registration, is information.
+- **Evidence over adjectives.** Give the exact error text, the log lines and event IDs, and the command that produced them. "It failed" cannot be fixed; `exit 3, MSI 2203 ... path not found` can.
+- **Workarounds are findings.** Anything you did that SKILL.md or `references/windows.md` did not say to do goes in the step log and in "Issues". That includes helper files you created and where they are.
+- **Record who ran each step.** A step the user had to run by hand, such as an installer or the Desktop registration, is information.
 
 ## Privacy: what never goes in
 
-- The contents of `data-noodler-client.json` or of the credential file. No tokens,
-  no client secret. File paths and `client_id` are fine.
-- Any Google Analytics or Search Console data, including the answers to the
-  test question. Say that a query worked, and give its row count if useful.
-- The user's account name. In paths, write `<user>`: `C:\Users\<user>\...`,
-  `/Users/<user>/...`.
+- The contents of `data-noodler-client.json` or of the credential file. No tokens, no client secret. File paths and `client_id` are fine.
+- Any Google Analytics or Search Console data, including the answers to the test question. Say that a query worked, and give its row count if useful.
+- The user's account name. In paths, write `<user>`: `C:\Users\<user>\...`, `/Users/<user>/...`.
 
 Show the user the finished report before they send it.
 
