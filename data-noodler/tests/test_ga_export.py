@@ -848,8 +848,8 @@ class _RepeatingClient(_ComparingClient):
 
 
 class TestTheReceiptSaysWhenRowsRepeat(unittest.TestCase):
-    """Bubbles, 2026-11-20 on #1993: a file the agent must analyse from must
-    not be able to double itself while the receipt reads all-clear. A GA4
+    """A file the agent must analyze from must not be able to double itself
+    while the receipt reads all-clear. A GA4
     report never repeats a full dimension key, so any repeat is counted."""
 
     def test_repeated_keys_are_counted_in_the_receipt(self):

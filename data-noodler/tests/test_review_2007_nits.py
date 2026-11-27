@@ -45,7 +45,7 @@ class TestTheDefaultNameCannotLeaveThePlace(unittest.TestCase):
     def test_a_plain_name_that_is_a_symlink_out_is_refused(self):
         # The one case only _inside()'s realpath catches: no separator, so
         # basename and dirname both pass it, but base/<name> already exists as
-        # a symlink pointing outside the place (indigo's review).
+        # a symlink pointing outside the place (from review).
         outside = os.path.join(self.home, "outside.csv")
         open(outside, "w").close()
         os.symlink(outside, os.path.join(self.session, "trap.csv"))

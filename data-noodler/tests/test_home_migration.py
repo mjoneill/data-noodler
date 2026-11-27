@@ -93,7 +93,7 @@ class TestEveryReaderFindsTheHome(unittest.TestCase):
 
 
 class AnEmptyNewHomeChangesNothing(unittest.TestCase):
-    """Indigo's review of PR #5: readers chose the new home on isdir(), so
+    """Review of PR #5: readers chose the new home on isdir(), so
     an empty ~/.config/data-noodler flipped them all away from the real
     install. They decide on what a home holds, not on whether it exists."""
 
@@ -261,7 +261,7 @@ class UndoIsAsCarefulAsTheMove(unittest.TestCase):
 
     def test_undo_restores_config_json_atomically(self):
         # A kill mid-copy truncated config.json; the backup survived, but
-        # the home was left unreadable (Indigo, PR #22 review).
+        # the home was left unreadable (PR #22 review).
         from unittest import mock
         with mock.patch.object(migrate_home.safe_write, "write_atomically",
                                wraps=migrate_home.safe_write.write_atomically
@@ -353,7 +353,7 @@ class AFailureLateInTheMovePutsEverythingBack(unittest.TestCase):
 
 
 class TestThePersonalGuardFollowsTheHome(unittest.TestCase):
-    """Indigo's hazard: with neither list found the guard warns and PASSES,
+    """The hazard: with neither list found the guard warns and PASSES,
     so a home it cannot find is a silent downgrade of every push."""
 
     def _config_dir(self, h):

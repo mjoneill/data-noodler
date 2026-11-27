@@ -152,7 +152,7 @@ def site_form_groups(sites):
     the question has to be asked.
 
     Keyed on the HOST a question would be about, never on a covering domain
-    (Indigo's review of PR #6): keyed on the domain, an institution's apex
+    (review of PR #6): keyed on the domain, an institution's apex
     property swallowed every subdomain into one "site", and two nested domain
     properties never met.
 
@@ -674,7 +674,7 @@ def search_analytics(site_url, start_date, end_date, dimensions,
             # the whole export, and a missing key is honestly blank (#2007).
             # A LONG row is left alone on purpose: cutting it would discard
             # data nobody understands, and export's refusal is the right
-            # answer to it (minimo's review).
+            # answer to it (from review).
             keys += [""] * (len(dimensions) - len(keys))
             page_url = ""
             if "page" in dimensions:

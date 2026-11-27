@@ -150,7 +150,7 @@ class TestTheCompareReadsContentAndLinksAreNotFollowed(unittest.TestCase):
 
     def _link_inside(self, kind):
         # Installed, then a subfolder or a file inside it replaced by a link
-        # to someone's own copy (Indigo's review of PR #22).
+        # to someone's own copy (review of PR #22).
         os.makedirs(os.path.join(self.src, "scripts"))
         self._write(self.src, "v1")
         with open(os.path.join(self.src, "scripts", "a.py"), "w") as f:

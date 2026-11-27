@@ -10,7 +10,7 @@ R4  A pivot's filename was built from the raw dimension name. GA custom
 R5  security_floors.py carries an aiohttp floor, but aiohttp is not in the
     supported install: only optional extras (google-auth[aiohttp],
     google-adk[mcp], ...) ask for it, and constraints.txt does not pin it.
-    minimo recommended (55952), and the PO adopted: do not add an unused
+    A reviewer recommended, and the maintainer adopted: do not add an unused
     dependency to make the floor "fire". Keep the floor -- probe.py applies it to whatever is installed --
     and make the contract explicit: if aiohttp ever enters the pins, this
     fails, and whoever re-captured them decides on purpose.

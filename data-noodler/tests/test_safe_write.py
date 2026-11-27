@@ -230,7 +230,7 @@ class TestBackupsNeverOverwriteEachOther(unittest.TestCase):
     def test_a_backup_made_after_the_name_check_is_still_not_overwritten(self):
         # The free-name check and the final rename are two steps. Simulate a
         # backup appearing between them by making the check miss it; the
-        # rename must still refuse the taken name (Indigo, PR #22 review).
+        # rename must still refuse the taken name (PR #22 review).
         from unittest import mock
         path = self._start("claude.json")
         earlier = path + ".ga-backup-20261121-020000"

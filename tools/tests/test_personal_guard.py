@@ -219,7 +219,7 @@ class PersonalGuard(unittest.TestCase):
 
 
 class TheGuardFollowsTheInstallHome(unittest.TestCase):
-    """#1999, Indigo's hazard: with no list found this guard warns and PASSES.
+    """The hazard: with no list found this guard warns and PASSES.
     So when the install home moves from its old name to
     ~/.config/data-noodler, a guard looking only in one of them would quietly
     stop checking. Real pushes, located by HOME alone (no override)."""
@@ -252,7 +252,7 @@ class TheGuardFollowsTheInstallHome(unittest.TestCase):
         self._assert_refused(self._repo_with_home("data-noodler"))
 
     def test_an_empty_new_home_does_not_hide_the_lists_in_the_old(self):
-        # Indigo's review of PR #5: a mkdir, an aborted move or any tool
+        # Review of PR #5: a mkdir, an aborted move or any tool
         # creating the folder used to flip the guard to an empty home.
         self._assert_refused(self._repo_with_home("ga-" "mcp", empty_new=True))
 
