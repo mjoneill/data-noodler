@@ -1,10 +1,12 @@
-# Troubleshooting GA MCP installs
+# Troubleshooting Data Noodler installs
 
 Match the error text first. Credentials are the most documented failure here, which makes them the default suspect for every breakage — and often the wrong one.
 
+**If you have to troubleshoot anything,** note each problem, the exact error and what you did about it, and put it in the install report ([install-report.md](install-report.md)). Those notes are how the next install avoids the same problem.
+
 ## "Could not contact DNS servers" / 503 resolving a host
 
-**A resolver problem, not a credential problem.** The tell: the message names DNS and never says `invalid_grant`.
+**This is a resolver problem.** The tell: the message names DNS and never says `invalid_grant`.
 
 gRPC's default c-ares resolver reads `/etc/resolv.conf`, which macOS itself ignores. On a split-DNS network they disagree, so `nslookup` and `curl` to the same host both succeed while every API call fails — meaning ordinary connectivity checks will tell you the network is fine.
 
@@ -14,17 +16,17 @@ Re-minting the credential cannot help, and has been mistaken for the fix before.
 
 ## `invalid_grant` / "Token has been expired or revoked"
 
-The refresh token expired. Google issues 7-day refresh tokens to OAuth apps in Testing publishing status. This is expected weekly, not a fault.
+The refresh token expired. Google issues 7-day refresh tokens to OAuth apps in Testing publishing status. This is expected weekly.
 
 Fix: have the user run the `mint_adc.py --force` command, then **restart the application**. The server reads the credential file when it spawns, so a running client keeps the expired token in memory and keeps failing in a way that looks exactly like the renewal did not work.
 
 ## `Error 403: access_denied` at the Google consent screen
 
-**Neither a credential problem nor a config problem, and nothing on this machine can fix it.** The shared OAuth client is in Google's "Testing" publishing status, and Google refuses consent to any Google account the Cloud project has not listed as a **test user**. Having GA access to the properties is not enough. Being the project owner is not enough either.
+**Nothing on this machine can fix it.** The shared OAuth client is in Google's "Testing" publishing status, and Google refuses consent to any Google account the Cloud project has not listed as a **test user**. Having GA access to the properties is not enough. Being the project owner is not enough either.
 
 Do not confuse it with the warning that *is* expected: "Google hasn't verified this app" is a screen to click through (Advanced → Continue). `access_denied` is a wall — the flow ends there and no credential file is written.
 
-Fix: the user asks the project's maintainer for exactly this — *"please add `<the Google account address I sign in with>` to the Test users list for the Data Noodler Cloud project, under Google Auth Platform → Audience → Test users."* The address must be the same account that holds the GA access they want to read. It is one action per person, ever: not per install, not per machine, not per weekly renewal. Once it is done, re-run the consent command.
+Fix: the user asks the project's maintainer for exactly this — *"please add `<the Google account address I sign in with>` to the Test users list for the Data Noodler Cloud project, under Google Auth Platform → Audience → Test users."* The address must be the same account that holds the GA access they want to read. It is one action per person, ever: not per install, not per machine, not per weekly renewal. Once it is done, re-run the consent command. The maintainer's side of this is in [GOOGLE-CLOUD-SETUP.md](../../../GOOGLE-CLOUD-SETUP.md#troubleshooting).
 
 Re-running `mint_adc.py`, regenerating `config.json`, reinstalling the payload and re-registering the harnesses all cannot help, and each one costs time that looks like progress. The list caps at **100 test users**, which is also the ceiling on how many colleagues this setup can serve in Testing status.
 
@@ -32,7 +34,7 @@ Re-running `mint_adc.py`, regenerating `config.json`, reinstalling the payload a
 
 `verify.py` prints `FAIL analytics-mcp: PermissionError: [WinError 5] Access is denied`, usually followed by a `why:` line. The file's ACL gives the user full control, and even reading it fails.
 
-**Neither a credential problem nor a permissions problem you can fix with icacls.** It is Microsoft Defender's Attack Surface Reduction rule `01443614-CD74-433A-B99E-2ECDC07BFC25`, which blocks programs that have not been seen on enough other machines. pip generates `venv\Scripts\analytics-mcp.exe` on each machine, so it always fails that check wherever that rule is enforced. Measured on a managed machine 2026-10-09; the 2026-10-05 machine connected through the same `.exe`, so it varies by machine and can change when the machine's policy is updated.
+**The cause is Microsoft Defender, and icacls can't fix it.** It is Defender's Attack Surface Reduction rule `01443614-CD74-433A-B99E-2ECDC07BFC25`, which blocks programs that have not been seen on enough other machines. pip generates `venv\Scripts\analytics-mcp.exe` on each machine, so it always fails that check wherever that rule is enforced. Measured on a managed machine 2026-10-09; the 2026-10-05 machine connected through the same `.exe`, so it varies by machine and by how it's managed, and can change when the machine's policy is updated.
 
 Confirm (PowerShell):
 
@@ -61,9 +63,9 @@ If it ends "MOST of it was put back, but not all of it", each line after that sa
 
 ## Certificate or TLS questions (eMudhra / emSign, October 2026)
 
-Eight eMudhra/emSign intermediate certificate keys were compromised in October 2026. Anything that trusts them can have its HTTPS connections intercepted -- including downloads from pypi.org. What this package relies on, and the safe versions (`installer/security_floors.py`):
+eMudhra/emSign intermediate certificates were compromised in October 2026 ([Python's advisory](https://discuss.python.org/t/109576)). Anything that trusts them can have its HTTPS connections intercepted -- including downloads from pypi.org. What this package relies on, and the safe versions (`installer/security_floors.py`):
 
-- **certifi 2026.10.19 or later** -- what the GA and Search Console calls trust. The pins carry 2026.10.23.
+- **certifi 2026.10.23 or later** -- what the GA and Search Console calls trust. The fix arrived in 2026.10.19; this package's floor and pins are 2026.10.23, and that is what `probe.py` checks.
 - **pip 26.2.2 or later** -- pip always trusts its own bundled certificate list. A new venv starts with the Python installer's older pip, so every venv step installs pip by exact URL and SHA-256 first (see windows.md). Never shortcut that to `pip install --upgrade pip`.
 - **uv 0.13.4 or later** on the Mac path: `brew upgrade uv`, or `UV_SYSTEM_CERTS=true uv self update`.
 - grpcio's own root list does not contain the compromised roots.
@@ -123,7 +125,7 @@ codex plugin list
 grep -A2 'data-noodler' ~/.codex/config.toml
 ```
 
-The plugin's `bin/` scripts are shims that exec `~/.config/data-noodler/bin/`. If the payload was never installed there, they exit non-zero with a message naming this skill. Run the payload step.
+The plugin starts each server through a short `/bin/sh` command that runs the launcher in `~/.config/data-noodler/bin/`. If the payload was never installed there, it exits non-zero with a message naming the setup skill. Run the payload step. On Windows, which has no `/bin/sh`, register the servers with `codex mcp add` instead (SKILL.md, Step 7).
 
 ## Nothing works and the credential is fine
 
@@ -136,7 +138,7 @@ ls -l ~/.local/bin/analytics-mcp
 
 ## The credential expired again — is something broken?
 
-No. Google issues 7-day refresh tokens to OAuth apps in Testing publishing status, and this app is in Testing status by design (moving out of it requires a Google verification review that is out of scope for a personal tool). Expect to run `mint_adc.py --force` about once a week. This is normal operation, not a regression.
+No. Google issues 7-day refresh tokens to OAuth apps in Testing publishing status, and this app stays in Testing on purpose: Google enforces the expiry, so a credential that leaks stops working within a week (see BUILD-YOUR-OWN.md). Expect to run `mint_adc.py --force` about once a week. This is normal operation.
 
 ## Codex will not start: "failed to parse model_catalog_json"
 
@@ -146,7 +148,7 @@ Error: failed to load configuration
   as JSON: missing field `supports_parallel_tool_calls`
 ```
 
-**Not this package.** Only affects machines where Ollama's Codex integration (`ollama launch codex`) has been used to offer Ollama models inside Codex.
+**This seems to come from Ollama's Codex integration, outside this package.** It has only appeared on machines where `ollama launch codex` was used to offer Ollama models inside Codex. We're not experts in that integration: the fix below is the one that has worked for us, and other ways to fix it may exist.
 
 That integration writes a *snapshot* of Codex's own model list into `~/.codex/ollama-launch-models.json` and points Codex's config at it. When Codex later updates and requires a new field, the snapshotted entries lack it and Codex refuses its whole configuration. Both Codex surfaces share that config, so the TUI and the ChatGPT app's Codex pane fail together -- GA or not.
 
@@ -158,4 +160,4 @@ ollama launch codex --config --model <a local model from `ollama list`>
 
 `--model` will likely become Codex's default model. If you want a different default, set `model = "..."` in `~/.codex/config.toml` afterwards.
 
-Do not hand-edit the missing field into the snapshot: the values are Codex's, not yours, and Ollama overwrites the file on its next run anyway. Found 2026-10-06 on Codex 0.147 with Ollama 0.34.2.
+We'd avoid hand-editing the missing field into the snapshot: the values belong to Codex, and Ollama overwrites the file on its next run anyway. Found 2026-10-06 on Codex 0.147 with Ollama 0.34.2.

@@ -203,6 +203,8 @@ answer, your file is ready to hand out.
 | `redirect_uri_mismatch` | The OAuth client isn't a **Desktop app** | Create a Desktop app client (step 4) in Google Cloud console and replace the file |
 | "Google hasn't verified this app" | Normal for an app in Testing | **Advanced → Continue**. Only publishing and verification remove it |
 
+For problems on a user's machine (installing, upgrading, or tools that don't appear), see [troubleshooting.md](skills/data-noodler-setup/references/troubleshooting.md).
+
 **Note:** Some organizations use Google Workspace, which may let you create the OAuth client as an **Internal** app. If that's an option for you, follow your organization's own policies and approach for creating new apps. This guide covers External apps in Testing only.
 
 ---
