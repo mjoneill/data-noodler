@@ -370,7 +370,7 @@ class TestNextStep(unittest.TestCase):
         self.assertEqual(export.CHAT_ROW_THRESHOLD, 2500)
         self.assertIsNone(self._receipt(self._rows(2500))["next_step"])
 
-    # #1993 review (indigo): duplicate_rows must reach the FIRST field, or a
+    # From review: duplicate_rows must reach the FIRST field, or a
     # doubled file still reads all-clear to an agent that stops there.
     def test_repeated_rows_say_do_not_analyse_first(self):
         step = self._receipt(self._rows(4), duplicate_rows=2)["next_step"]

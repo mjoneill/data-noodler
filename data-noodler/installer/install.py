@@ -41,7 +41,7 @@ LEGACY_PAYLOAD = ("companion",)
 # ships: the pre-#1999 launcher and server-file names, and the bytecode cache
 # Python writes beside the server at run time. A marker-less (pre-2026-09-14)
 # install is "ours" when it holds only shipped entries and these (#1999,
-# Indigo's review of PR #4).
+# review of PR #4).
 LEGACY_ENTRIES = frozenset({"launch-ga-mcp", "launch-ga-companion",
                             "ga_companion.py", "__pycache__"})
 
@@ -223,7 +223,7 @@ def install_payload(repo_root, ga_home, home=None, platform=None):
 
     # Every refusal before any write: checked one folder at a time, a
     # refusal of bin/ came after server/ was already replaced, leaving a
-    # half-old, half-new install (Indigo's review of PR #4).
+    # half-old, half-new install (review of PR #4).
     for name in PAYLOAD:
         src = os.path.join(src_root, name)
         dest = os.path.join(ga_home, name)

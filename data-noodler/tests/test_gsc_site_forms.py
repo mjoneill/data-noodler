@@ -59,7 +59,7 @@ class TheFormsOfOneSiteAreGrouped(unittest.TestCase):
                          ["https://www.example.com/", "sc-domain:example.com"])
 
     def test_an_institution_is_many_sites_not_one(self):
-        # Indigo's shape A. Keyed on the covering domain, all five landed in
+        # Shape A. Keyed on the covering domain, all five landed in
         # one "example.edu" group, though admissions does not cover the
         # homepage. Each host is its own question.
         groups = gsc.site_form_groups([_site(u) for u in (
@@ -76,7 +76,7 @@ class TheFormsOfOneSiteAreGrouped(unittest.TestCase):
                           "sc-domain:example.edu"])
 
     def test_nested_domain_properties_meet_on_the_inner_host(self):
-        # Indigo's shape B: both cover journalism.example.edu.
+        # Shape B: both cover journalism.example.edu.
         groups = gsc.site_form_groups(
             [_site("sc-domain:example.edu"),
              _site("sc-domain:journalism.example.edu")])
@@ -84,7 +84,7 @@ class TheFormsOfOneSiteAreGrouped(unittest.TestCase):
         self.assertEqual(len(groups["journalism.example.edu"]), 2)
 
     def test_a_path_prefix_is_another_form_of_its_host(self):
-        # Indigo's shape C: for the blog they give different answers.
+        # Shape C: for the blog they give different answers.
         groups = gsc.site_form_groups(
             [_site("https://example.com/"), _site("https://example.com/blog/")])
         self.assertEqual(len(groups["example.com"]), 2)

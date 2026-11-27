@@ -59,7 +59,7 @@ def config_dir():
                    for n in ("config.json", "personal-guard.txt"))
 
     # Decided on the lists, not on the folder: an empty new folder must not
-    # hide lists still in the old one (Indigo's review of PR #5). This
+    # hide lists still in the old one (review of PR #5). This
     # differs on purpose from the installer's rule, which follows
     # config.json: a contributor may keep only personal-guard.txt, and for
     # this guard the lists are what matter. A test pins the difference.

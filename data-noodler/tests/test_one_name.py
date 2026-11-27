@@ -70,7 +70,7 @@ class TestTheOldServerFolderIsRetired(unittest.TestCase):
 
 
 class TestAnInstallFromBeforeTheMarkerIsStillOurs(unittest.TestCase):
-    """Indigo's review of PR #4: installs from before 2026-09-14 carry no
+    """Review of PR #4: installs from before 2026-09-14 carry no
     marker, so ownership is "every entry is one we ship". The old launcher
     and server-file names are not shipped any more, so they must still count
     as ours -- or the install refuses bin/ after it has already written

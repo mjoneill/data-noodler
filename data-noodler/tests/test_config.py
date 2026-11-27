@@ -176,7 +176,7 @@ class TestRenewalCommand(unittest.TestCase):
             old + os.sep), config.default_mint_script(home=h))
         new = os.path.join(h, ".config", "data-noodler")
         os.makedirs(new)
-        # An empty new folder changes nothing (Indigo's review of PR #5).
+        # An empty new folder changes nothing (review of PR #5).
         self.assertTrue(config.default_mint_script(home=h).startswith(old + os.sep))
         with open(os.path.join(new, "config.json"), "w") as f:
             f.write("{}")

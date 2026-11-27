@@ -138,7 +138,7 @@ class TestTheInstallerAcceptsBlankTeamFields(unittest.TestCase):
 
 
 class TestBlankTeamFieldsAreAFinishedSetup(unittest.TestCase):
-    """Review of a3a95e3 (minimo): docs that route on "blank" or say "fill every
+    """Review of a3a95e3: docs that route on "blank" or say "fill every
     blank" make an intentionally blank just-me profile look unfinished, and the
     report step must not ask a just-me user to send a report to nobody."""
 

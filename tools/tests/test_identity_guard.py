@@ -134,7 +134,7 @@ class TestAllowed(unittest.TestCase):
     def test_accepted(self):
         # A registrable domain passes; a single-label hostname (below) does not.
         for e in (NOREPLY, "noreply@github.com", SEAT,
-                  "Someone+Wren@Example.COM", "someone+seat@host.example"):
+                  "Someone+Seat@Example.COM", "someone+seat@host.example"):
             with self.subTest(e):
                 self.assertTrue(self.allowed(e))
 

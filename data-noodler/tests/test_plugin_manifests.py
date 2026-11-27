@@ -116,7 +116,7 @@ class TestMcpManifest(unittest.TestCase):
                     with open(os.path.join(h, ".config", where, "config.json"), "w") as f:
                         f.write("{}")
                     if empty_new:
-                        # Indigo's review of PR #5: an empty new folder must
+                        # Review of PR #5: an empty new folder must
                         # not pull Codex away from a working install.
                         os.makedirs(os.path.join(h, ".config", "data-noodler"))
                     launcher = os.path.join(b, os.path.basename(

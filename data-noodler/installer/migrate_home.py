@@ -202,7 +202,7 @@ def migrate(home=None, running=None):
     except Exception:
         # Every step undone, config.json included: rolled back without it,
         # the old home's config named the new home and the new file names
-        # (Indigo's review of PR #5).
+        # (review of PR #5).
         if backup and os.path.exists(backup):
             shutil.copy2(backup, cfg_path)
             os.remove(backup)

@@ -447,7 +447,7 @@ class TestExportFirstAnalyseFromTheFile(unittest.TestCase):
 
 
 class TestThePreviewIsNeverTheAnswer(unittest.TestCase):
-    """Indigo's review of #1992: three texts still offered the receipt's
+    """Review of #1992: three texts still offered the receipt's
     preview as the source of a top ten or "a few" rows. The preview is up to
     20 rows read INTO the conversation, in export order, so its first ten
     are a top ten only by accident. It checks the file's shape; answers come

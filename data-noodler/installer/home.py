@@ -29,7 +29,7 @@ def default_home(home=None):
     new, old = new_home(home), legacy_home(home)
     # Decided on what a home holds, not on whether it exists: an empty new
     # folder (a mkdir, an aborted move) must not pull every reader away from
-    # a working install (Indigo's review of PR #5).
+    # a working install (review of PR #5).
     if os.path.isfile(os.path.join(new, "config.json")):
         return new
     if os.path.isfile(os.path.join(old, "config.json")):

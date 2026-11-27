@@ -135,7 +135,7 @@ def install_skill(name, src, skills_dir, replace=False):
             "its files differ from the new version. Left untouched.")
     # Everything below writes into dest, and copytree follows a link inside
     # it -- a linked subfolder or file -- into whatever it points at. The
-    # top-level check above is not enough on its own (Indigo's review of
+    # top-level check above is not enough on its own (review of
     # PR #22), so nothing is written while any link is inside.
     inner = _first_link(dest)
     if inner is not None:
