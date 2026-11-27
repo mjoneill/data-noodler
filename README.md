@@ -13,7 +13,7 @@ With Data Noodler:
 
 - **Access is time bound to ~7 days.** If you set up your Google App for "Testing," all users will be required to re-authenticate every 7 days. This means that if a credential were somehow to leak from a user's desktop, it would be useful for a week at most.  And even if it were to leak, it would *only* provide read-only access to the GA and GSC accounts the user is authorized to access. 
 
-  Note: If you're in a Google Workspace organization setting up Data Noodler for your team or org, you can set it up as an "Internal" app instead. These have no weekly sign-in requirement. [`GOOGLE-CLOUD-SETUP.md`](data-noodler/GOOGLE-CLOUD-SETUP.md#before-you-start-one-decision-that-shapes-everything) explains this option, but I prefer the 7-day reauthentication anyway.
+  Note: If you're in a Google Workspace organization setting up Data Noodler for your team or org, you can set it up as an "Internal" app instead. These have no weekly sign-in requirement. Follow your organization's own approach for that; [`GOOGLE-CLOUD-SETUP.md`](data-noodler/GOOGLE-CLOUD-SETUP.md#troubleshooting) has a short note. I prefer the 7-day reauthentication anyway.
 
 ## Status
 

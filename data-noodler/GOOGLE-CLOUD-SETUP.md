@@ -1,91 +1,57 @@
 # Setting up your own Google App (OAuth client)
 
-The README calls this your **Google App**. In Google's own terms it is an
-**OAuth client** inside a **Google Cloud project**, and that's what the steps
-below call it, because those are the names on Google's screens.
+To give your AI agent read-only access to your Google Analytics and Search Console data, Google requires an app of your own, which we call a "Google App". This page explains what that is, what you'll create, and walks you (or your agent) through it.
 
-**Who this is for:** anyone setting these tools up without an existing
-maintainer to get the sign-in file from: an individual setting it up just for
-themselves, or whoever deploys it for a team, organization or institution. You
-do this once. If others will use it, everyone you deploy to then uses the file
-you make here.
+## What it's called
 
-**What you end up with:** one file, `data-noodler-client.json`, that lets each person
-sign in with their *own* Google account and grant read-only access to the
-Google Analytics and Search Console data *they already have*. The file gives
-nobody access to anything by itself. Each person's access still comes from
-the permissions they hold in Google Analytics and Search Console.
+In Google's own terms, the component we call the **Google App** is an **OAuth client** inside a **Google Cloud project**. The steps below use those names, because they are the names you will see on Google's screens as you proceed with setup.
 
-**Time:** about 20 minutes. **Cost:** none. The APIs below don't need a
-billing account (true at the time of writing).
+## Who needs to set this up
 
-Google renames things in the Cloud console fairly often. If a label below has
-moved, the step is still there under a nearby name. Please tell your
-maintainer, or whoever gave you this package, so the guide can be updated.
+You only need to set up the OAuth client inside a Google Cloud project if:
 
----
+* You're setting it up just for yourself.
 
-## Before you start: one decision that shapes everything
+* You're setting it up for a team or organization.
 
-**Internal or External?** This is the most important choice in this guide.
+You do this once. If others will use Data Noodler, everyone you deploy to uses the file you make here.
 
-| | **Internal** | **External, in Testing** |
-|---|---|---|
-| Who can sign in | Only accounts in your Google Workspace organization | Only accounts you list as test users (max 100) |
-| Credential lifetime | Long-lived | **Expires every 7 days**, so each person re-signs in weekly |
-| "Google hasn't verified this app" screen | No | Yes, every time (click **Advanced → Continue**) |
-| Google verification needed | No | No, as long as you stay in Testing |
-| Available when | The Cloud project belongs to your Workspace organization | Always, including for personal Gmail accounts |
+You do NOT need to set up the OAuth client inside a Google Cloud project if:
 
-- **Choose Internal if you can.** It's available when your organization (a
-  company, institution or team) uses Google Workspace, the
-  Cloud project is created inside that organization's Google Cloud
-  organization, and the people using these tools sign into Google Analytics
-  with their organization accounts. It avoids the weekly renewal, the
-  100-person cap and the warning screen.
-- **Choose External (Testing) otherwise**, for example when people use personal
-  Gmail accounts for GA, or you can't create projects in your organization.
-  **Setting this up just for yourself with a personal Gmail account? This is
-  your choice:** add only your own account as a test user. Everything works.
-  Each person just renews weekly with one command (`credential_status` tells
-  them which). Many treat the weekly renewal as a feature: a leaked credential
-  is only good for 7 days.
-- **Publishing an External app "to production"** removes the 7-day expiry and
-  the 100-user cap. But `analytics.readonly` is a *sensitive* scope, so Google
-  may require its app-verification review first. That's beyond this guide.
-  Testing is the practical choice for a team-sized deployment.
+* You are upgrading an existing (and working) Data Noodler installation.
 
-**In an organization, check its rules first.** (Just you, on a personal
-Google account? Neither of these applies; skip ahead.) Two things can stop you
-before you start:
+* You are part of a group of users supported by someone else who maintains the OAuth client inside the Google Cloud project.
 
-- **Creating Cloud projects may be restricted.** Many organizations and
-  institutions only let
-  certain staff create projects in their Google Cloud organization. If
-  **New project** is greyed out, or your organization isn't offered, ask your
-  Google Cloud or Workspace administrator to create the project for you, or to
-  grant you the *Project Creator* role.
-- **Third-party app access may be restricted.** Google Workspace
-  administrators can block apps they haven't explicitly trusted (Admin console →
-  **Security → Access and data control → API controls**). An Internal app in
-  your own organization is usually allowed. An External one may be blocked for
-  your users until an administrator marks its **client ID** as trusted. If
-  people get "This app is blocked" or "Access blocked: your institution's
-  policy" (the wording Google uses for any Workspace organization), that's
-  this setting, and only an administrator can change it.
+**If you do not need to set this up, you can skip the remainder of this document.**
+
+## What you'll end up with
+
+- **In Google Cloud:** a project with three APIs turned on, a sign-in screen, and an OAuth client.
+- **On your machine:** one file, `data-noodler-client.json`, downloaded from the OAuth client inside the Google Cloud project. You will use this file yourself, and if you support others who use Data Noodler, you will distribute this to them as well (step 8).
+
+**Time:** about 20 minutes. **Cost:** none. The APIs this uses don't need a billing account (true at the time of writing).
+
+## What this shares, and what it doesn't
+
+Everyone you deploy to gets the same `data-noodler-client.json`. This file tells Google which app is requesting permission to connect. On its own, it can't open anyone's data: each person still signs in with their own Google account.
+
+When each person signs in, Google gives *them* their own credential: a token saved on their own machine, in `data-noodler-credential.json`. It grants read-only access to the Google Analytics and Search Console data that person can already see, and nothing more.
+
+- **People in the same group don't share access.** Each has their own credential, limited to their own permissions.
+- **Whoever manages Data Noodler for a group can't see their users' data or credentials.** They can see which accounts they listed as test users, and how much the APIs are used overall (request counts and errors in the Cloud console), but not what anyone asked or what came back.
+- **What your AI agent reads** becomes part of your conversation with your AI app (Claude, ChatGPT), and is handled the same way as anything else you share there.
 
 ---
+
+Google renames things in the Cloud console fairly often. If a label below has moved, the step is still there under a nearby name. Please [let us know](../README.md#feedback) so the guide can be updated.
 
 ## 1. Create the project
 
-1. Go to **console.cloud.google.com**. This is the Cloud console, a different
-   site from analytics.google.com, which you won't use during setup.
+1. Go to **console.cloud.google.com**. This is the Google Cloud console.
 2. Use the project picker at the top → **New project**.
    - **Name:** something you'll recognize later, for example
      `data-noodler` or `analytics-ai-tools`.
-   - **Organization / Location:** your organization if you're going
-     **Internal**. This is what makes Internal possible. Just you, on a
-     personal account: leave it as "No organization".
+   - **Organization / Location:** leave it as Google suggests ("No organization" on a personal account).
 3. **Write down the project ID.** Google adds digits when a name is taken, so
    it looks like `data-noodler-483921` rather than what you typed. Every link below
    uses it.
@@ -118,12 +84,11 @@ area was called the "OAuth consent screen" until recently. If it asks you to
   - **App name:** something people will recognize months later in their
     Google account's [permissions list](https://myaccount.google.com/permissions),
     for example `GA tools for Claude & Codex (read-only)`. It also appears on the
-    sign-in screen, which is how people confirm it's yours and not someone
-    phishing them. Google rejects names containing "Google".
+    sign-in screen, which is how people confirm the request really comes from you. Google rejects names containing "Google".
   - **User support email** and **developer contact:** an address your users
     can actually reach.
-- **Audience:** **Internal** or **External**, as decided above.
-  - **External:** under **Test users**, add the Google account of *every*
+- **Audience:** **External**, and leave it in **Testing**.
+  - Under **Test users**, add the Google account of *every*
     person who will use the tools, including yourself. In Testing, Google
     refuses everyone not on the list, even the project owner, with
     `Error 403: access_denied`. Keep this list current as people join. The cap
@@ -188,33 +153,22 @@ There are two JSON files in this system, and they are not alike.
 | How | Download from the Cloud console | The install's consent step: `mint_adc.py` opens the browser, the person signs in and approves the two permissions, and the script writes the file, readable only by that user |
 | Where it lives | `~/.config/gcloud/data-noodler-client.json` on every machine | `~/.config/gcloud/data-noodler-credential.json`, on that person's machine only |
 | Copies | One per deployment, handed to each person directly | Never copied, never shared, never in a zip or a repository |
-| Lifetime | Until you delete the client in the Cloud console | External/Testing: **7 days**, then the person re-runs the renewal command (`credential_status` prints it) and fully quits and reopens their apps. Internal: long-lived |
+| Lifetime | Until you delete the client in the Cloud console | **7 days**, then the person runs the renewal command (their AI agent can give it to them) and fully quits and reopens their apps |
 | If it leaks | Someone could show a consent screen wearing your app's name, or use your project's quota. Fix: delete the client in **Clients**, create a new one, re-issue the file | Someone could read that person's analytics data until it expires. Fix: the person revokes the app at [myaccount.google.com/permissions](https://myaccount.google.com/permissions), which kills the token at once, then signs in again |
 
-So: treat the client file like a building key card (keep it off public channels, re-issue if lost) and the credential like a password (it never moves). The install does the credential part for you; `INSTALL.md` step 4 ("Run consent") and the setup skill's Step 5 are where it happens, and `credential_status` is how anyone checks theirs afterwards.
+So: treat the client file like a building key card (keep it off public channels, re-issue if lost) and the credential like a password (it never moves). The install does the credential part for you; `INSTALL.md` step 4 ("Run consent") and the setup skill's Step 5 are where it happens, and anyone can ask their AI agent to check theirs afterwards (the agent uses its `credential_status` tool).
 
-## 6. Give people access to the data (in GA and Search Console, not here)
+## 6. If others will use it: give them access in Google Analytics and Search Console
 
 Nothing in the Cloud project grants access to analytics data. Each person sees
-exactly what their own Google account can already see:
-
-- **Google Analytics:** Admin → Property (or Account) **access management**, at
-  least the **Viewer** role. Access granted at the *account* level covers all
-  its properties.
-- **Search Console:** Settings → **Users and permissions** for each property
-  (Restricted is enough).
-
-If someone signs in fine but sees no properties, this step is what's missing
-for that person.
+exactly what their own Google account can already see. Therefore, if you are managing a group of users, make sure you have given each of them access to the right Google Analytics and Search Console properties.
 
 ## 7. Try it yourself first
 
 Install the tools on your own machine. Follow `INSTALL.md`, or point Claude
 Code or Codex at `skills/data-noodler-setup/SKILL.md`. At the sign-in step:
 
-1. A browser opens with your app name. **External/Testing:** expect
-   "Google hasn't verified this app". Click **Advanced → Go to … (unsafe)**,
-   which is expected for a Testing app. **Internal:** no warning.
+1. A browser opens with your app name. Expect "Google hasn't verified this app". Click **Advanced → Go to … (unsafe)**, which is expected for a Testing app.
 2. Approve the two permissions: viewing Google Analytics data and viewing
    Search Console data. Nothing else should be listed. If anything else is,
    stop and check you're using the right file.
@@ -228,7 +182,7 @@ answer, your file is ready to hand out.
 ## 8. What to give the people you deploy to
 
 - `data-noodler-client.json` (from step 4), handed over directly.
-- **External:** confirmation that you've added their Google account as a test
+- Confirmation that you've added their Google account as a test
   user. Do this *before* they install, or sign-in fails with `access_denied`.
 - The package (zip or repository).
 - A name to send their install report to (the installer writes one). That's
@@ -240,14 +194,16 @@ answer, your file is ready to hand out.
 
 | What they see | What it means | Fix |
 |---|---|---|
-| `Error 403: access_denied` at sign-in | External/Testing, and this Google account isn't a test user | Add the exact account under **Audience → Test users**, then they sign in again |
-| "This app is blocked" / "your institution's policy" | A Workspace administrator restricts third-party apps | An administrator trusts the client ID (Admin console → Security → API controls), or switch to an Internal app in your organization |
+| `Error 403: access_denied` at sign-in | This Google account isn't a test user in the OAuth app in Google Cloud console | Add the exact account under **Audience → Test users** in your app in Google Cloud console. Users can sign in again afterwards |
+| "This app is blocked" / "your institution's policy" | Your Google Workspace administrator restricts third-party apps | Ask your administrator to allow the app |
 | "…API has not been used in project … or it is disabled" | Step 2 missed for that API | Enable it on the **same** project as the client |
-| `invalid_grant` / "token expired" weekly | Expected for External/Testing: the 7-day credential (`data-noodler-credential.json`) has expired | They run the renewal command `credential_status` gives them, then fully quit and reopen the app. Internal avoids this |
-| Someone's credential may have been exposed | `data-noodler-credential.json` left their machine | They revoke the app at myaccount.google.com/permissions (immediate), then sign in again at the next use |
+| `invalid_grant` / "token expired" weekly | Expected: the 7-day credential (`data-noodler-credential.json`) has expired | They ask their AI agent for the renewal command, run it, then fully quit and reopen the app |
+| Someone's credential may have been exposed | `data-noodler-credential.json` left their machine | They revoke the app at [myaccount.google.com/permissions](https://myaccount.google.com/permissions), which cuts it off at once, then sign in again at the next use |
 | Signs in, but no properties | Their Google account has no GA/Search Console access | Step 6 |
-| `redirect_uri_mismatch` | The client isn't a **Desktop app** | Create a Desktop app client (step 4) and replace the file |
-| "Google hasn't verified this app" | Normal for External/Testing | **Advanced → Continue**. Only publishing and verification remove it |
+| `redirect_uri_mismatch` | The OAuth client isn't a **Desktop app** | Create a Desktop app client (step 4) in Google Cloud console and replace the file |
+| "Google hasn't verified this app" | Normal for an app in Testing | **Advanced → Continue**. Only publishing and verification remove it |
+
+**Note:** Some organizations use Google Workspace, which may let you create the OAuth client as an **Internal** app. If that's an option for you, follow your organization's own policies and approach for creating new apps. This guide covers External apps in Testing only.
 
 ---
 
