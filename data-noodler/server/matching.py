@@ -1,6 +1,6 @@
 """Pure property-matching logic, free of MCP and config concerns.
 
-Mirrors the behaviour of the data-noodler skill's lookup_property.py so
+Mirrors the behavior of the data-noodler skill's lookup_property.py so
 that the MCP tool and the CLI answer identically. Kept pure so it can be
 tested against a fixture CSV with no credential and no network.
 """

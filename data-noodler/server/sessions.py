@@ -116,7 +116,7 @@ def _denylisted(directory):
     """The DENYLIST prefix `directory` falls under, else None.
 
     Compared case-folded: APFS is case-insensitive but case-preserving, so
-    realpath() does not normalise case for a non-symlink component, and a
+    realpath() does not normalize case for a non-symlink component, and a
     case-variant like ~/.Claude resolves to the very same directory as
     ~/.claude. Folding here deliberately fails closed -- on a genuinely
     case-sensitive filesystem a distinct ~/.Claude would also be refused,

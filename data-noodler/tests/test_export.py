@@ -108,12 +108,12 @@ class TestWriteExport(unittest.TestCase):
             export.write_export(self.p, COLS, [["only-one-value"]], META)
         self.assertIn("columns", str(ctx.exception))
 
-    def test_non_json_serialisable_meta_raises_export_error(self):
+    def test_non_json_serializable_meta_raises_export_error(self):
         bad_meta = dict(META, when=datetime.date(2026, 9, 3))
         with self.assertRaises(export.ExportError):
             export.write_export(self.p, COLS, ROWS, bad_meta)
 
-    def test_non_json_serialisable_meta_leaves_no_tmp_file(self):
+    def test_non_json_serializable_meta_leaves_no_tmp_file(self):
         bad_meta = dict(META, when=datetime.date(2026, 9, 3))
         with self.assertRaises(export.ExportError):
             export.write_export(self.p, COLS, ROWS, bad_meta)
@@ -251,7 +251,7 @@ class TestTheTempFileHasNoPredictableName(unittest.TestCase):
         self.assertEqual(self._modes_under_umask(0o022), (0o644, 0o644))
 
     @unittest.skipIf(sys.platform.startswith("win"), "POSIX modes")
-    def test_a_strict_umask_is_still_honoured(self):
+    def test_a_strict_umask_is_still_honored(self):
         # The old os.open(..., 0o644) was filtered by the umask; a bare
         # chmod to 0o644 is not. A user with umask 077 must not start
         # getting exports every account on the machine can read.
@@ -372,11 +372,11 @@ class TestNextStep(unittest.TestCase):
 
     # From review: duplicate_rows must reach the FIRST field, or a
     # doubled file still reads all-clear to an agent that stops there.
-    def test_repeated_rows_say_do_not_analyse_first(self):
+    def test_repeated_rows_say_do_not_analyze_first(self):
         step = self._receipt(self._rows(4), duplicate_rows=2)["next_step"]
         self.assertTrue(step.startswith("REPEATED ROWS"), step)
         self.assertIn("2", step)
-        self.assertIn("do not analyse", step.lower())
+        self.assertIn("do not analyze", step.lower())
 
     def test_repeated_rows_outrank_a_cap(self):
         step = self._receipt(self._rows(100), duplicate_rows=1,

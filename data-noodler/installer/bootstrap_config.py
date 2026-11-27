@@ -67,7 +67,7 @@ class BootstrapError(Exception):
     """Raised with a message intended to be read by a user, not a developer."""
 
 
-def _normalise_exe(path):
+def _normalize_exe(path):
     """...\\analytics-mcp.EXE -> ...\\analytics-mcp.exe.
 
     shutil.which appends PATHEXT's own spelling, which is uppercase. Harmless --
@@ -96,7 +96,7 @@ def detect_analytics_mcp(home=None, platform=None, which=None):
     if found:
         if not (os.path.isabs(found) or ntpath.isabs(found)):
             found = os.path.abspath(found)
-        return _normalise_exe(found)
+        return _normalize_exe(found)
 
     if platform.startswith("win"):
         candidates = [
@@ -351,7 +351,7 @@ def write_config(path, cfg, force=False):
         json.loads(text)
     except (TypeError, ValueError) as exc:
         raise BootstrapError(
-            f"Refusing to install a config that does not serialise and parse "
+            f"Refusing to install a config that does not serialize and parse "
             f"({exc}). {path} left untouched.")
     try:
         # 0600 for a new file, the original's mode otherwise; never follows

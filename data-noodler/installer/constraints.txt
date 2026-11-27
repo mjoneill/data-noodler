@@ -27,7 +27,7 @@
 # this header survives: freeze_constraints.py prints pins, not this text.
 #
 # SECURITY: SCAN BEFORE SHIPPING
-# A pin freezes a version's vulnerabilities along with its behaviour. The
+# A pin freezes a version's vulnerabilities along with its behavior. The
 # 2026-09-14 set aged into PyJWT 2.13.0 (critical), urllib3 2.7.0,
 # cryptography 49.0.0 and a certifi that still trusted compromised roots, and
 # every Windows install got them, because this file is that install path

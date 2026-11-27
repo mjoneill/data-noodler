@@ -19,10 +19,10 @@ Google Analytics 4 and Search Console helper tools.
 
 Analysts want complete data. Export the full data to a file (export_report,
 the other export_* tools, gsc_search_analytics) unless the user explicitly
-asks otherwise. Never choose a row limit yourself. Analyse only from the
+asks otherwise. Never choose a row limit yourself. Analyze only from the
 exported file, never from rows read into the conversation; run_report is for
 a single figure, not analysis (a row_count above the rows returned means it
-is TRUNCATED). Never analyse truncated data (row_limit_hit, sampled) unless
+is TRUNCATED). Never analyze truncated data (row_limit_hit, sampled) unless
 the user specifically asks: narrow and re-export. Past 2,500
 rows, ask the user how to cut what you show; the file keeps every row.
 
@@ -277,7 +277,7 @@ comparison itself is analysis you do over the two files, and it is your job to
 decide whether a trailing slash or a query string counts as the same page."""
 
 
-BEHAVIOURAL_CONTRACT = """\
+BEHAVIORAL_CONTRACT = """\
 # How to work with these tools
 
 - **Start a session first, and tell the user where files will go.** Call
@@ -296,12 +296,12 @@ BEHAVIOURAL_CONTRACT = """\
 - **Ask about hostnames when a property serves several.** Enrichment tells you
   how many. Ask whether to break them out, filter to one, or leave them
   combined — before exporting, as part of confirming the property.
-- **Export the full data, then analyse only from the file.** Export the full
-  data to a file unless the user explicitly asks otherwise. Analyse only from
+- **Export the full data, then analyze only from the file.** Export the full
+  data to a file unless the user explicitly asks otherwise. Analyze only from
   the exported file, never from rows read into the conversation, however few.
   In-conversation reports (run_report) are for a single figure, such as one
   total, never the input to an analysis. Read the receipt first.
-- **Never analyse truncated data unless the user specifically asks for it.**
+- **Never analyze truncated data unless the user specifically asks for it.**
   If a receipt says `row_limit_hit` or `sampled`, the file is not the whole
   answer: say so, then narrow the query (shorter dates, a filter) and export
   again. A truncated result looks complete and is not.
@@ -318,21 +318,21 @@ BEHAVIOURAL_CONTRACT = """\
   result — one request per site, minutes of waiting, hundreds of lines. When
   the user named a site, the first move is to resolve it (a bare
   gsc_list_sites call, or contains= to narrow), not to enumerate everything.
-- **Analyse from the files**, not from what you remember of them.
+- **Analyze from the files**, not from what you remember of them.
 - **State the property, the metric, and the date range** alongside every
   number you report."""
 
 
 def guide_for(topic):
     """The guidance for one source, or both."""
-    # The working rules (export the full data, analyse only from the file)
+    # The working rules (export the full data, analyze only from the file)
     # ride with every topic: a single-source request must not skip them
     # (#1992).
     if topic == "ga":
-        return f"{REPORTING_GUIDE}\n\n---\n\n{BEHAVIOURAL_CONTRACT}"
+        return f"{REPORTING_GUIDE}\n\n---\n\n{BEHAVIORAL_CONTRACT}"
     if topic == "gsc":
-        return f"{GSC_GUIDE}\n\n---\n\n{BEHAVIOURAL_CONTRACT}"
-    return f"{REPORTING_GUIDE}\n\n---\n\n{GSC_GUIDE}\n\n---\n\n{BEHAVIOURAL_CONTRACT}"
+        return f"{GSC_GUIDE}\n\n---\n\n{BEHAVIORAL_CONTRACT}"
+    return f"{REPORTING_GUIDE}\n\n---\n\n{GSC_GUIDE}\n\n---\n\n{BEHAVIORAL_CONTRACT}"
 
 
 GSC_TOOL_DOCS = {
@@ -610,5 +610,5 @@ fewer rows than it said matched). Never present an incomplete file as the
 whole result. If data_loss_from_other_row is true, GA4 folded part of the long
 tail into an "(other)" row, so per-row totals undercount the tail. If
 duplicate_rows is above 0, the file repeats rows and its sums are inflated:
-do not analyse it; say so and report the bug.""",
+do not analyze it; say so and report the bug.""",
 }

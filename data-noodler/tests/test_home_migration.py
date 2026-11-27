@@ -86,7 +86,7 @@ class TestEveryReaderFindsTheHome(unittest.TestCase):
         self.assertEqual(server_config.default_config_path(env={}, home=h),
                          os.path.join(old, "config.json"))
 
-    def test_the_server_honours_its_env_override(self):
+    def test_the_server_honors_its_env_override(self):
         self.assertEqual(server_config.default_config_path(
             env={"DATA_NOODLER_CONFIG": "/x/c.json"}, home="/nowhere"),
             "/x/c.json")

@@ -2,7 +2,7 @@
 
 Windows support was proven on machines without administrator rights, and the
 docs say so. They must not describe whose machines those were: no department
-that approves installs, no named software catalogue, no edition of Windows
+that approves installs, no named software catalog, no edition of Windows
 that points at a kind of employer, no "the reports stay with the maintainer".
 Advice for a locked-down machine names the mechanism ("whoever manages the
 machine", "an application-control policy"), never a department.

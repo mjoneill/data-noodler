@@ -231,7 +231,7 @@ class TestPropertySetup(unittest.TestCase):
         self.assertIn("403", out["audiences"]["error"])
         self.assertEqual(out["key_events"][0]["event_name"], "purchase")
 
-    def test_the_result_is_json_serialisable(self):
+    def test_the_result_is_json_serializable(self):
         json.dumps(self._setup())
 
 

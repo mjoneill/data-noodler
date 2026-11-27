@@ -276,26 +276,26 @@ class TestGscToolDocs(unittest.TestCase):
         self.assertIn("unbounded", doc.lower())
 
 
-class TestBehaviouralContract(unittest.TestCase):
+class TestBehavioralContract(unittest.TestCase):
     def test_tells_the_agent_to_propose_a_session_path(self):
-        self.assertIn("start_session", guidance.BEHAVIOURAL_CONTRACT)
+        self.assertIn("start_session", guidance.BEHAVIORAL_CONTRACT)
 
     def test_forbids_confirming_by_property_id_alone(self):
-        c = guidance.BEHAVIOURAL_CONTRACT.lower()
+        c = guidance.BEHAVIORAL_CONTRACT.lower()
         self.assertIn("never", c)
         self.assertIn("property id", c)
 
     def test_requires_asking_about_multi_host_properties(self):
-        self.assertIn("hostname", guidance.BEHAVIOURAL_CONTRACT.lower())
+        self.assertIn("hostname", guidance.BEHAVIORAL_CONTRACT.lower())
 
     def test_requires_exporting_rather_than_reading_large_results(self):
-        self.assertIn("export", guidance.BEHAVIOURAL_CONTRACT.lower())
+        self.assertIn("export", guidance.BEHAVIORAL_CONTRACT.lower())
 
     def test_extends_export_discipline_to_listing_tools(self):
         # gsc_list_sites with enrich=true on a large account is itself a
         # large result -- the same discipline that governs exporting rows
         # applies to listing them.
-        c = guidance.BEHAVIOURAL_CONTRACT.lower()
+        c = guidance.BEHAVIORAL_CONTRACT.lower()
         self.assertIn("gsc_list_sites", c)
         self.assertIn("resolve", c)
 
@@ -303,7 +303,7 @@ class TestBehaviouralContract(unittest.TestCase):
         # An agent that pulls the data and writes only the top 20 of N rows
         # has paid the context cost export_report exists to avoid, and
         # produced a file that looks authoritative and silently isn't.
-        bullet = _bullet_for(guidance.BEHAVIOURAL_CONTRACT, "top N")
+        bullet = _bullet_for(guidance.BEHAVIORAL_CONTRACT, "top N")
         self.assertIn("complete", bullet.lower())
         self.assertIn("preview", bullet.lower())
 
@@ -314,12 +314,12 @@ class TestGuideFor(unittest.TestCase):
     def test_ga_returns_the_ga_guide_and_the_working_rules(self):
         ga = guidance.guide_for("ga")
         self.assertTrue(ga.startswith(guidance.REPORTING_GUIDE))
-        self.assertIn(guidance.BEHAVIOURAL_CONTRACT, ga)
+        self.assertIn(guidance.BEHAVIORAL_CONTRACT, ga)
 
     def test_gsc_returns_the_gsc_guide_and_the_working_rules(self):
         gsc = guidance.guide_for("gsc")
         self.assertTrue(gsc.startswith(guidance.GSC_GUIDE))
-        self.assertIn(guidance.BEHAVIOURAL_CONTRACT, gsc)
+        self.assertIn(guidance.BEHAVIORAL_CONTRACT, gsc)
 
     def test_both_contains_each_of_them(self):
         both = guidance.guide_for("both")
@@ -399,11 +399,11 @@ SKILL_MD = os.path.join(
     "SKILL.md")
 
 
-class TestExportFirstAnalyseFromTheFile(unittest.TestCase):
+class TestExportFirstAnalyzeFromTheFile(unittest.TestCase):
     """#1992, Michael 2026-11-20: export the full data unless explicitly told
-    not to, and never analyse truncated data unless the user specifically
+    not to, and never analyze truncated data unless the user specifically
     asks. The old text allowed run_report "only for a few rows", and an
-    agent judged 78 rows to be a few and analysed them in the conversation.
+    agent judged 78 rows to be a few and analyzed them in the conversation.
     Each channel fails differently (module docstring), so the rule is
     asserted in all three."""
 
@@ -424,15 +424,15 @@ class TestExportFirstAnalyseFromTheFile(unittest.TestCase):
                 self.assertIn("Export the full data", t)
                 self.assertIn("unless the user explicitly asks", t)
 
-    def test_analyse_from_the_exported_file(self):
+    def test_analyze_from_the_exported_file(self):
         for name, t in self._texts().items():
             with self.subTest(name):
-                self.assertIn("Analyse only from the exported file", t)
+                self.assertIn("Analyze only from the exported file", t)
 
-    def test_never_analyse_truncated_data(self):
+    def test_never_analyze_truncated_data(self):
         for name, t in self._texts().items():
             with self.subTest(name):
-                self.assertIn("Never analyse truncated", t)
+                self.assertIn("Never analyze truncated", t)
                 self.assertIn("unless the user specifically asks", t)
 
     def test_in_conversation_reports_are_for_single_figures_only(self):
@@ -456,7 +456,7 @@ class TestThePreviewIsNeverTheAnswer(unittest.TestCase):
     def _texts(self):
         with open(SKILL_MD, encoding="utf-8") as f:
             skill = f.read()
-        texts = {"contract": guidance.BEHAVIOURAL_CONTRACT, "skill": skill}
+        texts = {"contract": guidance.BEHAVIORAL_CONTRACT, "skill": skill}
         texts.update({f"tool {k}": v
                       for k, v in guidance.GSC_TOOL_DOCS.items()})
         return {k: " ".join(v.split()) for k, v in texts.items()}

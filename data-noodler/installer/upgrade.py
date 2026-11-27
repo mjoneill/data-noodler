@@ -69,7 +69,7 @@ PAYLOAD = ("server", "bin", "marketplace")
 ANALYTICS_MCP = "analytics-mcp==1.1.0"
 TOOL_COUNTS = {"analytics-mcp": 10, "data-noodler": 15}
 # Tool-manager bookkeeping a rebuilt venv should keep, so `uv tool list` or
-# `pipx list` still recognise it.
+# `pipx list` still recognize it.
 TOOL_RECEIPTS = ("uv-receipt.toml", "pipx_metadata.json")
 
 

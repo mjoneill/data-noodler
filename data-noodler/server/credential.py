@@ -120,7 +120,7 @@ def scope_line(scopes):
         parts.append("Google Analytics (read-only)")
     if has_gsc:
         parts.append("Search Console (read-only)")
-    reach = " and ".join(parts) if parts else "nothing recognised"
+    reach = " and ".join(parts) if parts else "nothing recognized"
 
     line = f"This credential can reach: {reach}."
     if not has_gsc:

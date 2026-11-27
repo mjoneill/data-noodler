@@ -1,5 +1,5 @@
 {
-  "version": "0.9.5",
-  "sha256": "45c2fb35e1825c2372ae86dbe5b8356a71fdefaee3e7c1074cfd2d204adc3cfa",
-  "recorded_from": "the repo at doc review 14/14, 2026-11-27 (references/setup.md retired; setup pointers go to the setup skill, INSTALL.md and GOOGLE-CLOUD-SETUP.md)"
+  "version": "0.9.6",
+  "sha256": "5bbfdedcc1bb0f1798e71298cf6c4c0a37dd74951d71825834aad59fadcf6752",
+  "recorded_from": "the repo at #2089, 2026-11-27 (US spelling in the query skill and the server's text)"
 }
