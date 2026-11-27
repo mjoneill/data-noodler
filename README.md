@@ -29,7 +29,7 @@ With Data Noodler:
 
 Data Noodler has been installed and successfully run on macOS 12+, or Windows 11+. It has been deployed successfully without administrator rights in managed environments. 
 
-Details: [`INSTALL.md`](data-noodler/INSTALL.md#what-you-get-and-what-you-dont) has the evidence for each app, the [Windows notes](data-noodler/skills/data-noodler-setup/references/windows.md) list what is and isn't working there, and [`ARCHITECTURE.md`](data-noodler/ARCHITECTURE.md#what-is-proven-and-what-is-not) says what has been proven, and how.
+Details: [`INSTALL.md`](data-noodler/INSTALL.md#what-you-get-and-what-you-dont) has the evidence for each app, the [Windows notes](data-noodler/skills/data-noodler-setup/references/windows.md) list what is and isn't working there, and [`ARCHITECTURE.md`](data-noodler/ARCHITECTURE.md#whats-tested-and-where-its-in-use) says what's tested and where it's in use.
 
 ## Installation, setup, and upgrading
 
