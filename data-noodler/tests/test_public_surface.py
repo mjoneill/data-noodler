@@ -128,7 +128,8 @@ def skill_files(skills_dir=None):
     The folder is walked the way test_plugin_manifests.plugin_digest walks the
     plugin, so the gate needs no git checkout. The .data-noodler-installed
     marker is included on purpose: its text tells a user what deleting it
-    does. The query skill is also inside the plugin's fingerprint, which
+    does. A file git doesn't track is counted too, which is why a failure
+    names the files (counted_note). The query skill is also inside the plugin's fingerprint, which
     forces a version bump. That check asks for no changelog entry, and the
     setup skill is outside it.
     """
@@ -160,6 +161,19 @@ def surface():
         "analytics_mcp": analytics_mcp_pin(),
         "skills": skill_files(),
     }
+
+
+def counted_note(surface_dict):
+    """A line for the failure message: the skill files the fingerprint counted.
+
+    The scan reads the folder as it is on this machine, so a file git doesn't
+    track (an editor's swap file, a scratch note) moves the fingerprint here
+    and nowhere else. Naming the files puts a stray one in plain sight before
+    anyone copies the fingerprint into the changelog.
+    """
+    names = sorted(surface_dict["skills"])
+    return (f"The fingerprint counts {len(names)} skill files. If one of them doesn't belong in the "
+            f"repository, remove it and run again: {', '.join(names)}")
 
 
 def fingerprint(surface_dict):
@@ -209,8 +223,8 @@ def entry_problems(text, want, repo=REPO):
 class TestTheChangelogCoversTheSurface(unittest.TestCase):
 
     def test_the_newest_entry_carries_the_softwares_fingerprint_and_names_docs(self):
-        want = fingerprint(surface())
-        self.assertEqual(entry_problems(_read(CHANGELOG), want), [])
+        s = surface()
+        self.assertEqual(entry_problems(_read(CHANGELOG), fingerprint(s)), [], counted_note(s))
 
     def test_entries_are_newest_first(self):
         dates = [m.group(1) for m in ENTRY_RE.finditer(_read(CHANGELOG))]
@@ -303,6 +317,7 @@ class TestSkillFiles(unittest.TestCase):
         self.put("one/scripts/tool.py", b"print(1)\n")
         self.put("two/SKILL.md", b"Other.\n")
         self.put("one/scripts/__pycache__/tool.cpython-312.pyc", b"\x00\x01")
+        self.put("one/scripts/__pycache__/notes.txt", b"left by a tool\n")
         self.put("one/.DS_Store", b"\x00")
         self.assertEqual(skill_files(self.dir), {
             "one/SKILL.md": "Do this.\n", "one/references/more.md": "More.\n",
@@ -330,6 +345,16 @@ class TestSkillFiles(unittest.TestCase):
         self.assertIn("one/logo.png", first)
         self.put("one/logo.png", b"\x89PNG\xff\xfd")
         self.assertNotEqual(skill_files(self.dir)["one/logo.png"], first["one/logo.png"])
+
+    def test_the_failure_note_names_every_file_counted(self):
+        # A stray file on one machine (an editor's swap file, say) moves the
+        # fingerprint there and nowhere else. The note puts it in plain sight.
+        self.put("one/SKILL.md", b"Do this.\n")
+        self.put("one/.SKILL.md.swp", b"\x00swap")
+        note = counted_note({"skills": skill_files(self.dir)})
+        self.assertIn("2 skill files", note)
+        self.assertIn("one/SKILL.md", note)
+        self.assertIn("one/.SKILL.md.swp", note)
 
     def test_an_empty_skills_folder_is_a_broken_scan(self):
         with self.assertRaises(AssertionError):
