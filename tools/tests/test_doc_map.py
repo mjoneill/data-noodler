@@ -32,6 +32,7 @@ SETUP = "data-noodler/skills/data-noodler-setup"
 TREE = {
     ROOT: (None, "Data Noodler"),
     "SECURITY.md": (ROOT, "Security"),
+    "CHANGELOG.md": (ROOT, "Changelog"),
     "data-noodler/README.md": (ROOT, "Package contents"),
     "data-noodler/skills/data-noodler/SKILL.md": ("data-noodler/README.md", "Query skill"),
     "data-noodler/START-HERE.md": (ROOT, "Start here"),
