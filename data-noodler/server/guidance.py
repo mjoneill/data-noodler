@@ -365,10 +365,11 @@ BEHAVIORAL_CONTRACT = """\
 - **Check the script before you trust its answer.** Have it print the number
   of rows it read, and check that row count against the receipt: the two
   must match. Have it print its intermediate totals as well as the final
-  number. For a metric that adds up across rows (sessions, screenPageViews,
-  eventCount), compare the script's total with one figure fetched directly:
-  run_report with no dimensions, for the same property, metric and dates.
-  User counts don't add up across rows, so leave those out of this check.
+  number. For a metric that counts events (screenPageViews, eventCount),
+  compare the script's total with one figure fetched directly: run_report
+  with no dimensions, for the same property, metric, dates and filters.
+  Sessions and user counts don't add up across rows, because one session is
+  counted in every page row it touched, so leave those out of this check.
   When a check fails, find out why before you report anything.
 - **Save the script and show it.** Save it in the same folder as the export
   it reads, tell the user where it is, and show the script with the result,

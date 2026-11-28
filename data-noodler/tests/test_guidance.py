@@ -571,9 +571,22 @@ class TestComputeWithAScript(unittest.TestCase):
         for name, t in self._long_texts().items():
             with self.subTest(name):
                 self.assertIn("one figure fetched directly", t)
-                # The check only holds for metrics that add up; saying so
-                # keeps an honest mismatch on user counts from looking like a bug.
-                self.assertIn("User counts don't add up across rows", t)
+                # A filtered export against an unfiltered total fails for an
+                # honest reason, so the direct figure takes the same filters.
+                self.assertIn("for the same property, metric, dates and filters", t)
+
+    def test_the_total_check_is_only_for_metrics_that_count_events(self):
+        # Review of the first draft, then measured (one property, 90 days):
+        # screenPageViews and eventCount summed to the direct total by page
+        # and by date. sessions summed 3.9% high by page and 0.2% high by
+        # date, and activeUsers 3.3% and 0.3% high. The first draft listed
+        # sessions as a metric that adds up, which would have sent an agent
+        # chasing a bug that isn't there on every export by page.
+        for name, t in self._long_texts().items():
+            with self.subTest(name):
+                self.assertIn("For a metric that counts events (screenPageViews, eventCount)", t)
+                self.assertIn("Sessions and user counts don't add up across rows", t)
+                self.assertNotIn("adds up across rows (sessions", t)
 
     def test_intermediate_results_are_printed(self):
         for name, t in self._long_texts().items():
@@ -816,5 +829,9 @@ class TestOnePageUnderSeveralUrls(unittest.TestCase):
         # or a query string counts as the same page".
         for name, t in self._texts().items():
             with self.subTest(name):
-                self.assertNotIn("your job to decide whether a trailing slash", t)
+                self.assertNotIn("your job to decide", t)
+        # Refusing the old phrase isn't enough: a reworded "is your job to
+        # decide." passed. The guide has to SAY whose choice it is.
+        gsc = " ".join(guidance.GSC_GUIDE.split())
+        self.assertIn("Whether a trailing slash or a ?query counts as the same page is the user's choice", gsc)
 

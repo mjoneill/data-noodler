@@ -12,7 +12,7 @@ Before it reports by page, the agent now checks whether one page appears under s
 
 For Google Analytics, the agent is also told what each page field can show. The plain page path leaves out the hostname, so on a property that receives several sites it adds different sites' pages together. The agent checks the hostnames first and asks whether to break them out.
 
-**Surface:** `f2e3e93ee71e`
+**Surface:** `64359ba33df6`
 
 **Docs checked:** `data-noodler/skills/data-noodler/SKILL.md` (changed), `data-noodler/BUILD-YOUR-OWN.md` (changed), `README.md`, `SECURITY.md`, `data-noodler/README.md`, `data-noodler/START-HERE.md`, `data-noodler/ARCHITECTURE.md`.
 
@@ -30,7 +30,7 @@ The notebook holds findings about your data. If the project is a git repository 
 
 ## 2026-11-28: The agent does its arithmetic with a script
 
-The agent is now told to compute with a script that reads the exported file. Plain Python is enough, and nothing gets installed without asking you first. The agent checks the script before it trusts the answer: the number of rows the script read has to match the export's receipt, and for a metric that adds up, the script's total is compared with one figure fetched directly from Google. The script is saved in the same folder as the export and shown to you with the result. A small sum from two or three figures can still be done by hand, and the agent says when it did that. In a chat app whose code can't open files on your computer, the agent says what it couldn't compute.
+The agent is now told to compute with a script that reads the exported file. Plain Python is enough, and nothing gets installed without asking you first. The agent checks the script before it trusts the answer: the number of rows the script read has to match the export's receipt, and for a metric that counts events, such as page views, the script's total is compared with one figure fetched directly from Google. The script is saved in the same folder as the export and shown to you with the result. A small sum from two or three figures can still be done by hand, and the agent says when it did that. In a chat app whose code can't open files on your computer, the agent says what it couldn't compute.
 
 Both skills also gained one sentence. When a skill and the software disagree about a fact, the agent follows the software and tells you what disagreed.
 
