@@ -104,6 +104,7 @@ So **rules about which tool to pick go in the server instructions**, and rules a
 - **Subdomains are usually separate GA properties.** Summing properties double-counts people who cross subdomains. Say so if you do it.
 - Never let the model choose a row limit silently. If a result is truncated, say so, and export instead.
 - **Compute with a script over the exported file**, and check the script: its row count against the export's receipt, and a total against one figure fetched directly. Arithmetic in the model's head over many rows costs tokens and can be wrong with no sign of it.
+- **Before reporting by page, check whether one page appears under several URLs** (protocol, www, trailing slash, letter case, query string, fragment). Show what was found and ask how to treat each kind. Merging them silently changes the answer without the reader knowing.
 - **Match the error text before suspecting credentials.** Only `invalid_grant` or "token expired" means renewal.
 
 ### Cheap property lookup

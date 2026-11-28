@@ -153,6 +153,26 @@ Most computers have no data libraries, so plain Python is the usual answer. If a
 
 **Where no code can reach the file, say so.** Some chat apps run code on a remote server that cannot open files on this computer, and some run no code at all. There, keep to single figures and small sums, and for anything larger say what you couldn't compute and what would let you: an app that can run code on this computer.
 
+## One page under several URLs
+
+**Before reporting by page, check whether one page appears under several URLs.** The kinds: protocol (http beside https), www, a trailing slash, letter case, a ?query, a #fragment. Run the check as a script over the exported file, once per page-level export. Totals by date, country or device don't need it.
+
+For each kind, count the pages that have variants and the views or clicks the variants themselves carry: every URL in a group except the one with the most. Counting every page that has a variant makes a small effect look large.
+
+**Show what you found and ask how to treat each kind.** Give the counts, the variants' share and a few examples, then ask: merge, keep separate, or flag as something to fix on the site. The choice is the user's. A #fragment is the same page, `?page=2` may be a different one, and http beside https may be a migration problem they care about. Name the pages with the most ?query variants too: one page spread over thousands of URLs deserves the user's attention. If the variants carry too little to change the answer, say so and carry on.
+
+**Record the choice so a rerun makes it again.** Restate it with the result, and write it in the project notebook as a `Decision:` entry.
+
+**In GA4, the page field you export decides what the file can show.** GA4 keeps letter case and trailing slashes as recorded, so `/About`, `/about` and `/about/` are three rows.
+
+| Page field | What it holds | What to watch for |
+|---|---|---|
+| `pagePath` | The path alone. It leaves out the hostname and the ?query. | On a property that receives several hostnames it adds different sites' pages together wherever they share a path, and every site's `/` lands in one row. |
+| `fullPageUrl` | The hostname, the path and the ?query. | In our exports it came back without `utm_` tags. |
+| `pageLocation` | The whole URL as recorded, with its protocol and its tags. | The most rows: a ?query can spread one page over thousands of them. |
+
+Check the property's hostnames before a page-level export (`lookup_property` with enrichment, or the receipt's `host_scope`). With more than one, ask the user whether to break them out (`hostName` beside `pagePath`), filter to one hostname, or leave them combined. Search Console's page column is always the full URL, so its file shows every kind.
+
 ## Reporting discipline
 
 **State the property ID, the exact metric name, and the exact date range alongside every number you report.** A bare figure hides choices the user can't see, and those choices routinely move the answer more than whatever trend they're asking about.

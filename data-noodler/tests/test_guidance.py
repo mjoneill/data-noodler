@@ -713,3 +713,108 @@ class TestProjectNotebook(unittest.TestCase):
     def test_no_project_folder_means_no_notebook(self):
         self.assertIn("there is no notebook", self.section)
 
+
+class TestOnePageUnderSeveralUrls(unittest.TestCase):
+    """#2036, Michael 2026-11-22: "the agent should probably check (even with
+    one source) if there are issues with protocol, parameters, #bookmarks,
+    etc... that might be reporting on the same page with different urls".
+
+    Two probes on real exports shaped the rule. A first version of the check
+    reported the share of pages that had ANY variant and made a tiny effect
+    look like 42%, so the measure is pinned: the views the variants
+    themselves carry. And in GA4 the reverse trap turned out to be the big
+    one: on a property that receives several hostnames, pagePath adds
+    different sites' pages into one row.
+
+    The treatment is the user's choice, shown and asked, never made silently
+    (the same pattern as choosing a Search Console site form)."""
+
+    def _texts(self):
+        with open(SKILL_MD, encoding="utf-8") as f:
+            skill = f.read()
+        texts = {"instructions": guidance.SERVER_INSTRUCTIONS,
+                 "reporting_guide('ga')": guidance.guide_for("ga"),
+                 "reporting_guide('gsc')": guidance.guide_for("gsc"),
+                 "reporting_guide('both')": guidance.guide_for("both"),
+                 "skill": skill}
+        return {k: " ".join(v.split()) for k, v in texts.items()}
+
+    def _long_texts(self):
+        return {k: v for k, v in self._texts().items() if k != "instructions"}
+
+    def _ga_texts(self):
+        """Where the GA4 page fields are explained: the GA guide and the skill."""
+        return {k: v for k, v in self._texts().items()
+                if k in ("reporting_guide('ga')", "reporting_guide('both')", "skill")}
+
+    def test_the_rule_is_in_every_channel(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("check whether one page appears under several URLs", t)
+                self.assertIn("ask how to treat each kind", t)
+
+    def test_every_kind_of_variant_is_named(self):
+        for name, t in self._texts().items():
+            for kind in ("protocol", "www", "trailing slash", "letter case", "?query", "#fragment"):
+                with self.subTest(name=name, kind=kind):
+                    self.assertIn(kind, t)
+
+    def test_it_says_urls_and_never_bare_addresses(self):
+        # Michael read "addresses" as possibly IP addresses. GA4 reports none.
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertNotIn("number of addresses", t)
+                self.assertNotIn("several addresses", t)
+
+    def test_the_measure_is_the_variants_own_share(self):
+        for name, t in self._long_texts().items():
+            with self.subTest(name):
+                self.assertIn("the variants themselves carry", t)
+                self.assertIn("every URL in a group except the one with the most", t)
+
+    def test_the_three_treatments_are_offered_and_the_choice_is_the_users(self):
+        for name, t in self._long_texts().items():
+            with self.subTest(name):
+                self.assertIn("merge, keep separate, or flag", t)
+                self.assertIn("The choice is the user's", t)
+
+    def test_a_small_effect_is_said_and_passed_over(self):
+        for name, t in self._long_texts().items():
+            with self.subTest(name):
+                self.assertIn("too little to change the answer, say so and carry on", t)
+
+    def test_the_choice_is_recorded_for_a_rerun(self):
+        for name, t in self._long_texts().items():
+            with self.subTest(name):
+                self.assertIn("`Decision:`", t)
+
+    def test_it_runs_once_per_page_level_export(self):
+        for name, t in self._long_texts().items():
+            with self.subTest(name):
+                self.assertIn("once per page-level export", t)
+
+    def test_ga4_pagepath_merging_several_sites_is_named(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("pagePath", t)
+        for name, t in self._ga_texts().items():
+            with self.subTest(name):
+                self.assertIn("adds different sites' pages together", t)
+                # Breaking the hostnames out is one of three choices, and the
+                # user makes it (the working rules already say to ask).
+                self.assertIn("ask the user whether to break them out (hostName beside pagePath), "
+                              "filter to one hostname, or leave them combined", t.replace("`", ""))
+
+    def test_ga4_page_fields_are_told_apart(self):
+        for name, t in self._ga_texts().items():
+            for field in ("pagePath", "fullPageUrl", "pageLocation"):
+                with self.subTest(name=name, field=field):
+                    self.assertIn(field, t)
+
+    def test_the_search_console_guide_no_longer_hands_the_choice_to_the_agent(self):
+        # It used to say "it is your job to decide whether a trailing slash
+        # or a query string counts as the same page".
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertNotIn("your job to decide whether a trailing slash", t)
+
