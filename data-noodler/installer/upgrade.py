@@ -63,6 +63,7 @@ sys.path.insert(0, HERE)
 
 import home as home_mod  # noqa: E402
 import safe_write  # noqa: E402
+import platform_floors  # noqa: E402
 import security_floors  # noqa: E402
 
 PAYLOAD = ("server", "bin", "marketplace")
@@ -257,12 +258,12 @@ def preflight(plan, config_paths, running=None):
         version = out.strip().splitlines()[-1] if rc == 0 and out.strip() \
             else ""
         try:
-            ok = tuple(int(x) for x in version.split(".")) >= (3, 10)
+            ok = tuple(int(x) for x in version.split(".")) >= platform_floors.PYTHON
         except ValueError:
             ok = False
         add(ok, "base python",
             f"{base} (Python {version})" if ok else
-            f"{base} did not run as Python 3.10 or later ({out.strip()[-200:]}). "
+            f"{base} did not run as Python {'.'.join(map(str, platform_floors.PYTHON))} or later ({out.strip()[-200:]}). "
             "Pass --base-python with the right interpreter.")
 
     # A fresh venv has python / python3 (Scripts\\python.exe on Windows)

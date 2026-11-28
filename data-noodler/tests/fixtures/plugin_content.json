@@ -1,5 +1,5 @@
 {
-  "version": "0.9.7",
-  "sha256": "5effdf4db6ecc520149c9eef2cdea4b6ab8246d25b4a887284c8ed2c43c8c5d4",
-  "recorded_from": "the repo at #2093, 2026-11-27 (INSTALL.md retired; the query skill's setup pointers name only the setup skill)"
+  "version": "0.9.8",
+  "sha256": "1b82263d89f131f3fd5753817a9992bb628b2a51b10eecc9ecb531816c761d7d",
+  "recorded_from": "the repo at #2123, 2026-11-28 (the query skill drops \"Nine tools:\", a count the doc gates can't attribute)"
 }

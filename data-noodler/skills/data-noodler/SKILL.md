@@ -53,7 +53,7 @@ Renewal is the one thing no tool can do: it opens a browser for Google consent. 
 
 ## Search Console, and exporting to a file
 
-The same `data-noodler` server also covers Google Search Console — "is this page indexed", "why did impressions drop", "what's our average position for this query" — and gives GA4 itself a way to write large results to a file instead of the conversation. Nine tools:
+The same `data-noodler` server also covers Google Search Console — "is this page indexed", "why did impressions drop", "what's our average position for this query" — and gives GA4 itself a way to write large results to a file instead of the conversation.
 
 | Tool | Answers |
 |---|---|
