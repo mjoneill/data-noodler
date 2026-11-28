@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Leak guard: refuse a tree that carries credentials, real reports, a filled
-deployment profile, or someone's home folder.
+"""Leak guard: refuse a tree that carries credentials, real reports, a project
+notebook, a filled deployment profile, or someone's home folder.
 
 Runs in CI on every push and pull request, over every TRACKED file. The
 .gitignore is advice; `git add -f` and a renamed file both get past it, so
@@ -61,6 +61,13 @@ CLIENT_ID = re.compile(r"\b(\d{6,})-([a-z0-9]{8,})\.apps\.googleusercontent\.com
 # --- rule: analytics-output ---------------------------------------------------
 REPORT_SUFFIXES = (".csv", ".xlsx", ".html", ".htm")
 
+# --- rule: project-notebook (by name) -----------------------------------------
+# The notebook the query skill keeps in a user's project. It holds findings
+# about their data, so one that lands here is a leak whatever it says. The
+# pattern keeps the stem, so a renamed copy ("... (1).md", "Copy of ...") is
+# caught too.
+NOTEBOOK_NAME = "*data-noodler-notebook*"
+
 # --- rule: deployment-profile -------------------------------------------------
 PROFILE_FIELDS = ("deployment_name", "maintainer", "maintainer_contact", "install_reports_to")
 
@@ -103,6 +110,10 @@ def scan_file(path, text):
     if (lowered.endswith(REPORT_SUFFIXES) or "_outputs/" in path or path.startswith("_outputs/")) \
             and not _in_fixtures(path):
         out.append(Finding("analytics-output", path, 0, "report output outside tests/fixtures/"))
+
+    if fnmatch.fnmatch(lowered, NOTEBOOK_NAME) and not _in_fixtures(path):
+        out.append(Finding("project-notebook", path, 0,
+                           "a project notebook holds findings about someone's data; it belongs in their project"))
 
     if text is None:
         return out

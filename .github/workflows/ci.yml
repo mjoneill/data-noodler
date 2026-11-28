@@ -1,7 +1,8 @@
 # CI for every push and pull request.
 #
-#   leak-guard  refuses credentials, real reports, a filled deployment
-#               profile and personal home folders (tools/leak_guard.py),
+#   leak-guard  refuses credentials, real reports, a project notebook, a
+#               filled deployment profile and personal home folders
+#               (tools/leak_guard.py),
 #               after proving each rule still catches a planted example.
 #   tests       the product's test suite on the pinned dependency set, on macOS.
 #   tests-windows  the same suite on windows-latest (#2008).
