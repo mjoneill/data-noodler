@@ -19,7 +19,7 @@ Run the whole flow from Claude Code or Codex -- these instructions are for which
 
 **Browser surfaces cannot be served.** ChatGPT and claude.ai in a browser execute tools on the vendor's servers and cannot reach a local process. Do not attempt it; say so plainly if asked. The ChatGPT desktop app is different: it runs on the app's local Codex runtime, so the Codex plugin serves it (confirmed 2026-10-29). Older versions of the app had separate Chat and Work modes, and only Work could reach local tools; the two have since merged. If a user on an older version reports missing tools, have them update the app.
 
-**On Windows, read `references/windows.md` before Step 2 and keep it open.** The steps and their order are the same there; the differences each have a measured reason. In short: Python itself may be missing and has to be installed by the user, not by you; no `uv` (stock `python -m venv` instead); no launchers (the entry names the interpreter directly, and analytics-mcp runs as `python.exe -m analytics_mcp.server` because Defender can block the `.exe`); no `.ps1` (execution policy blocks unsigned scripts); and quitting the application before registering is a hard requirement rather than prudence.
+**On Windows, read [`references/windows.md`](references/windows.md) before Step 2 and keep it open.** The steps and their order are the same there; the differences each have a measured reason. In short: Python itself may be missing and has to be installed by the user, not by you; no `uv` (stock `python -m venv` instead); no launchers (the entry names the interpreter directly, and analytics-mcp runs as `python.exe -m analytics_mcp.server` because Defender can block the `.exe`); no `.ps1` (execution policy blocks unsigned scripts); and quitting the application before registering is a hard requirement rather than prudence.
 
 **If you are running inside the Claude Desktop app** -- its Code tab, which is how Claude Code is usually used on Windows -- two things must be handed to the user rather than run by you:
 
@@ -345,7 +345,7 @@ Record what you found and what the user chose in the Step 10 report.
 
 **Required, on fresh installs and upgrades alike.** Without it, anything that went wrong or needed a workaround on this machine never reaches the person who can fix it.
 
-Use the template in `references/install-report.md`, and save it as `~/.config/data-noodler/install-reports/<YYYY-MM-DD>-<fresh|upgrade>.md` (create the folder; on Windows `%USERPROFILE%\.config\data-noodler\install-reports\`). Then:
+Use the template in [`references/install-report.md`](references/install-report.md), and save it as `~/.config/data-noodler/install-reports/<YYYY-MM-DD>-<fresh|upgrade>.md` (create the folder; on Windows `%USERPROFILE%\.config\data-noodler\install-reports\`). Then:
 
 1. Show the user the report, or a short summary of it, and the path.
 2. Ask them to send the file to the maintainer, the way `deployment.json`'s `install_reports_to` says. It contains no credentials, which is why it is safe to send that way. **If `install_reports_to` is blank** (set up just for themselves), there is no one to send it to: keep the report where it was saved, as their own record, and skip sending.
@@ -377,4 +377,4 @@ This is the only install procedure. A person who would rather not run an agent c
 
 ## When something fails
 
-Read `references/troubleshooting.md`. Match the error text before assuming it is credentials — that is the most documented failure and therefore the default wrong guess.
+Read [`references/troubleshooting.md`](references/troubleshooting.md). Match the error text before assuming it is credentials — that is the most documented failure and therefore the default wrong guess.

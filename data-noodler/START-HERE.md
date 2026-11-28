@@ -1,5 +1,7 @@
 # Start here
 
+[Data Noodler](../README.md) › Start here
+
 This package puts Google Analytics 4 and Google Search Console tools into the Claude and ChatGPT desktop apps, and Claude Code and Codex in the terminal, on a Mac or Windows machine, with **read-only** access to the data each person's own Google account can already see. (There is no installation for browser versions of Claude or ChatGPT.)  
 
 This document is written for an AI agent to facilitate installation of Data Noodler. Installation should be conducted in active collaboration/conversation between the agent and the primary person/user the agent works with. There are a limited number of steps that require the person to perform. 
@@ -39,8 +41,8 @@ Work through these with the user, in order. Do not skip ahead to installing; ste
 Read, in this order, and summarize each for the user in a few sentences:
 
 1. `ARCHITECTURE.md`: what the pieces are, why the install is split between an agent and tested code, and what the security posture is.
-2. `GOOGLE-CLOUD-SETUP.md`: how a deployment gets its own Google sign-in. Users frequently have questions about what this sequence of steps is for.  It is often useful to explain it to them as clearly as possible. Often, saying something like this helps: "Because Data Noodler lets me read your Google Analytics and Search Console data, I need a way to sign in to them with read-only access. This step sets up that Google App."
-3. `skills/data-noodler-setup/SKILL.md`, and `references/windows.md` if any Windows machines are involved.
+2. [`GOOGLE-CLOUD-SETUP.md`](GOOGLE-CLOUD-SETUP.md): how a deployment gets its own Google sign-in. Users frequently have questions about what this sequence of steps is for.  It is often useful to explain it to them as clearly as possible. Often, saying something like this helps: "Because Data Noodler lets me read your Google Analytics and Search Console data, I need a way to sign in to them with read-only access. This step sets up that Google App."
+3. [`skills/data-noodler-setup/SKILL.md`](skills/data-noodler-setup/SKILL.md), and `references/windows.md` if any Windows machines are involved.
 4. `skills/data-noodler-setup/references/troubleshooting.md`.
 
 Say plainly what you found: what this package does well, what it assumes, and anything that does not fit the user's situation. It was first built and tested on one organization's mix of machines and apps; theirs may differ.  Note: users frequently have questions about the safety and security of the tools they are installing.  If a user asks about this, it is your responsibility to give this package a review and honest assessment and recommendation.  

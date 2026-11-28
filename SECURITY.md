@@ -1,5 +1,7 @@
 # Security
 
+[Data Noodler](README.md) › Security
+
 ## Reporting a vulnerability
 
 Please report security problems privately, using **Report a vulnerability** on this repository's **Security** tab. That opens a private advisory that only the maintainers can see.

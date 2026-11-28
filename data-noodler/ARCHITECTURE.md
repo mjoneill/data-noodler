@@ -1,5 +1,7 @@
 # How this package works
 
+[Data Noodler](../README.md) › How this package works
+
 For an agent or a person deciding whether to adopt it. Everything here is checkable in the code and the tests named herein.
 
 ## The pieces
@@ -53,6 +55,7 @@ The tests in `tests/` run in CI on every push. They cover the tool surface over 
 | Windows differences, each with its measured reason | [`skills/data-noodler-setup/references/windows.md`](skills/data-noodler-setup/references/windows.md) |
 | Something failed | [`skills/data-noodler-setup/references/troubleshooting.md`](skills/data-noodler-setup/references/troubleshooting.md) |
 | How do I get my own Google sign-in? | [`GOOGLE-CLOUD-SETUP.md`](GOOGLE-CLOUD-SETUP.md) |
+| How would I build something like this myself? | [`BUILD-YOUR-OWN.md`](BUILD-YOUR-OWN.md) |
 | What does the model get told about querying well? | [`server/guidance.py`](server/guidance.py) |
 | Why is a dependency pinned at that version? | [`installer/constraints.txt`](installer/constraints.txt) header, [`installer/security_floors.py`](installer/security_floors.py) |
 
