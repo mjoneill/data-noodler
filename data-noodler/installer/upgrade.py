@@ -2,7 +2,7 @@
 """Upgrade an existing install in one go, or put it back exactly as it was.
 
 Why this is a script when the rest of the install is an agent following
-instructions (decided 2026-10-25, #164; see docs/superpowers/BUILD-LOG.md):
+instructions (decided 2026-10-25, #164):
 the venv can only be swapped with every app that runs our servers fully
 quit, and the agent always runs inside one of those apps. So this is the
 one part no agent can be present for -- a transaction the user runs alone,
@@ -10,7 +10,8 @@ in a plain terminal. It is kept to exactly that, and the agent supervises
 before and after:
 
     agent, before:  probe.py, then `upgrade.py --plan` -- a read-only
-                    pre-flight that reports what it found and READY or
+                    pre-flight that reports the installed version beside
+                    this package's, what else it found, and READY or
                     NOT READY; the agent checks it against the machine and
                     corrects discovery with flags (--base-python ...)
     user, alone:    `upgrade.py`, everything quit
@@ -19,7 +20,8 @@ before and after:
 
 What the run does:
     0. Re-runs the pre-flight and refuses unless READY. Nothing changed.
-    1. Renames the venv to <venv>.old-<stamp>.
+    1. Moves the venv aside to <home>/<venv name>.old-<stamp> (beside the
+       venv instead when the two are on different drives).
     2. Builds a fresh venv at the SAME path: pip by exact URL and sha256
        (eMudhra/emSign, #163), then the pins from constraints.txt.
     3. Proves it before touching anything else: imports, and both servers
@@ -127,8 +129,13 @@ def base_python_for(venv_dir, platform=None):
 
 class Plan:
     def __init__(self, repo_root, ga_home, config_path, venv_python,
-                 base_python, targets, platform, stamp):
+                 base_python, targets, platform, stamp, launchers=()):
         self.repo_root = repo_root
+        # config.json's analytics_mcp_bin, as written and as resolved: the
+        # launcher can sit outside the venv (a link in ~/.local/bin), and a
+        # server started through it names neither the venv nor the payload
+        # (#2130).
+        self.launchers = list(launchers)
         self.dist = os.path.join(repo_root, "data-noodler")
         self.ga_home = ga_home
         self.config_path = config_path
@@ -182,11 +189,25 @@ def make_plan(repo_root=None, ga_home=None, config_path=None,
     stamp = (now or datetime.datetime.now()).strftime("%Y%m%d-%H%M%S")
     return Plan(repo_root, ga_home, config_path, venv_python, base,
                 [t.strip() for t in targets.split(",") if t.strip()],
-                platform, stamp)
+                platform, stamp, launchers=launchers_from(cfg))
 
 
-def running_servers(venv_dir, ga_home, platform, run_ps=None):
-    """Command lines of processes running from this venv or payload.
+def launchers_from(cfg):
+    """config.json's analytics_mcp_bin as written and as resolved, or []."""
+    raw = cfg.get("analytics_mcp_bin")
+    if not isinstance(raw, str) or not raw.strip():
+        return []
+    written = os.path.expanduser(raw.strip())
+    out = [written]
+    resolved = os.path.realpath(written)
+    if resolved != written:
+        out.append(resolved)
+    return out
+
+
+def running_servers(venv_dir, ga_home, platform, run_ps=None, launchers=()):
+    """Command lines of processes running from this venv or payload, or
+    started through one of `launchers` (#2130).
 
     Every app that hosts our servers must be fully quit before the swap.
     On Windows a running one makes the rename fail; on macOS nothing stops
@@ -226,6 +247,12 @@ def running_servers(venv_dir, ga_home, platform, run_ps=None):
     ends = ("/", "\\", '"', "'", " ")
     needles = [r.rstrip("/\\") + e for r in roots for e in ends]
     bare = [r.rstrip("/\\") for r in roots]
+    # A launcher is a file, so it is followed by a space, a quote or the end
+    # of the line, never a separator. Like the roots, `analytics-mcp` must
+    # not match `analytics-mcp-dev` (#2130).
+    for path in launchers:
+        needles += [path + e for e in ('"', "'", " ")]
+        bare.append(path)
     fold = (lambda x: x.casefold()) if platform.startswith("win") else str
     hits = []
     for line in text.splitlines():
@@ -238,6 +265,31 @@ def running_servers(venv_dir, ga_home, platform, run_ps=None):
     return hits
 
 
+PLUGIN_JSON = ("marketplace", "plugins", "data-noodler", ".codex-plugin",
+               "plugin.json")
+
+
+def _plugin_version(root):
+    """The version in <root>'s plugin.json, or None when it can't be read."""
+    try:
+        with open(os.path.join(root, *PLUGIN_JSON), encoding="utf-8") as f:
+            value = json.load(f).get("version")
+    except (OSError, ValueError, TypeError, AttributeError):
+        return None
+    return value.strip() if isinstance(value, str) and value.strip() else None
+
+
+def version_line(plan):
+    """The installed version beside this package's (#2130). Never a guess:
+    a version that can't be read is "unknown"."""
+    installed = _plugin_version(plan.ga_home)
+    package = _plugin_version(plan.dist)
+    line = f"installed {installed or 'unknown'}, this package {package or 'unknown'}"
+    if installed and installed == package:
+        line += " (the same version)"
+    return line
+
+
 def preflight(plan, config_paths, running=None):
     """[(ok, label, detail)], ready. ok is True, False, or None (info)."""
     checks = []
@@ -246,6 +298,7 @@ def preflight(plan, config_paths, running=None):
         checks.append((ok, label, detail))
 
     add(True, "venv", f"{plan.venv_dir} (a virtual environment)")
+    add(None, "version", version_line(plan))
 
     base = plan.base_python
     version = ""
@@ -298,10 +351,12 @@ def preflight(plan, config_paths, running=None):
             "still verified")
     codex = shutil.which("codex")
     add(None, "Codex", f"installed ({codex}) -- refresh its plugin after "
-        "(and retire the old-named one; see the setup skill's Step 7)"
+        "(and retire the old-named one; see the setup skill's Step 2, "
+        "\"After\" item 2)"
         if codex else "not installed")
 
-    hits = (running_servers(plan.venv_dir, plan.ga_home, plan.platform)
+    hits = (running_servers(plan.venv_dir, plan.ga_home, plan.platform,
+                            launchers=plan.launchers)
             if running is None else running)
     if hits is None:
         add(None, "apps quit", "could not list processes; make sure every "
@@ -538,6 +593,7 @@ def new_state(plan, candidate_configs):
     return {
         "stamp": plan.stamp, "ga_home": plan.ga_home, "pid": os.getpid(),
         "venv_dir": plan.venv_dir,
+        "launchers": list(plan.launchers),
         # Both places the old venv can be moved to are recorded up front: the
         # cross-device fallback used to update the record only after the
         # rebuild, so a failure inside the rebuild looked in the wrong place
@@ -954,7 +1010,8 @@ def recover(ga_home, log=print, running=None, platform=None,
         if alive is None:
             log(f"(Could not tell whether process {pid} is still the upgrade "
                 "-- make sure no other upgrade window is open.)")
-    hits = (running_servers(state["venv_dir"], ga_home, platform)
+    hits = (running_servers(state["venv_dir"], ga_home, platform,
+                            launchers=state.get("launchers") or ())
             if running is None else running)
     if hits:
         log("NOT NOW: our servers are still running from the venv or "

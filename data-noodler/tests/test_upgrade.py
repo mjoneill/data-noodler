@@ -637,6 +637,186 @@ class TestRunningServers(unittest.TestCase):
                 "/h/pipx/venvs/analytics-mcp", "/h/.config/data-noodler", "darwin"))
 
 
+class TestAnalyticsMcpLauncher(unittest.TestCase):
+    """#2130. analytics-mcp is started through a launcher outside the venv
+    (a symlink in ~/.local/bin), and the interpreter shows as the base
+    Python, so its command line names neither the venv nor the payload.
+    The shape below is the one `ps -axww -o command=` printed on a Mac
+    (paths shortened to placeholders)."""
+
+    BASE = ("/opt/homebrew/Cellar/python@3.12/3.12.7/Frameworks/"
+            "Python.framework/Versions/3.12/Resources/Python.app/Contents/"
+            "MacOS/Python")
+    LAUNCHER = "/h/.local/bin/analytics-mcp"
+
+    def _hits(self, text, launchers=()):
+        return upgrade.running_servers(
+            "/h/.local/share/uv/tools/analytics-mcp", "/h/.config/data-noodler",
+            "darwin", run_ps=lambda: text, launchers=launchers)
+
+    def test_a_server_started_through_the_launcher_is_found(self):
+        hits = self._hits(f"{self.BASE} {self.LAUNCHER}",
+                          launchers=[self.LAUNCHER])
+        self.assertEqual(len(hits), 1)
+
+    def test_with_arguments_after_the_launcher_it_is_found(self):
+        self.assertEqual(len(self._hits(f"{self.BASE} {self.LAUNCHER} --stdio",
+                                        launchers=[self.LAUNCHER])), 1)
+
+    def test_a_similarly_named_launcher_is_not(self):
+        text = (f"{self.BASE} /h/.local/bin/analytics-mcp-dev\n"
+                f"{self.BASE} /h/.local/bin/analytics-mcp.old")
+        self.assertEqual(self._hits(text, launchers=[self.LAUNCHER]), [])
+
+    def test_the_launcher_is_matched_by_case_on_windows(self):
+        hits = upgrade.running_servers(
+            r"C:\Users\a\venv", r"C:\Users\a\.config\data-noodler", "win32",
+            run_ps=lambda: r'"C:\Python312\python.exe" c:\users\a\BIN\analytics-mcp.exe',
+            launchers=[r"C:\Users\a\bin\analytics-mcp.exe"])
+        self.assertEqual(len(hits), 1)
+
+    def _install(self, link=True):
+        """A config whose analytics_mcp_bin is a link into the venv."""
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d, True)
+        venv = os.path.join(d, "venv")
+        os.makedirs(os.path.join(venv, "bin"))
+        with open(os.path.join(venv, "pyvenv.cfg"), "w") as f:
+            f.write("home = /usr/bin\nversion = 3.12.7\n")
+        py = os.path.join(venv, "bin", "python")
+        target = os.path.join(venv, "bin", "analytics-mcp")
+        for p in (py, target):
+            open(p, "w").close()
+        launcher = target
+        if link:
+            os.makedirs(os.path.join(d, "localbin"))
+            launcher = os.path.join(d, "localbin", "analytics-mcp")
+            try:
+                os.symlink(target, launcher)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"cannot make a symlink here ({exc})")
+        cfg = os.path.join(d, "config.json")
+        with open(cfg, "w") as f:
+            json.dump({"venv_python": py, "analytics_mcp_bin": launcher}, f)
+        plan = upgrade.make_plan(repo_root=REPO, ga_home=d, config_path=cfg,
+                                 base_python=sys.executable)
+        return plan, launcher, target
+
+    def test_the_plan_carries_the_launcher_as_written_and_resolved(self):
+        plan, launcher, target = self._install()
+        self.assertIn(launcher, plan.launchers)
+        self.assertIn(os.path.realpath(target), plan.launchers)
+
+    def test_a_config_without_a_launcher_gives_none(self):
+        plan, _, _ = self._install(link=False)
+        with open(plan.config_path, encoding="utf-8") as f:
+            cfg = json.load(f)
+        del cfg["analytics_mcp_bin"]
+        with open(plan.config_path, "w", encoding="utf-8") as f:
+            json.dump(cfg, f)
+        again = upgrade.make_plan(repo_root=REPO, ga_home=plan.ga_home,
+                                  config_path=plan.config_path,
+                                  base_python=sys.executable)
+        self.assertEqual(again.launchers, [])
+
+    def test_the_preflight_looks_for_the_launcher(self):
+        plan, launcher, _ = self._install()
+        seen = {}
+
+        def fake(venv_dir, ga_home, platform, run_ps=None, launchers=()):
+            seen["launchers"] = list(launchers)
+            return [f"{self.BASE} {launcher}"]
+        with mock.patch.object(upgrade, "running_servers", fake), \
+                mock.patch.object(upgrade.shutil, "which", return_value=None):
+            checks, ready = upgrade.preflight(plan, [])
+        self.assertIn(launcher, seen["launchers"])
+        quit_row = [c for c in checks if c[1] == "apps quit"][0]
+        self.assertIs(quit_row[0], False)
+        self.assertFalse(ready)
+
+    def test_recover_looks_for_the_launcher_the_upgrade_recorded(self):
+        # --recover puts the old venv back, which is the same swap under a
+        # running server, so it must look for the same processes.
+        plan, launcher, _ = self._install()
+        with mock.patch("install.resolve_sessions_root",
+                        return_value=os.path.join(plan.ga_home, "s")):
+            state = upgrade.new_state(plan, [])
+        self.assertIn(launcher, state["launchers"])
+        state["pid"] = os.getpid()
+        seen = {}
+
+        def fake(venv_dir, ga_home, platform, run_ps=None, launchers=()):
+            seen["launchers"] = list(launchers)
+            return [f"{self.BASE} {launcher}"]
+        with mock.patch.object(upgrade, "load_state", return_value=state), \
+                mock.patch.object(upgrade, "running_servers", fake):
+            self.assertFalse(upgrade.recover(plan.ga_home, log=lambda _: None))
+        self.assertIn(launcher, seen["launchers"])
+
+
+class TestVersionLine(unittest.TestCase):
+    """#2130. --plan says which version is installed and which this package
+    is, so an agent holding an old package can see it. It never guesses."""
+
+    def _plugin(self, root, version=None, raw=None):
+        p = os.path.join(root, "marketplace", "plugins", "data-noodler",
+                         ".codex-plugin")
+        os.makedirs(p)
+        with open(os.path.join(p, "plugin.json"), "w", encoding="utf-8") as f:
+            f.write(raw if raw is not None else json.dumps({"name": "data-noodler", "version": version}))
+
+    def _plan(self, installed=None, package=None, installed_raw=None):
+        ga_home, dist = tempfile.mkdtemp(), tempfile.mkdtemp()
+        for d in (ga_home, dist):
+            self.addCleanup(shutil.rmtree, d, True)
+        if installed is not None or installed_raw is not None:
+            self._plugin(ga_home, installed, installed_raw)
+        if package is not None:
+            self._plugin(dist, package)
+        return mock.Mock(ga_home=ga_home, dist=dist)
+
+    def test_both_versions_are_named(self):
+        line = upgrade.version_line(self._plan("0.9.1", "0.9.12"))
+        self.assertIn("installed 0.9.1", line)
+        self.assertIn("this package 0.9.12", line)
+        self.assertNotIn("same", line)
+
+    def test_equal_versions_are_said_to_be_the_same(self):
+        line = upgrade.version_line(self._plan("0.9.12", "0.9.12"))
+        self.assertIn("the same version", line)
+
+    def test_an_unreadable_installed_version_is_unknown(self):
+        for plan in (self._plan(None, "0.9.12"),
+                     self._plan(installed_raw="{not json", package="0.9.12"),
+                     self._plan(installed_raw='{"version": 9}', package="0.9.12")):
+            with self.subTest():
+                line = upgrade.version_line(plan)
+                self.assertIn("installed unknown", line)
+                self.assertIn("this package 0.9.12", line)
+
+    def test_an_unreadable_package_version_is_unknown(self):
+        line = upgrade.version_line(self._plan("0.9.1", None))
+        self.assertIn("this package unknown", line)
+        self.assertNotIn("same", line)
+
+    def test_the_preflight_reports_it_as_information(self):
+        plan = self._plan("0.9.1", "0.9.12")
+        plan.configure_mock(venv_dir="/v", venv_python="/v/bin/python",
+                            base_python="/b/py", constraints=__file__,
+                            platform="darwin")
+        with mock.patch.object(upgrade, "run", return_value=(0, "3.12\n")), \
+                mock.patch.object(upgrade.shutil, "which", return_value=None):
+            checks, _ = upgrade.preflight(plan, [], running=[])
+        rows = [c for c in checks if c[1] == "version"]
+        self.assertEqual(len(rows), 1)
+        self.assertIsNone(rows[0][0], "the version row is information, never a FIX")
+        self.assertIn("0.9.1", rows[0][2])
+
+    def test_this_repository_has_a_package_version(self):
+        plan = mock.Mock(ga_home=tempfile.gettempdir(), dist=ROOT)
+        self.assertRegex(upgrade.version_line(plan), r"this package \d+\.\d+")
+
+
 class TestVersionNamedInterpreter(unittest.TestCase):
     """Code review #2, and round 2's Windows names."""
 
