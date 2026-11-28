@@ -44,6 +44,8 @@ RETIREMENT = {
     "data-noodler/installer/migrate_home.py",
     "data-noodler/installer/bootstrap_config.py",
     "data-noodler/installer/probe.py",
+    # #2130: reads an old-named install's plugin to report its version.
+    "data-noodler/installer/upgrade.py",
     "data-noodler/server/config.py",
     "data-noodler/server/sessions.py",
     "data-noodler/marketplace/plugins/data-noodler/.mcp.json",
