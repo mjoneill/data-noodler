@@ -10,7 +10,9 @@ one asks. It takes a fingerprint of the public surface:
   - the text the server gives the model (its instructions and guides);
   - the installer scripts' command-line flags;
   - the pinned version of Google's analytics-mcp, which stands in for that
-    server's own tools and text.
+    server's own tools and text;
+  - every file in the two skill folders, which an agent follows as
+    instructions (card #2127).
 
 The newest entry in CHANGELOG.md must carry that fingerprint and a "Docs
 checked" line naming documents that exist. So when the surface changes, this
@@ -32,7 +34,9 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import sys
+import tempfile
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # data-noodler/
@@ -113,12 +117,48 @@ def analytics_mcp_pin():
     return pins[0]
 
 
+def skill_files(skills_dir=None):
+    """{path within skills/: its text} for every file in the skill folders.
+
+    A skill folder is installed whole and its text is loaded as instructions,
+    so a changed word there changes what the agent does. Line endings are read
+    as LF, so a Windows checkout gives the same text. A file that isn't UTF-8
+    text counts by a hash of its bytes.
+
+    The folder is walked the way test_plugin_manifests.plugin_digest walks the
+    plugin, so the gate needs no git checkout. The .data-noodler-installed
+    marker is included on purpose: its text tells a user what deleting it
+    does. The query skill is also inside the plugin's fingerprint, which
+    forces a version bump. That check asks for no changelog entry, and the
+    setup skill is outside it.
+    """
+    skills_dir = skills_dir or os.path.join(ROOT, "skills")
+    found = {}
+    for base, dirs, names in os.walk(skills_dir):
+        dirs[:] = sorted(d for d in dirs if d != "__pycache__")
+        for name in sorted(names):
+            if name.endswith(".pyc") or name == ".DS_Store":
+                continue                      # no install ships these
+            path = os.path.join(base, name)
+            rel = os.path.relpath(path, skills_dir).replace(os.sep, "/")
+            with open(path, "rb") as f:
+                data = f.read()
+            try:
+                found[rel] = data.decode("utf-8").replace("\r\n", "\n")
+            except UnicodeDecodeError:
+                found[rel] = "sha256:" + hashlib.sha256(data).hexdigest()
+    if not found:
+        raise AssertionError(f"found no skill files under {skills_dir}, so the scan itself is broken")
+    return found
+
+
 def surface():
     return {
         "tools": server_tools(),
         "guidance": guidance_text(),
         "installer_flags": installer_flags(),
         "analytics_mcp": analytics_mcp_pin(),
+        "skills": skill_files(),
     }
 
 
@@ -214,7 +254,7 @@ class TestControls(unittest.TestCase):
     def test_every_part_of_the_surface_moves_the_fingerprint(self):
         base = {"tools": {"t": {"description": "d", "parameters": ["a"], "required": []}},
                 "guidance": {"SERVER_INSTRUCTIONS": "x"}, "installer_flags": {"probe.py": ["--json"]},
-                "analytics_mcp": "analytics-mcp==1.0.0"}
+                "analytics_mcp": "analytics-mcp==1.0.0", "skills": {"one/SKILL.md": "Do this."}}
         seen = {fingerprint(base)}
         changes = [
             lambda s: s["tools"]["t"].__setitem__("description", "d2"),          # a tool's wording
@@ -223,6 +263,8 @@ class TestControls(unittest.TestCase):
             lambda s: s["guidance"].__setitem__("SERVER_INSTRUCTIONS", "y"),     # the server's instructions
             lambda s: s["installer_flags"]["probe.py"].append("--plan"),          # an installer flag
             lambda s: s.__setitem__("analytics_mcp", "analytics-mcp==1.1.0"),    # Google's server
+            lambda s: s["skills"].__setitem__("one/SKILL.md", "Do that."),       # a skill's wording
+            lambda s: s["skills"].__setitem__("one/references/new.md", ""),      # a new skill file
         ]
         for change in changes:
             moved = json.loads(json.dumps(base))
@@ -230,12 +272,68 @@ class TestControls(unittest.TestCase):
             seen.add(fingerprint(moved))
         self.assertEqual(len(seen), len(changes) + 1, "some change left the fingerprint where it was")
 
-    def test_the_real_surface_has_all_four_parts(self):
+    def test_the_real_surface_has_all_five_parts(self):
         s = surface()
         self.assertGreaterEqual(len(s["tools"]), 10)
         self.assertTrue(all(t["description"] for t in s["tools"].values()), "a tool has no description")
         self.assertIn("--plan", s["installer_flags"].get("upgrade.py", []))
         self.assertTrue(s["analytics_mcp"].startswith("analytics-mcp=="))
+        for skill in ("data-noodler/SKILL.md", "data-noodler-setup/SKILL.md"):
+            self.assertIn("\nname: ", s["skills"].get(skill, ""), f"{skill} is not in the surface")
+        self.assertIn("data-noodler-setup/references/windows.md", s["skills"])
+        self.assertIn("data-noodler/scripts/mint_adc.py", s["skills"])
+
+
+class TestSkillFiles(unittest.TestCase):
+    """The skills' part of the surface: every file in the skill folders, by path."""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.dir, True)
+
+    def put(self, rel, data):
+        path = os.path.join(self.dir, *rel.split("/"))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as f:
+            f.write(data)
+
+    def test_it_reads_every_file_and_leaves_out_what_no_install_ships(self):
+        self.put("one/SKILL.md", b"Do this.\n")
+        self.put("one/references/more.md", b"More.\n")
+        self.put("one/scripts/tool.py", b"print(1)\n")
+        self.put("two/SKILL.md", b"Other.\n")
+        self.put("one/scripts/__pycache__/tool.cpython-312.pyc", b"\x00\x01")
+        self.put("one/.DS_Store", b"\x00")
+        self.assertEqual(skill_files(self.dir), {
+            "one/SKILL.md": "Do this.\n", "one/references/more.md": "More.\n",
+            "one/scripts/tool.py": "print(1)\n", "two/SKILL.md": "Other.\n"})
+
+    def test_a_changed_word_and_a_new_file_each_move_the_fingerprint(self):
+        self.put("one/SKILL.md", b"Ask before merging.\n")
+        before = fingerprint({"skills": skill_files(self.dir)})
+        self.put("one/SKILL.md", b"Merge without asking.\n")
+        reworded = fingerprint({"skills": skill_files(self.dir)})
+        self.put("one/references/new.md", b"")
+        added = fingerprint({"skills": skill_files(self.dir)})
+        self.assertEqual(len({before, reworded, added}), 3)
+
+    def test_windows_line_endings_do_not_move_the_fingerprint(self):
+        self.put("one/SKILL.md", b"Line one.\nLine two.\n")
+        unix = skill_files(self.dir)
+        self.put("one/SKILL.md", b"Line one.\r\nLine two.\r\n")
+        self.assertEqual(skill_files(self.dir), unix)
+
+    def test_a_file_that_is_not_text_still_counts(self):
+        self.put("one/SKILL.md", b"Do this.\n")
+        self.put("one/logo.png", b"\x89PNG\xff\xfe")
+        first = skill_files(self.dir)
+        self.assertIn("one/logo.png", first)
+        self.put("one/logo.png", b"\x89PNG\xff\xfd")
+        self.assertNotEqual(skill_files(self.dir)["one/logo.png"], first["one/logo.png"])
+
+    def test_an_empty_skills_folder_is_a_broken_scan(self):
+        with self.assertRaises(AssertionError):
+            skill_files(self.dir)
 
 
 if __name__ == "__main__":

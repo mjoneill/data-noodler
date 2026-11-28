@@ -4,7 +4,15 @@
 
 What changed in how Data Noodler behaves, newest first, in plain language.
 
-An entry is added whenever something a user or an agent can see changes: a tool, one of its options, the instructions the server gives the agent, an installer flag, or the version of Google's analytics-mcp that gets installed. Each entry names the documents that were checked against the change and says which of them changed. A test compares the "Surface" code on the newest entry with the software and fails when they differ, so a visible change can't ship without an entry.
+An entry is added whenever something a user or an agent can see changes: a tool, one of its options, the instructions the server gives the agent, a file in either skill, an installer flag, or the version of Google's analytics-mcp that gets installed. Each entry names the documents that were checked against the change and says which of them changed. A test compares the "Surface" code on the newest entry with the software and fails when they differ, so a visible change can't ship without an entry.
+
+## 2026-11-28: A change to a skill now needs an entry here
+
+Nothing changes in how Data Noodler behaves. From this entry on, the check behind this changelog also covers the two skills: the instructions an agent follows to answer analytics questions and to install Data Noodler, with their reference pages and scripts. A change to any file in either skill now needs an entry here, the same as a change to a tool. A wording fix that leaves the meaning alone needs one too, and one line is enough for it.
+
+**Surface:** `4847e2697014`
+
+**Docs checked:** `CHANGELOG.md` (changed), `README.md`, `data-noodler/ARCHITECTURE.md`.
 
 ## 2026-11-28: The agent checks for one page under several URLs
 
