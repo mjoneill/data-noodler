@@ -1,7 +1,5 @@
 # Troubleshooting Data Noodler installs
 
-[Data Noodler](../../../../README.md) › [Start here](../../../START-HERE.md) › [Setup skill](../SKILL.md) › Troubleshooting
-
 Match the error text first. Credentials are the most documented failure here, which makes them the default suspect for every breakage — and often the wrong one.
 
 **If you have to troubleshoot anything,** note each problem, the exact error and what you did about it, and put it in the install report ([install-report.md](install-report.md)). Those notes are how the next install avoids the same problem.
@@ -28,7 +26,7 @@ Fix: have the user run the `mint_adc.py --force` command, then **restart the app
 
 Do not confuse it with the warning that *is* expected: "Google hasn't verified this app" is a screen to click through: **Continue** (on older versions of the screen, **Advanced** first). `access_denied` is a wall — the flow ends there and no credential file is written.
 
-Fix: the user asks the project's maintainer for exactly this — *"please add `<the Google account address I sign in with>` to the Test users list for the Data Noodler Cloud project, under Google Auth Platform → Audience → Test users."* The address must be the same account that holds the GA access they want to read. It is one action per person, ever: not per install, not per machine, not per weekly renewal. Once it is done, re-run the consent command. The maintainer's side of this is in [GOOGLE-CLOUD-SETUP.md](../../../GOOGLE-CLOUD-SETUP.md#troubleshooting).
+Fix: the user asks the project's maintainer for exactly this — *"please add `<the Google account address I sign in with>` to the Test users list for the Data Noodler Cloud project, under Google Auth Platform → Audience → Test users."* The address must be the same account that holds the GA access they want to read. It is one action per person, ever: not per install, not per machine, not per weekly renewal. Once it is done, re-run the consent command. The maintainer's side of this is in the Troubleshooting section of `GOOGLE-CLOUD-SETUP.md`, in the package's `data-noodler/` folder.
 
 Re-running `mint_adc.py`, regenerating `config.json`, reinstalling the payload and re-registering the harnesses all cannot help, and each one costs time that looks like progress. The list caps at **100 test users**, which is also the ceiling on how many colleagues this setup can serve in Testing status.
 

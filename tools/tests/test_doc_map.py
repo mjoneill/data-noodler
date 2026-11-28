@@ -6,9 +6,15 @@ and its parent has a real link down to it. The README's "Documentation map"
 links every document. Links from elsewhere are welcome; they don't change a
 file's parent.
 
-Adding a document? Give it a row in TREE below, a breadcrumb under its title,
-a link from its parent, and a line in the README's Documentation map. This
-test names whichever of those is missing.
+Skills are the exception for breadcrumbs. A skill folder gets installed away
+from the repository (into an app's skills folder, or inside the Codex plugin),
+and its text is loaded as instructions. So a file inside a skill carries no
+breadcrumb, and none of its links may leave the skill's own folder: there,
+such a link would lead nowhere.
+
+Adding a document? Give it a row in TREE below, a link from its parent, a line
+in the README's Documentation map, and (outside a skill) a breadcrumb under
+its title. This test names whichever of those is missing.
 """
 
 import os
@@ -37,6 +43,14 @@ TREE = {
     "data-noodler/ARCHITECTURE.md": (ROOT, "How this package works"),
     "data-noodler/BUILD-YOUR-OWN.md": ("data-noodler/ARCHITECTURE.md", "Build your own"),
 }
+
+SKILL_FOLDERS = ("data-noodler/skills/data-noodler/", SETUP + "/")
+
+
+def skill_folder(rel):
+    """The skill folder a file lives in, or None."""
+    return next((folder for folder in SKILL_FOLDERS if rel.startswith(folder)), None)
+
 
 LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
 FENCE = re.compile(r"^\s*(```|~~~)")
@@ -114,7 +128,7 @@ class DocumentationTree(unittest.TestCase):
     def test_each_document_carries_its_breadcrumb_under_the_title(self):
         wrong = {}
         for rel in TREE:
-            if rel == ROOT:
+            if rel == ROOT or skill_folder(rel):
                 continue
             lines = read(rel).split("\n")
             title = next(i for i, line in enumerate(lines) if line.startswith("# "))
@@ -123,6 +137,19 @@ class DocumentationTree(unittest.TestCase):
             if got != want:
                 wrong[rel] = {"found": got[:120], "expected": want}
         self.assertEqual(wrong, {})
+
+    def test_skill_files_carry_no_breadcrumb_and_link_only_within_the_skill(self):
+        wrong = []
+        for rel in TREE:
+            folder = skill_folder(rel)
+            if not folder:
+                continue
+            if " › " in read(rel):
+                wrong.append(f"{rel}: has a breadcrumb")
+            for target, _, raw in links(rel):
+                if not target.startswith(folder):
+                    wrong.append(f"{rel}: {raw} leaves the skill folder")
+        self.assertEqual(wrong, [])
 
     def test_each_parent_links_down_to_its_children(self):
         missing = []
@@ -163,9 +190,12 @@ class Controls(unittest.TestCase):
     def test_breadcrumb_paths_are_relative_to_the_document(self):
         self.assertEqual(expected_breadcrumb("SECURITY.md"), "[Data Noodler](README.md) › Security")
         self.assertEqual(
-            expected_breadcrumb(f"{SETUP}/references/windows.md"),
-            "[Data Noodler](../../../../README.md) › [Start here](../../../START-HERE.md) › "
-            "[Setup skill](../SKILL.md) › Installing on Windows")
+            expected_breadcrumb("data-noodler/BUILD-YOUR-OWN.md"),
+            "[Data Noodler](../README.md) › [How this package works](ARCHITECTURE.md) › Build your own")
+
+    def test_skill_folders_are_recognized(self):
+        self.assertEqual(skill_folder(f"{SETUP}/references/windows.md"), SETUP + "/")
+        self.assertIsNone(skill_folder("data-noodler/START-HERE.md"))
 
     def test_slug_matches_githubs_anchors(self):
         self.assertEqual(slug(" What this shares, and what it doesn't"), "what-this-shares-and-what-it-doesnt")

@@ -45,7 +45,7 @@ Everything Data Noodler needs is in the [`data-noodler/`](data-noodler/) folder;
 
 ## Documentation map
 
-Every document in this repository, grouped by what it's for. Each one has a breadcrumb under its title that leads back here.
+Every document in this repository, grouped by what it's for. The documents outside the two skills each have a breadcrumb under the title that leads back here. A skill's files link only within the skill's own folder, because a skill gets installed away from the rest of the repository.
 
 **Getting started**
 

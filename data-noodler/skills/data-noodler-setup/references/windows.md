@@ -1,7 +1,5 @@
 # Installing on Windows
 
-[Data Noodler](../../../../README.md) › [Start here](../../../START-HERE.md) › [Setup skill](../SKILL.md) › Installing on Windows
-
 Read this alongside SKILL.md. The step numbering and the order are the same; this page says what differs and why.
 
 Everything below was measured on real machines -- first on 2026-09-14, then on full installs on 2026-10-05 and 2026-10-09 -- all Windows 11, no administrator rights. Where something was measured, it says so. Where it was not, it says that too.

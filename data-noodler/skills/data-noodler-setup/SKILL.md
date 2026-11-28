@@ -5,8 +5,6 @@ description: Install or repair Data Noodler (Google Analytics and Search Console
 
 # Installing GA access into local harnesses
 
-[Data Noodler](../../../README.md) › [Start here](../../START-HERE.md) › Setup skill
-
 Nothing here needs administrator privilege. Every path written is under the user's home directory. An MCP stdio server is a child process of the LLM application: "installing" it means a program on disk plus a config entry naming a command to launch.
 
 ## Before you start
