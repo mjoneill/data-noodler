@@ -103,6 +103,7 @@ So **rules about which tool to pick go in the server instructions**, and rules a
 - "Last month" means either a calendar month or a trailing 30 days. They differ by enough to swamp a trend. Choose and say which.
 - **Subdomains are usually separate GA properties.** Summing properties double-counts people who cross subdomains. Say so if you do it.
 - Never let the model choose a row limit silently. If a result is truncated, say so, and export instead.
+- **Compute with a script over the exported file**, and check the script: its row count against the export's receipt, and a total against one figure fetched directly. Arithmetic in the model's head over many rows costs tokens and can be wrong with no sign of it.
 - **Match the error text before suspecting credentials.** Only `invalid_grant` or "token expired" means renewal.
 
 ### Cheap property lookup

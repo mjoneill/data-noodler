@@ -1,5 +1,5 @@
 {
-  "version": "0.9.8",
-  "sha256": "1b82263d89f131f3fd5753817a9992bb628b2a51b10eecc9ecb531816c761d7d",
-  "recorded_from": "the repo at #2123, 2026-11-28 (the query skill drops \"Nine tools:\", a count the doc gates can't attribute)"
+  "version": "0.9.9",
+  "sha256": "1623579550abd0803093a3501c52aadab059350c4b367fee155d9becdaed6ef7",
+  "recorded_from": "the repo at #2117, 2026-11-28 (the query skill gains \"Compute with a script\" and the sentence that gives the software precedence over the skill)"
 }

@@ -26,6 +26,11 @@ is TRUNCATED). Never analyze truncated data (row_limit_hit, sampled) unless
 the user specifically asks: narrow and re-export. Past 2,500
 rows, ask the user how to cut what you show; the file keeps every row.
 
+Compute with a script over the exported file (plain Python is enough; ask
+before installing anything). Check its row count against the receipt and
+show the script with the result. If no code can reach the file, say so, and
+say what you couldn't compute.
+
 With every GA number, state the property ID, exact metric name and exact date
 range.
 
@@ -319,6 +324,35 @@ BEHAVIORAL_CONTRACT = """\
   the user named a site, the first move is to resolve it (a bare
   gsc_list_sites call, or contains= to narrow), not to enumerate everything.
 - **Analyze from the files**, not from what you remember of them.
+- **Compute with a script over the exported file.** Arithmetic done in your
+  head over many rows is slow, costs tokens and can be wrong with no sign of
+  it. A script reads every row. Before you start, look at what this computer
+  has, and use the first of these that works: the app's own analysis tool,
+  if it can open the exported file; Python with pandas, or R, if already
+  installed; plain Python, whose built-in csv module is always enough to
+  total, group and sort. Most computers have no data libraries, so plain
+  Python is the usual answer. If a library would really help, ask before
+  installing anything, and never install into Data Noodler's own Python
+  environment.
+- **Check the script before you trust its answer.** Have it print the number
+  of rows it read, and check that row count against the receipt: the two
+  must match. Have it print its intermediate totals as well as the final
+  number. For a metric that adds up across rows (sessions, screenPageViews,
+  eventCount), compare the script's total with one figure fetched directly:
+  run_report with no dimensions, for the same property, metric and dates.
+  User counts don't add up across rows, so leave those out of this check.
+  When a check fails, find out why before you report anything.
+- **Save the script and show it.** Save it in the same folder as the export
+  it reads, tell the user where it is, and show the script with the result,
+  so they can rerun it or question it.
+- **Small sums by hand are fine when you say so.** Working out one figure
+  from two or three others, such as the percentage change between two
+  totals, you may do yourself, saying that you did.
+- **Where no code can reach the file, say so.** Some chat apps run code on a
+  remote server that cannot open files on this computer, and some run no
+  code at all. There, keep to single figures and small sums, and for
+  anything larger say what you couldn't compute and what would let you: an
+  app that can run code on this computer.
 - **State the property, the metric, and the date range** alongside every
   number you report."""
 

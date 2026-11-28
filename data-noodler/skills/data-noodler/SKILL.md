@@ -9,6 +9,8 @@ The `analytics-mcp` server exposes 10 read-only tools over the Google Analytics 
 
 Everything is read-only by construction. The credential holds only two read-only permissions, `analytics.readonly` and `webmasters.readonly`, so no query can change anything in GA or Search Console. Explore freely; the risk is a confusing answer, never a destructive one.
 
+**This skill can be older than the software it describes.** If the two disagree about a fact (a tool's name or options, a path, what a command prints), follow the software and tell the user what disagreed.
+
 Machine-specific paths live in `~/.config/data-noodler/config.json`. If that file is missing, this machine hasn't been set up: use the `data-noodler-setup` skill, which runs the tested installer (a person can also follow its steps by hand).
 
 ## Resolving property names to IDs
@@ -85,6 +87,31 @@ The two look almost identical in a list. Call `gsc_list_sites` and read the `typ
 Exports go only to approved places, chosen with `save_to`: the project folder the app is working in (`<project>/_outputs/`, the default in Claude Code and Codex), the sessions folder (the default when there is no project, as in Claude Desktop chat), or folders the user listed under `export_roots` in `~/.config/data-noodler/config.json`. An arbitrary path is refused by design -- text inside GA or Search Console data can steer a model, so the model never gets to name where a file goes. Tell the user where the file landed; if the receipt warns that `_outputs/` isn't gitignored, pass that on.
 
 This only scratches the surface — call `reporting_guide("gsc")` for the full treatment: the coverageState states and what each demands, canonical mismatches, the 2-3 day data lag, and why GA's `pagePath` and Search Console's full URLs don't reconcile automatically. Don't duplicate that guidance here; it lives in one place so the two can't drift apart.
+
+## Compute with a script
+
+**Compute with a script over the exported file.** Arithmetic done in your head over many rows is slow, costs tokens and can be wrong with no sign of it. A script reads every row.
+
+Before you start, look at what this computer has, and use the first of these that works:
+
+1. The app's own analysis tool, if it can open the exported file.
+2. Python with pandas, or R, if already installed.
+3. Python on its own. Its built-in `csv` module is always enough to total, group and sort.
+
+Most computers have no data libraries, so plain Python is the usual answer. If a library would really help, ask before installing anything, and never install into Data Noodler's own Python environment.
+
+**Check the script before you trust its answer.**
+
+- Have it print the number of rows it read, and check that row count against the receipt: the two must match.
+- Have it print its intermediate totals as well as the final number.
+- For a metric that adds up across rows (sessions, screenPageViews, eventCount), compare the script's total with one figure fetched directly: `run_report` with no dimensions, for the same property, metric and dates. User counts don't add up across rows, so leave those out of this check.
+- When a check fails, find out why before you report anything.
+
+**Save the script and show it.** Save it in the same folder as the export it reads, tell the user where it is, and show the script with the result, so they can rerun it or question it.
+
+**Small sums by hand are fine when you say so.** Working out one figure from two or three others, such as the percentage change between two totals, you may do yourself, saying that you did.
+
+**Where no code can reach the file, say so.** Some chat apps run code on a remote server that cannot open files on this computer, and some run no code at all. There, keep to single figures and small sums, and for anything larger say what you couldn't compute and what would let you: an app that can run code on this computer.
 
 ## Reporting discipline
 

@@ -14,6 +14,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
 import guidance
 
 
+# Some clients truncate or drop long server instructions. The one cut-off with
+# a number behind it is Claude Code's: its users report that it keeps the first
+# 2,048 characters and drops the rest (reported in its issue tracker; Anthropic
+# does not document it, and other apps' limits have not been measured). The cap
+# here stays well under that, so a rule added later fails this test before it
+# is cut off in a client. It was 1,200 until #2117, a number chosen by feel.
+INSTRUCTIONS_CAP = 1800
+
+
 class TestGuidance(unittest.TestCase):
     def test_reporting_guide_demands_property_metric_and_range(self):
         g = guidance.REPORTING_GUIDE
@@ -33,8 +42,7 @@ class TestGuidance(unittest.TestCase):
         self.assertIn("GRPC_DNS_RESOLVER", g)
 
     def test_server_instructions_are_short_enough_to_be_surfaced(self):
-        # Some clients truncate or drop long instructions; keep it tight.
-        self.assertLess(len(guidance.SERVER_INSTRUCTIONS), 1200)
+        self.assertLess(len(guidance.SERVER_INSTRUCTIONS), INSTRUCTIONS_CAP)
 
     def test_lookup_tool_doc_tells_the_model_to_prefer_it(self):
         self.assertIn("get_account_summaries", guidance.LOOKUP_TOOL_DOC)
@@ -368,7 +376,7 @@ class TestRoutingRuleIsWhereClaudeCodeLooks(unittest.TestCase):
         self.assertIn("Search Console", self.s)
 
     def test_still_short_enough_to_survive_a_truncating_client(self):
-        self.assertLess(len(self.s), 1200)
+        self.assertLess(len(self.s), INSTRUCTIONS_CAP)
 
     def test_the_module_no_longer_claims_descriptions_always_arrive(self):
         # The assumption that produced #1. Leaving it in the docstring would
@@ -505,3 +513,89 @@ class TestFindingASitesPropertyFromThePage(unittest.TestCase):
         section = _section_for(guidance.REPORTING_GUIDE, "Sampled")
         self.assertIn("split the", section)
         self.assertIn("filter", section)
+
+
+class TestComputeWithAScript(unittest.TestCase):
+    """#2117, Michael 2026-11-27: arithmetic over an export belongs in a
+    script. Doing it in the model's head costs tokens and can be wrong with
+    no sign of it. A script can be wrong too, so the rule comes with the
+    checks that catch one. He did not want hand arithmetic excluded
+    entirely, so small sums stay allowed where they are said out loud.
+
+    Each channel fails differently (module docstring), so the rule is
+    asserted in the instructions, in every reporting_guide topic and in the
+    skill."""
+
+    def _texts(self):
+        with open(SKILL_MD, encoding="utf-8") as f:
+            skill = f.read()
+        texts = {"instructions": guidance.SERVER_INSTRUCTIONS,
+                 "reporting_guide('ga')": guidance.guide_for("ga"),
+                 "reporting_guide('gsc')": guidance.guide_for("gsc"),
+                 "reporting_guide('both')": guidance.guide_for("both"),
+                 "skill": skill}
+        return {k: " ".join(v.split()) for k, v in texts.items()}
+
+    def _long_texts(self):
+        """The channels with room for the whole rule: everything but the short instructions."""
+        return {k: v for k, v in self._texts().items() if k != "instructions"}
+
+    def test_the_rule_is_in_every_channel(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("Compute with a script over the exported file", t)
+
+    def test_plain_python_is_named_as_always_enough(self):
+        # Measured for #2038: a Mac with three Pythons had no pandas, numpy,
+        # scipy, duckdb or polars. Guidance that assumes them stalls there.
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("plain Python", t)
+
+    def test_nothing_is_installed_without_asking(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("ask before installing anything", t)
+
+    def test_never_into_data_noodlers_own_environment(self):
+        for name, t in self._long_texts().items():
+            with self.subTest(name):
+                self.assertIn("never install into Data Noodler's own Python environment", t)
+
+    def test_the_script_is_checked_against_the_receipt(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("row count against the receipt", t)
+
+    def test_a_total_is_checked_against_a_figure_fetched_directly(self):
+        for name, t in self._long_texts().items():
+            with self.subTest(name):
+                self.assertIn("one figure fetched directly", t)
+                # The check only holds for metrics that add up; saying so
+                # keeps an honest mismatch on user counts from looking like a bug.
+                self.assertIn("User counts don't add up across rows", t)
+
+    def test_intermediate_results_are_printed(self):
+        for name, t in self._long_texts().items():
+            with self.subTest(name):
+                self.assertIn("intermediate totals", t)
+
+    def test_the_script_is_saved_and_shown(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("show the script with the result", t)
+        for name, t in self._long_texts().items():
+            with self.subTest(name):
+                self.assertIn("in the same folder as the export", t)
+
+    def test_where_no_code_can_reach_the_file_it_says_so(self):
+        for name, t in self._texts().items():
+            with self.subTest(name):
+                self.assertIn("say what you couldn't compute", t)
+
+    def test_small_sums_by_hand_are_allowed_and_said(self):
+        for name, t in self._long_texts().items():
+            with self.subTest(name):
+                self.assertIn("one figure from two or three others", t)
+                self.assertIn("saying that you did", t)
+
