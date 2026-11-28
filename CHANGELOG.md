@@ -10,7 +10,7 @@ An entry is added whenever something a user or an agent can see changes: a tool,
 
 Nothing changes in how Data Noodler behaves. From this entry on, the check behind this changelog also covers the two skills: the instructions an agent follows to answer analytics questions and to install Data Noodler, with their reference pages and scripts. A change to any file in either skill now needs an entry here, the same as a change to a tool. A wording fix that leaves the meaning alone needs one too, and one line is enough for it.
 
-**Surface:** `4847e2697014`
+**Surface:** `6ae34dc09666`
 
 **Docs checked:** `CHANGELOG.md` (changed), `README.md`, `data-noodler/ARCHITECTURE.md`.
 
