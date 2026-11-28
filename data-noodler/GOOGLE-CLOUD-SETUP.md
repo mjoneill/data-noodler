@@ -49,70 +49,42 @@ Google renames things in the Cloud console fairly often. If a label below has mo
 
 1. Go to **console.cloud.google.com**. This is the Google Cloud console.
 2. Use the project picker at the top → **New project**.
-   - **Name:** something you'll recognize later, for example
-     `data-noodler` or `analytics-ai-tools`.
+   - **Name:** something you'll recognize later, for example `data-noodler` or `analytics-ai-tools`.
    - **Organization / Location:** leave it as Google suggests ("No organization" on a personal account).
-3. **Write down the project ID.** Google adds digits when a name is taken, so
-   it looks like `data-noodler-483921` rather than what you typed. Every link below
-   uses it.
+3. **Write down the project ID.** Google adds digits when a name is taken, so it looks like `data-noodler-483921` rather than what you typed. Every link below uses it.
 
 ## 2. Turn on the three APIs
 
-Open each link with your project ID in place of `PROJECT_ID`, and click
-**Enable**. The project is pinned in the URL, so you can't accidentally enable
-it on another project.
+Open each link with your project ID in place of `PROJECT_ID`, and click **Enable**. The project is pinned in the URL, so you can't accidentally enable it on another project.
 
-- Google Analytics **Data** API:
-  `https://console.cloud.google.com/apis/library/analyticsdata.googleapis.com?project=PROJECT_ID`
-- Google Analytics **Admin** API:
-  `https://console.cloud.google.com/apis/library/analyticsadmin.googleapis.com?project=PROJECT_ID`
-- Google **Search Console** API:
-  `https://console.cloud.google.com/apis/library/searchconsole.googleapis.com?project=PROJECT_ID`
+- Google Analytics **Data** API: `https://console.cloud.google.com/apis/library/analyticsdata.googleapis.com?project=PROJECT_ID`
+- Google Analytics **Admin** API: `https://console.cloud.google.com/apis/library/analyticsadmin.googleapis.com?project=PROJECT_ID`
+- Google **Search Console** API: `https://console.cloud.google.com/apis/library/searchconsole.googleapis.com?project=PROJECT_ID`
 
-There is no Save button: **Enable** takes effect at once, and the page then
-shows "API enabled". If you skip one, the tools fail later with "…API has not
-been used in project … before or it is disabled". That error means sign-in
-*worked*. It's this step that was missed, not a credential problem.
+There is no Save button: **Enable** takes effect at once, and the page then shows "API enabled". If you skip one, the tools fail later with "…API has not been used in project … before or it is disabled". That error means sign-in *worked*. It's this step that was missed, not a credential problem.
 
 ## 3. Configure the sign-in screen (Google Auth Platform)
 
-Open `https://console.cloud.google.com/auth/overview?project=PROJECT_ID`. This
-area was called the "OAuth consent screen" until recently. If it asks you to
-**Get started**, do that. It walks through the same settings as below.
+Open `https://console.cloud.google.com/auth/overview?project=PROJECT_ID`. This area was called the "OAuth consent screen" until recently. If it asks you to **Get started**, do that. It walks through the same settings as below.
 
 - **Branding**
-  - **App name:** something people will recognize months later in their
-    Google account's [permissions list](https://myaccount.google.com/permissions),
-    for example `GA tools for Claude & Codex (read-only)`. It also appears on the
-    sign-in screen, which is how people confirm the request really comes from you. Google rejects names containing "Google".
-  - **User support email** and **developer contact:** an address your users
-    can actually reach.
+  - **App name:** something people will recognize months later in their Google account's [permissions list](https://myaccount.google.com/permissions), for example `GA tools for Claude & Codex (read-only)`. It also appears on the sign-in screen, which is how people confirm the request really comes from you. Google rejects names containing "Google".
+  - **User support email** and **developer contact:** an address your users can actually reach.
 - **Audience:** **External**, and leave it in **Testing**.
-  - Under **Test users**, add the Google account of *every*
-    person who will use the tools, including yourself. In Testing, Google
-    refuses everyone not on the list, even the project owner, with
-    `Error 403: access_denied`. Keep this list current as people join. The cap
-    is 100.
-- **Data access:** **leave it empty.** The tools ask for exactly two read-only
-  permissions when each person signs in: `analytics.readonly` and
-  `webmasters.readonly`. Declaring scopes here is what starts Google's
-  verification requirements, and an empty list costs nothing.
+  - Under **Test users**, add the Google account of *every* person who will use the tools, including yourself. In Testing, Google refuses everyone not on the list, even the project owner, with `Error 403: access_denied`. Keep this list current as people join. The cap is 100.
+- **Data access:** **leave it empty.** The tools ask for exactly two read-only permissions when each person signs in: `analytics.readonly` and `webmasters.readonly`. Declaring scopes here is what starts Google's verification requirements, and an empty list costs nothing.
 
 ## 4. Create the client and download the file
 
 1. Go to **Clients → Create client** (in the same Google Auth Platform area).
-2. **Application type: Desktop app.** This matters: it gives the
-   `http://localhost` sign-in flow the tools use. A "Web application" client
-   will not work.
+2. **Application type: Desktop app.** This matters: it gives the `http://localhost` sign-in flow the tools use. A "Web application" client will not work.
 3. **Name:** anything, for example `data-noodler desktop`.
-4. **Create**, then **Download JSON**. Google may not show the secret again
-   later, but you can always create another client.
+4. **Create**, then **Download JSON**. Google may not show the secret again later, but you can always create another client.
 5. Rename the file to **`data-noodler-client.json`**.
 
 **Check the file** before handing it out. Open it in a text editor:
 
-- the top-level key is `"installed"`. If it says `"web"`, you created the
-  wrong client type; go back to step 4.2.
+- the top-level key is `"installed"`. If it says `"web"`, you created the wrong client type; go back to step 4.2.
 - `"redirect_uris"` contains `"http://localhost"`.
 
 ## 5. Where the file goes
@@ -124,22 +96,13 @@ On every machine that uses the tools, the installer looks for it here:
 | macOS | `~/.config/gcloud/data-noodler-client.json` |
 | Windows | `%USERPROFILE%\.config\gcloud\data-noodler-client.json` |
 
-The installing agent (Claude or Codex) looks for the file in Downloads,
-Desktop and Documents and copies it into place. It then offers to delete the
-loose copy.
+The installing agent (Claude or Codex) looks for the file in Downloads, Desktop and Documents and copies it into place. It then offers to delete the loose copy.
 
-**About keeping it private.** For a Desktop client, the OAuth standard for
-desktop apps (RFC 8252, which Google follows) treats the "client secret" in
-this file as something that can't truly be kept secret, and Google designs
-for that. The file can't read anyone's data
-without that person signing in and approving. Even so:
+**About keeping it private.** For a Desktop client, the OAuth standard for desktop apps (RFC 8252, which Google follows) treats the "client secret" in this file as something that can't truly be kept secret, and Google designs for that. The file can't read anyone's data without that person signing in and approving. Even so:
 
 - **Never commit it to git.** This package's `.gitignore` already excludes it.
-- **Hand it over directly**: a password manager, a shared drive only your team
-  can open, or in person. Don't send it over a public chat channel or a
-  mailing list.
-- If it leaks, delete the client in **Clients** and create a new one. Everyone
-  then needs the new file and signs in once more.
+- **Hand it over directly**: a password manager, a shared drive only your team can open, or in person. Don't send it over a public chat channel or a mailing list.
+- If it leaks, delete the client in **Clients** and create a new one. Everyone then needs the new file and signs in once more.
 
 ## The two files, and which one actually matters
 
@@ -160,33 +123,24 @@ So: treat the client file like a building key card (keep it off public channels,
 
 ## 6. If others will use it: give them access in Google Analytics and Search Console
 
-Nothing in the Cloud project grants access to analytics data. Each person sees
-exactly what their own Google account can already see. Therefore, if you are managing a group of users, make sure you have given each of them access to the right Google Analytics and Search Console properties.
+Nothing in the Cloud project grants access to analytics data. Each person sees exactly what their own Google account can already see. Therefore, if you are managing a group of users, make sure you have given each of them access to the right Google Analytics and Search Console properties.
 
 ## 7. Try it yourself first
 
-Install the tools on your own machine: point Claude Code or Codex at
-`START-HERE.md`, or follow `skills/data-noodler-setup/SKILL.md` yourself. At the sign-in step:
+Install the tools on your own machine: point Claude Code or Codex at `START-HERE.md`, or follow `skills/data-noodler-setup/SKILL.md` yourself. At the sign-in step:
 
 1. A browser opens with your app name. Expect "Google hasn't verified this app", which is normal for an app in Testing. Click **Continue** (the other button is **Back to safety**). Older versions of this screen hid the way forward behind **Advanced**; if you see that link instead, click it, then the link to go to your app.
-2. Approve the two permissions: viewing Google Analytics data and viewing
-   Search Console data. Nothing else should be listed. If anything else is,
-   stop and check you're using the right file.
-3. The script prints the permissions it actually received. Both should be
-   there.
+2. Approve the two permissions: viewing Google Analytics data and viewing Search Console data. Nothing else should be listed. If anything else is, stop and check you're using the right file.
+3. The script prints the permissions it actually received. Both should be there.
 
-Then ask your AI app a question such as "Is my Google Analytics credential
-still valid?" and "What's the property ID for <one of your sites>?". When both
-answer, your file is ready to hand out.
+Then ask your AI app a question such as "Is my Google Analytics credential still valid?" and "What's the property ID for <one of your sites>?". When both answer, your file is ready to hand out.
 
 ## 8. What to give the people you deploy to
 
 - `data-noodler-client.json` (from step 4), handed over directly.
-- Confirmation that you've added their Google account as a test
-  user. Do this *before* they install, or sign-in fails with `access_denied`.
+- Confirmation that you've added their Google account as a test user. Do this *before* they install, or sign-in fails with `access_denied`.
 - The package (zip or repository).
-- A name to send their install report to (the installer writes one). That's
-  you.
+- A name to send their install report to (the installer writes one). That's you.
 
 ---
 
@@ -209,6 +163,4 @@ For problems on a user's machine (installing, upgrading, or tools that don't app
 
 ---
 
-*For maintainers of this package: your own project's notes, such as which
-project ID and who is on the test-user list, belong in your private deployment
-records, not here.*
+*For maintainers of this package: your own project's notes, such as which project ID and who is on the test-user list, belong in your private deployment records, not here.*
