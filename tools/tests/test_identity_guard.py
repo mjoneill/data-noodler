@@ -363,9 +363,30 @@ class TestTagsPrePush(unittest.TestCase):
         self.assertNotEqual(inner, outer)
         r = self.repo.guard("origin", stdin=self.repo.pre_push_line("outer"))
         self.assertEqual(r.returncode, REFUSED, r.stderr)
-        self.assertIn("IDENTITY-GUARD tag outer (%s)" % inner[:10], r.stderr)
         self.assertIn("1 of 2 annotated tag(s)", r.stderr)
-        self.assertRefusedByTheGuard(self.repo.push_tag("outer"), "outer")
+        self.assertRefusedByTheGuard(self.repo.push_tag("outer"), "inner")
+
+    def test_a_wrapped_bad_tag_is_named_beside_its_own_id(self):
+        # #2125: the bad tagger is on the inner tag, so the refusal names the
+        # inner tag with the inner tag's id, and says which pushed tag led to
+        # it. Naming the outer tag sent the fixer to the wrong object.
+        inner = self.repo.tag("inner", MACHINE)
+        outer = self.repo.tag("outer", SEAT, target="refs/tags/inner")
+        r = self.repo.guard("origin", stdin=self.repo.pre_push_line("outer"))
+        self.assertEqual(r.returncode, REFUSED, r.stderr)
+        self.assertIn("IDENTITY-GUARD tag inner (%s), inside tag outer:"
+                      % inner[:10], r.stderr)
+        self.assertNotIn("tag outer (", r.stderr)
+        self.assertNotIn(outer[:10], r.stderr)
+
+    def test_a_wrapped_bad_tag_is_named_in_ci_mode_too(self):
+        inner = self.repo.tag("inner", MACHINE)
+        self.repo.tag("outer", SEAT, target="refs/tags/inner")
+        git(self.repo.work, "tag", "-d", "inner")
+        r = self.repo.guard("--all")
+        self.assertEqual(r.returncode, REFUSED, r.stderr)
+        self.assertIn("IDENTITY-GUARD tag inner (%s), inside tag outer:"
+                      % inner[:10], r.stderr)
 
     def test_the_refusal_never_prints_the_tagger(self):
         self.repo.tag("v1.0", MAILBOX, tagger_name="Somebody Particular")
@@ -416,6 +437,17 @@ class TestTagsCiMode(unittest.TestCase):
         self.assertEqual(r.returncode, REFUSED, r.stderr)
         self.assertIn("IDENTITY-GUARD tag v1.0", r.stderr)
         self.assertIn("0 of 0 commit(s) and 1 of 1 annotated tag(s)", r.stderr)
+
+    def test_since_with_no_value_checked_nothing_and_says_so(self):
+        # #2125: a missing value is a case where nothing was checked, so it is
+        # the "failed" outcome (2) with a usage line, not a refusal (1) and
+        # not a traceback.
+        r = self.repo.guard("--since")
+        self.assertEqual(r.returncode, FAILED, r.stderr)
+        self.assertIn(ERROR, r.stderr)
+        self.assertIn("--since needs a revision", r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertNotIn(CLEAN, r.stderr)
 
     def test_since_passes_an_accepted_tag_and_counts_it(self):
         self.repo.tag("v1.0", SEAT)

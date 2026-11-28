@@ -43,10 +43,12 @@ Three modes:
                       commit main already has.
 
 A refusal names the commit and which field, or the tag, never the address
-or the name.
+or the name. A tag inside a pushed tag is named with its own id and the
+pushed tag that led to it ("tag v-bad (<id>), inside tag v-wrap").
 
 Exit codes: 0 every identity read is allowed; 1 refused; 2 the check could
-not be made (git failed, or a tag could not be read). A failure is never a
+not be made (git failed, a tag could not be read, or --since was given no
+revision). A failure is never a
 pass: when git cannot answer, nothing was verified, and the guard says so
 instead of reporting what it did manage to read.
 """
@@ -128,11 +130,25 @@ def tag_name(ref):
 
 
 def tag_chain(sha, name, into):
-    """Adds (tag object sha, tag name) to `into` for the annotated tag at
-    `sha` and for every tag object it wraps. A commit adds nothing."""
+    """Adds tag object sha -> (name, outer) to `into` for the annotated tag
+    at `sha` and for every tag object it wraps. A commit adds nothing.
+
+    The pushed tag is named by its ref, which is what `git tag -d` takes, and
+    `outer` is None. A wrapped tag has no ref of its own on the push, so it
+    is named by the name written in its own object, and `outer` is the
+    pushed tag that led to it (#2125): the bad tagger may be on the wrapped
+    tag, and that is the one to make again."""
+    outer = None
     while sha not in into and git("cat-file", "-t", sha).strip() == "tag":
-        into[sha] = name
-        target = [line.split(" ", 1)[1] for line in tag_headers(sha)
+        headers = tag_headers(sha)
+        if outer is not None:
+            own = [line.split(" ", 1)[1] for line in headers
+                   if line.startswith("tag ")]
+            name = own[0] if len(own) == 1 else "(unnamed)"
+        into[sha] = (name, outer)
+        if outer is None:
+            outer = name
+        target = [line.split(" ", 1)[1] for line in headers
                   if line.startswith("object ")]
         if len(target) != 1:
             raise GuardError("tag object %s names no single target" % sha[:10])
@@ -189,8 +205,9 @@ def findings(shas):
 
 
 def tag_findings(tags):
-    """(tag name, tag object sha) for each tag whose tagger is not allowed."""
-    return [(name, sha[:10]) for sha, name in tags.items()
+    """(tag name, tag object sha, outer tag or None) for each tag whose
+    tagger is not allowed."""
+    return [(name, sha[:10], outer) for sha, (name, outer) in tags.items()
             if not all(allowed(e) for e in tagger_emails(sha))]
 
 
@@ -199,7 +216,11 @@ def check(argv):
         shas = git("rev-list", "HEAD").split()
         tags = all_tags()
     elif "--since" in argv:
-        base = argv[argv.index("--since") + 1]
+        i = argv.index("--since") + 1
+        if i >= len(argv) or argv[i].startswith("-"):
+            raise GuardError("--since needs a revision after it "
+                             "(--since origin/main)")
+        base = argv[i]
         shas = git("rev-list", "%s..HEAD" % base).split()
         tags = all_tags()
     else:
@@ -212,9 +233,10 @@ def check(argv):
     for sha, field in found:
         print("IDENTITY-GUARD %s: the %s email is not a seat or noreply address"
               % (sha, field), file=sys.stderr)
-    for name, sha in bad_tags:
-        print("IDENTITY-GUARD tag %s (%s): the tagger email is not a seat or "
-              "noreply address" % (name, sha), file=sys.stderr)
+    for name, sha, outer in bad_tags:
+        where = ", inside tag %s" % outer if outer else ""
+        print("IDENTITY-GUARD tag %s (%s)%s: the tagger email is not a seat "
+              "or noreply address" % (name, sha, where), file=sys.stderr)
     if found or bad_tags:
         print("IDENTITY-GUARD refused: %d of %d commit(s) and %d of %d "
               "annotated tag(s) would publish a machine-default or bare "
