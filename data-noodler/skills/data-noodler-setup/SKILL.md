@@ -55,7 +55,7 @@ What to read in the output:
 - `config.exists` and `config.error` — an error here means the file is present but unreadable; say so rather than regenerating it.
 - `credential.days_remaining` — the credential expires weekly by design. If there is time left, **leave it alone** (see Step 5).
 - `harnesses.*.ga_servers_registered` — what is already installed where.
-- `harnesses.*.legacy_servers` lists entries registered under a name this package used before the product had one name. They are ours: the install or upgrade retires them, so mention them and leave the removal to it.
+- `harnesses.*.legacy_servers` lists entries registered under an older name for this package's server. They are ours: the install or upgrade removes them, so mention them to the user and leave the removal to it.
 - `harnesses.*.other_servers` — MCP servers that are not ours. You are writing into a config someone else's tools also live in; mention it.
 
 `installer/` is never copied to `~/.config/data-noodler/` — only `server/`, `bin/` and `marketplace/` are (see Step 6) — so this and Step 8 both run from the repo checkout. A path under `~/.config/data-noodler/` will never exist and would silently prove nothing.
