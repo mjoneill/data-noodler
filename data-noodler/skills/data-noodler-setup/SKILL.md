@@ -1,6 +1,6 @@
 ---
 name: data-noodler-setup
-description: Install or repair Data Noodler (Google Analytics and Search Console tools) across local LLM harnesses — Claude Code, Claude Desktop, Codex TUI, and the ChatGPT desktop app. Use when the user wants to set up GA access, add GA to another app, says GA tools are missing or a connector is broken, or when analytics tools fail in a way that is not a simple credential expiry. Also use for first-time setup on a new machine.
+description: Install, upgrade or repair Data Noodler (Google Analytics and Search Console tools) across local LLM harnesses — Claude Code, Claude Desktop, Codex TUI, and the ChatGPT desktop app. Use when the user wants to set up GA access, upgrade Data Noodler to a newer version, add GA to another app, says GA tools are missing or a connector is broken, or when analytics tools fail in a way that is not a simple credential expiry. Also use for first-time setup on a new machine.
 ---
 
 # Installing GA access into local harnesses
@@ -11,7 +11,7 @@ Nothing here needs administrator privilege. Every path written is under the user
 
 Data Noodler needs macOS 12 (Monterey) or later, or Windows 11.
 
-**Read `deployment.json` first** (in the package's `data-noodler/` folder, beside `START-HERE.md`). It names this deployment's maintainer and says where the OAuth client file comes from. If its `maintainer` is blank, nobody has set this package up for this user yet, whether just for themselves or for a team, organization or institution: stop, and follow `START-HERE.md`, which walks the user through that, before installing anything. Blank `maintainer_contact` and `install_reports_to` with a filled `maintainer` is a finished just-for-yourself setup: carry on.
+**Read `deployment.json` first** (in the package's `data-noodler/` folder, beside `START-HERE.md`). It names this deployment's maintainer and says where the OAuth client file comes from. If its `maintainer` is blank and this machine has no install yet, nobody has set this package up for this user, whether just for themselves or for a team, organization or institution: stop, and follow `START-HERE.md`, which walks the user through that, before installing anything. On a machine that already has Data Noodler (`~/.config/data-noodler/config.json` exists, or `~/.config/ga-mcp/config.json` from before the rename), a blank `maintainer` is normal, because a copy fresh from the public repository always has it blank: carry on with the upgrade. Blank `maintainer_contact` and `install_reports_to` with a filled `maintainer` is a finished just-for-yourself setup: carry on.
 
 Run the whole flow from Claude Code or Codex -- these instructions are for whichever agent is installing, and where a step applies to only one app (Claude Code skills, the Codex plugin) it says so. Claude Desktop's normal chat has no shell, so it cannot install anything -- but it is a valid *target*, and this session will configure it.
 
@@ -28,7 +28,15 @@ Run the whole flow from Claude Code or Codex -- these instructions are for which
 - **Anything that runs a system installer**, such as the Python installer. The Desktop app is a packaged (MSIX) app on Windows, and an installer launched from inside it fails: measured 2026-10-09, the python.org installer exited 3 (MSI error 2203) because the container redirected the files the Windows Installer service needed. The same installer run by the user from an ordinary PowerShell window worked. Give them the command; do not retry it yourself.
 - **Registering Claude Desktop** (Step 7). Desktop has to be fully quit for that, and quitting Desktop ends this session.
 
-**Fresh install or upgrade.** Step 1 tells you which. An upgrade is Step 1, then Step 2's "On an upgrade" (`upgrade.py`, which replaces Steps 2 and 4-8 for an existing install), then Steps 9 and 10. Do Steps 3 and 5 only where Step 1 shows the client file or credential missing. Never upgrade by copying the payload alone: that leaves the old libraries in place, which is how vulnerable versions survived the September-to-October upgrades. Say at the start which one this is, because the report in Step 10 records it.
+**Fresh install or upgrade.** Step 1 tells you which: it is an upgrade when Step 1 finds an install on this machine (`config.exists` is true and `analytics_mcp.binary` is set) and the user wants the newer package installed. `upgrade.py --plan` shows the installed version beside this package's. An upgrade is Step 1, then Step 2's "On an upgrade" (`upgrade.py`, which replaces Steps 2 and 4-8 for an existing install), then Steps 9 and 10. Do Step 3 only where its own check shows the client file missing, and Step 5 only where Step 1 shows the credential missing or expired. Never upgrade by copying the payload alone: that leaves the old libraries in place, which is how vulnerable versions survived the September-to-October upgrades. Say at the start which one this is, because the report in Step 10 records it.
+
+**On an upgrade, get the newest package first, and follow its copy of this skill.** The copy of this skill installed on the machine came with the version being replaced, so it is the older one. Before Step 1:
+
+1. Get the newest package onto this machine. Its source is the repository the user pointed you at, `https://github.com/mjoneill/data-noodler` unless their maintainer gave them another. Ask whether they already keep a clone of it. If they do, update that one: `git -C <repo> pull --ff-only`, and if that refuses, stop and tell the user what it said. Otherwise clone it into a folder the user chooses, one that stays put (never a temporary folder): the steps after the upgrade run from it too. With no git, download the repository as a zip and unpack it.
+2. Use that copy and no other. Do not search the disk for a Data Noodler folder and upgrade from what you find: an old copy installs an old version with no error. If the user's earlier copy holds a filled-in `deployment.json`, copy it into the new one: it names their maintainer and where install reports go.
+3. Open `<repo>/data-noodler/skills/data-noodler-setup/SKILL.md` in that folder and follow it from here on, in place of the installed copy.
+
+`<repo>` in this document is that folder: the one that holds `README.md` and the `data-noodler/` folder.
 
 **Keep notes as you go.** Step 10 asks you to write an install report, and it is required. For every step, note who ran it (you or the user), what happened, and anything you did that this document did not tell you to do. Workarounds are the most valuable thing in that report: a workaround nobody reports is a fix nobody makes, and the next install hits the same wall.
 
@@ -62,7 +70,7 @@ What to read in the output:
 
 `installer/` is never copied to `~/.config/data-noodler/` — only `server/`, `bin/` and `marketplace/` are (see Step 6) — so this and Step 8 both run from the repo checkout. A path under `~/.config/data-noodler/` will never exist and would silently prove nothing.
 
-If GA tools already work in this harness, the user probably wants a *different* harness added. Skip to Step 7.
+If GA tools already work in this harness and the user is not asking for an upgrade, they probably want a *different* harness added. Skip to Step 7, unless this package is newer than what is installed or the installed version reads `unknown`: then upgrade first, because Step 7 copies the new payload, and a payload copied without the upgrade is what this document forbids above.
 
 ## Step 2: Put the program on disk
 
@@ -96,6 +104,8 @@ uv tool update-shell    # puts the tool dir on PATH permanently
 
 **Use `uv tool install`, never `pipx run analytics-mcp`**, even though some docs suggest it. `pipx run` fetches the newest version from PyPI on every launch, so the program that reads the user's credential would update itself without anyone choosing to.
 
+**On Windows** none of the commands above apply to a fresh install. Follow `references/windows.md` instead: first check that a real Python exists (the `python.exe` in `WindowsApps` is a Store stub, not an interpreter), have the user install one from an ordinary PowerShell window if not, then create the venv with `python -m venv` and the pinned `constraints.txt`.
+
 ### On an upgrade: refresh the libraries too -- one command, which you supervise
 
 **Copying a new payload never touches the libraries underneath.** That is how installs made in September were found, on 2026-10-23, still running PyJWT 2.13.0 (a critical advisory) and a certifi that trusted compromised certificate authorities, after "upgrades". So an upgrade replaces the whole venv, with `installer/upgrade.py`.
@@ -104,26 +114,32 @@ uv tool update-shell    # puts the tool dir on PATH permanently
 
 **Before -- you:**
 
-1. Step 1's `probe.py`. Note `dependencies.below_floor`: that is what the upgrade removes.
-2. `upgrade.py --plan` (read-only, any Python 3: `python` on Windows, and `"$(uv python find)"` on a Mac where `xcode-select -p` errors). It prints what it found -- the venv, the base Python it will build from, the package, the Claude configs, whether Codex is installed, and whether anything is still running from the venv -- then READY, "READY once every app is quit", or NOT READY. **Check it against the machine and probe's output.** Wrong base Python? Re-run with `--base-python <path>`. Anything marked FIX that a flag cannot fix: stop and report.
+1. Step 1's `probe.py`. Note `dependencies.below_floor`: those are the libraries below a security floor, which the upgrade replaces. An empty list is no reason to skip the upgrade: it also brings new tools and newer instructions.
+2. `upgrade.py --plan` (read-only, any Python 3: `python` on Windows, and `"$(uv python find)"` on a Mac where `xcode-select -p` errors). It prints what it found -- the venv, the base Python it will build from, the package, the Claude configs, whether Codex is installed, and whether anything is still running from the venv -- then READY, "READY once every app is quit", or NOT READY. It also prints the installed version beside this package's. That number changes when the plugin or the query skill changes, so a package that differs only in the tools, the installer or these instructions can show the same number. If the two match, tell the user that the package may still be newer, and ask whether they want the rebuild. Run from inside an app, the best result you can see is "READY once every app is quit", because the app you are running in counts. **Check it against the machine and probe's output.** Wrong base Python? Re-run with `--base-python <path>`. Anything marked FIX that a flag cannot fix: stop and report.
 
-**The run -- the user, alone.** Hand them this, with the real paths from `--plan`, for Terminal (macOS) or an ordinary PowerShell window (Windows; put `& ` in front and use backslashes):
+**The run -- the user, alone.** Hand them this, with the base Python from `--plan` and the real folder, for Terminal (macOS) or an ordinary PowerShell window (Windows; put `& ` in front and use backslashes):
 
 ```
-"<base python>" "<package>/data-noodler/installer/upgrade.py"
+"<base python>" "<repo>/data-noodler/installer/upgrade.py"
 ```
 
-They fully quit Claude Desktop (from its icon by the clock on Windows, Cmd-Q on a Mac), every Claude Code window, Codex and the ChatGPT app first. It checks again and refuses -- changing nothing -- if anything is still running. "Upgrade complete" means every check passed. "UPGRADE FAILED" or "INTERRUPTED" followed by "Restored" means it already put everything back: send the output to the maintainer and stop. If the run was killed, the window closed, or it ends "MOST of it was put back", the user runs the same command with `--recover` (troubleshooting.md has the details). Do not finish or undo an upgrade by hand.
+Give them the undo line at the same time, to keep. By the time they need it they will have quit every agent:
+
+```
+"<base python>" "<repo>/data-noodler/installer/upgrade.py" --recover
+```
+
+Before they quit, tell them what to do afterwards: reopen the app, say the Data Noodler upgrade finished, and paste what it printed. The reopened session will not remember this one.
+
+They fully quit Claude Desktop (from its icon by the clock on Windows, Cmd-Q on a Mac), every Claude Code window, Codex and the ChatGPT app first. It checks again and refuses -- changing nothing -- if anything is still running. "Upgrade complete" means every check passed. "UPGRADE FAILED" or "INTERRUPTED" followed by "Restored" means it already put everything back: send the output to the maintainer and stop. If the run was killed, the window closed, or it ends "MOST of it was put back", the user runs the `--recover` line (troubleshooting.md has the details). Do not finish or undo an upgrade by hand.
 
 **After -- you, in a reopened app:**
 
 1. `probe.py` again: `dependencies.below_floor` must be empty.
-2. **Codex installed?** If the home is still `~/.config/ga-mcp`, do item 4 below first. If the user agrees to the move there, skip this item: item 4 does Codex once, after the move. Otherwise: `codex plugin add data-noodler@data-noodler`. Codex caches plugins by version; without this it keeps the old plugin. If `codex plugin marketplace list` still shows `ga-tools`, first run `codex plugin remove ga-analytics@ga-tools` and `codex plugin marketplace remove ga-tools`, then `codex plugin marketplace add ~/.config/data-noodler/marketplace`, so only Data Noodler remains.
-3. **Claude Code used?** `<venv_python> <package>/data-noodler/installer/copy_skills.py`. It refreshes only skill folders this package installed (they carry a `.data-noodler-installed` marker). It prints one line per skill; read every line, whatever the exit code. Exit 0: done. Exit 2: a folder exists that this package did not put there (`not-ours-differs`) -- an earlier hand copy, or the maintainer's own master; tell the user, and only on a yes re-run with `--replace <name>`. Exit 1: a skill could not be installed (`blocked`: a file or broken link where the folder should be; `missing-source`: the payload is missing) -- say so, and do not report the skills as installed. Exit 1 wins over 2, so check the lines for a `not-ours-differs` decision too.
-4. **Home still `~/.config/ga-mcp`?** (probe.py's payload section names it.) It keeps working, so the move is an offer, never a requirement. Run `"<base python>" <package>/data-noodler/installer/migrate_home.py` and show the user what it prints. It renames their Google sign-in files, so ask; only on a yes, with every app fully quit, re-run it with `--yes`. Then re-run install.py (re-registers every app at the new path), copy_skills.py, and for Codex `codex plugin marketplace remove data-noodler` + `codex plugin marketplace add ~/.config/data-noodler/marketplace` + `codex plugin add data-noodler@data-noodler` (run item 2's two `ga-tools` remove commands before these if `codex plugin marketplace list` still shows `ga-tools`), then Step 8 (verify). `NOT MOVED: ...` means nothing changed: relay the reason. Undo: `migrate_home.py --undo`, then install.py again.
+2. **Codex installed?** If the home is still `~/.config/ga-mcp`, do item 4 below first. If the user agrees to the move there, skip this item: item 4 does Codex once, after the move. Otherwise: `codex plugin add data-noodler@data-noodler`. Codex caches plugins by version; without this it keeps the old plugin. If `codex plugin marketplace list` still shows `ga-tools`, first run `codex plugin remove ga-analytics@ga-tools` and `codex plugin marketplace remove ga-tools`, then `codex plugin marketplace add <home>/marketplace`, so only Data Noodler remains. `<home>` is the folder probe.py's payload section names: `~/.config/data-noodler`, or `~/.config/ga-mcp` when the user declined the move.
+3. **Claude Code used?** `<venv_python> <repo>/data-noodler/installer/copy_skills.py`. It refreshes only skill folders this package installed (they carry a `.data-noodler-installed` marker). It prints one line per skill; read every line, whatever the exit code. Exit 0: done. Exit 2: a folder exists that this package did not put there (`not-ours-differs`) -- an earlier hand copy, or the maintainer's own master; tell the user, and only on a yes re-run with `--replace <name>`. Exit 1: a skill could not be installed (`blocked`: a file or broken link where the folder should be; `missing-source`: the payload is missing) -- say so, and do not report the skills as installed. Exit 1 wins over 2, so check the lines for a `not-ours-differs` decision too. Exit 2 can also come from a `legacy-not-ours` line: a folder under an old name of this package's skill that this package did not install. `--replace` does not act on it, so ask the user whether to remove that folder themselves. A `retired` line means an old-named folder this package had installed was moved to `retired-skills/` in the Data Noodler home; nothing was deleted.
+4. **Home still `~/.config/ga-mcp`?** (probe.py's payload section names it.) It keeps working, so the move is an offer, never a requirement. Run `"<base python>" <repo>/data-noodler/installer/migrate_home.py` and show the user what it prints. It renames their Google sign-in files, so ask; only on a yes, with every app fully quit, re-run it with `--yes`. Then re-run install.py (re-registers every app at the new path), copy_skills.py, and for Codex `codex plugin marketplace remove data-noodler` + `codex plugin marketplace add ~/.config/data-noodler/marketplace` + `codex plugin add data-noodler@data-noodler` (run item 2's two `ga-tools` remove commands before these if `codex plugin marketplace list` still shows `ga-tools`), then Step 8 (verify). `NOT MOVED: ...` means nothing changed: relay the reason. Undo: `migrate_home.py --undo`, then install.py again.
 5. Step 9 (offer to remove the old venv and older backups), then Step 10.
-
-**On Windows** none of the above applies. Follow `references/windows.md` instead: first check that a real Python exists (the `python.exe` in `WindowsApps` is a Store stub, not an interpreter), have the user install one from an ordinary PowerShell window if not, then create the venv with `python -m venv` and the pinned `constraints.txt`.
 
 ## Step 3: Make sure the shared OAuth client file is present
 
@@ -236,7 +252,7 @@ Then install the `data-noodler` skill for Claude Code, plus this setup skill so 
 "<venv_python>" <repo>/data-noodler/installer/copy_skills.py
 ```
 
-That installs both into `~/.claude/skills/` (on Windows `%USERPROFILE%\.claude\skills\`) with a `.data-noodler-installed` marker, so a later upgrade can refresh them. It never overwrites a skill folder it did not put there and never deletes anything. Read every line it prints: exit 2 (`not-ours-differs`) means such a folder exists and differs -- tell the user, and only on a yes re-run with `--replace <name>`; exit 1 means a skill could not be installed at all (`blocked` or `missing-source`) -- say so. Codex users can skip this; their skill comes with the plugin.
+That installs both into `~/.claude/skills/` (on Windows `%USERPROFILE%\.claude\skills\`) with a `.data-noodler-installed` marker, so a later upgrade can refresh them. It never overwrites a skill folder it did not put there and never deletes anything. Read every line it prints: exit 2 (`not-ours-differs`) means such a folder exists and differs -- tell the user, and only on a yes re-run with `--replace <name>` (a `legacy-not-ours` line is handled as Step 2's "On an upgrade" describes); exit 1 means a skill could not be installed at all (`blocked` or `missing-source`) -- say so. Codex users can skip this; their skill comes with the plugin.
 
 Never leave a backup copy of a skill inside `~/.claude/skills/`. Anything there is loaded as a live skill, and a backup competes with the real one.
 
@@ -329,10 +345,11 @@ Nothing in this step is removed by a script, and nothing is removed by you witho
 
 **Loose copies of the OAuth client file.** Once consent has worked, look again in the places Step 3 searched, with the same limit of two levels of subfolders, for copies other than `~/.config/gcloud/data-noodler-client.json`. A large folder can take minutes to search, so you may run the search in the background while you continue with the rest of this step. Identify them by `client_id` only; never print the contents. Tell the user where each one is and why it should not stay there: Downloads, Documents and Desktop are often synced (OneDrive, iCloud) or shared. Offer to delete each one.
 
-**Leftovers from an earlier install** (upgrades). Look for:
+**Leftovers from an earlier install** (upgrades). The paths below are written for `~/.config/data-noodler`; on an install that kept `~/.config/ga-mcp`, look in that folder. Look for:
 
 - **Helper scripts a previous install created** to work around a problem that this package now fixes. The known case is `fix_asr_entry.py`, written on a 2026-10-09 install to switch the analytics-mcp entry to `python -m` after each re-install. `install.py` now writes that entry itself, so the helper is redundant. Read anything unfamiliar before describing it, and describe what it actually does.
 - **Hand-edited entries.** Step 7 rewrote our two entries, but compare `verify.py`'s output with what you expect. Any other `mcpServers` entry belongs to the user, so leave it alone, and do not offer to remove it.
+- **`retired-skills/`** in the Data Noodler home: old-named skill folders `copy_skills.py` moved aside. Offer to delete them once the new skills work.
 - **Old unzipped package folders**, for example an earlier `data-noodler-src`. Check what is in one before calling it old.
 - **The previous venv** `upgrade.py` left, at the path it printed: `~/.config/data-noodler/<venv name>.old-<stamp>` (beside the venv only if that is on another disk). Installs upgraded before 2026-10-26 may also have one beside the venv, e.g. in pipx's `venvs` folder. Nothing uses it once the upgrade verified; it is only the undo. Offer to delete it -- after the user has used the upgraded tools once is a sensible time.
 - **Older payload copies** (`~/.config/data-noodler/{server,bin,marketplace}.ga-old-<stamp>`, and `companion.ga-old-<stamp>` (the server folder's old name)). `install.py` keeps one per run and never removes them. Offer to delete all but the newest. Likewise any `*.failed-<stamp>` folder a rolled-back upgrade had to move aside.
