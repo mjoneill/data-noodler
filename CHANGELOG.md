@@ -16,7 +16,7 @@ Smaller changes in the same instructions: a blank maintainer field no longer sen
 
 Also recorded here, because they merged before this changelog covered the skills: the install check lists entries registered under an older name of Data Noodler's server, which the upgrade removes, and the searches for the sign-in file look at most two folders deep.
 
-**Surface:** `d257725649a9`
+**Surface:** `c1cb449f46e1`
 
 **Docs checked:** `data-noodler/skills/data-noodler-setup/SKILL.md` (changed), `data-noodler/skills/data-noodler-setup/references/windows.md` (changed), `README.md` (changed), `data-noodler/START-HERE.md` (changed), `data-noodler/skills/data-noodler-setup/references/troubleshooting.md`, `data-noodler/README.md`, `data-noodler/ARCHITECTURE.md`, `data-noodler/BUILD-YOUR-OWN.md`.
 
