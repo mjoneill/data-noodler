@@ -70,7 +70,7 @@ What to read in the output:
 
 `installer/` is never copied to `~/.config/data-noodler/` — only `server/`, `bin/` and `marketplace/` are (see Step 6) — so this and Step 8 both run from the repo checkout. A path under `~/.config/data-noodler/` will never exist and would silently prove nothing.
 
-If GA tools already work in this harness and the user is not asking for an upgrade, they probably want a *different* harness added. Skip to Step 7, unless this package is newer than what is installed: then upgrade first, because Step 7 copies the new payload, and a payload copied without the upgrade is what this document forbids above.
+If GA tools already work in this harness and the user is not asking for an upgrade, they probably want a *different* harness added. Skip to Step 7, unless this package is newer than what is installed or the installed version reads `unknown`: then upgrade first, because Step 7 copies the new payload, and a payload copied without the upgrade is what this document forbids above.
 
 ## Step 2: Put the program on disk
 

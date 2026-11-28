@@ -10,13 +10,13 @@ An entry is added whenever something a user or an agent can see changes: a tool,
 
 To upgrade, point your agent at the Data Noodler repository and ask it to help you upgrade. It now gets the newest copy first, by updating the clone you already keep or making a new one, and follows the instructions that came with that copy. Before this, the instructions never said to do any of that, so an agent could upgrade from an old copy it found on your disk and report success.
 
-The upgrade's read-only check now prints the version installed beside the version you're about to install, so you both see what will change. The same check now counts every running Data Noodler server. It used to miss Google's analytics server when an app started it through its shortcut, which could have let an upgrade begin while that app was still using it.
+The upgrade's read-only check now prints the version installed beside the version you're about to install, so you both see what will change. The same check now counts every running Data Noodler server. It used to miss Google's analytics server when an app started it through its shortcut, which could have let an upgrade begin while that app was still using it. The undo command makes the same check before it puts the old version back.
 
 Smaller changes in the same instructions: a blank maintainer field no longer sends a machine that already has Data Noodler back to first-time setup. The agent gives you the undo command before you quit your apps, and tells you what to say when you come back. The Windows note about fresh installs now sits with the fresh-install steps. Two results the skill copier can print now have a description.
 
 Also recorded here, because they merged before this changelog covered the skills: the install check lists entries registered under an older name of Data Noodler's server, which the upgrade removes, and the searches for the sign-in file look at most two folders deep.
 
-**Surface:** `c1cb449f46e1`
+**Surface:** `08f46e603a9d`
 
 **Docs checked:** `data-noodler/skills/data-noodler-setup/SKILL.md` (changed), `data-noodler/skills/data-noodler-setup/references/windows.md` (changed), `README.md` (changed), `data-noodler/START-HERE.md` (changed), `data-noodler/skills/data-noodler-setup/references/troubleshooting.md`, `data-noodler/README.md`, `data-noodler/ARCHITECTURE.md`, `data-noodler/BUILD-YOUR-OWN.md`.
 
