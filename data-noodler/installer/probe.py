@@ -32,6 +32,7 @@ import subprocess
 import bootstrap_config
 import harness_paths
 import home as home_mod
+import register
 import security_floors
 
 GA_SERVERS = ("analytics-mcp", "data-noodler")
@@ -207,7 +208,15 @@ def probe_harnesses(home=None, env=None, platform=None):
             "error": error,
             "ga_servers_registered": sorted(
                 n for n in GA_SERVERS if n in servers),
-            "other_servers": sorted(n for n in servers if n not in GA_SERVERS),
+            # Names this package used to register under. The install retires
+            # them, so they get their own list: other_servers is the one the
+            # setup skill tells the agent to leave alone (#2034). The names
+            # are register.py's, the code that does the retiring.
+            "legacy_servers": sorted(
+                n for n in register.LEGACY_SERVERS if n in servers),
+            "other_servers": sorted(
+                n for n in servers
+                if n not in GA_SERVERS and n not in register.LEGACY_SERVERS),
         }
     return out
 
