@@ -32,8 +32,8 @@ Run the whole flow from Claude Code or Codex -- these instructions are for which
 
 **On an upgrade, get the newest package first, and follow its copy of this skill.** The copy of this skill installed on the machine came with the version being replaced, so it is the older one. Before Step 1:
 
-1. Find the package folder. Ask the user where they keep it before you search the disk: a search can turn up old copies, and upgrading from the wrong one installs an old version with no error. It is the folder they cloned or downloaded from `https://github.com/mjoneill/data-noodler`, or the one their maintainer gave them. If they no longer have it, clone or download it again to a place they choose.
-2. Bring it up to date. In a git clone: `git -C <repo> pull --ff-only`. If that refuses, stop and tell the user what it said. A downloaded folder has nothing to pull: download a fresh copy. If the old copy holds a filled-in `deployment.json`, copy it into the new folder: it names their maintainer and where install reports go.
+1. Get the newest package onto this machine. Its source is the repository the user pointed you at, `https://github.com/mjoneill/data-noodler` unless their maintainer gave them another. Ask whether they already keep a clone of it. If they do, update that one: `git -C <repo> pull --ff-only`, and if that refuses, stop and tell the user what it said. Otherwise clone it into a folder the user chooses. With no git, download the repository as a zip and unpack it.
+2. Use that copy and no other. Do not search the disk for a Data Noodler folder and upgrade from what you find: an old copy installs an old version with no error. If the user's earlier copy holds a filled-in `deployment.json`, copy it into the new one: it names their maintainer and where install reports go.
 3. Open `<repo>/data-noodler/skills/data-noodler-setup/SKILL.md` in that folder and follow it from here on, in place of the installed copy.
 
 `<repo>` in this document is that folder: the one that holds `README.md` and the `data-noodler/` folder.
