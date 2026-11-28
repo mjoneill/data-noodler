@@ -67,6 +67,10 @@ Every document in this repository, grouped by what it's for. The documents outsi
 
 - [Security](SECURITY.md): how to report a vulnerability, and what the package is designed to protect.
 
+**What changed**
+
+- [Changelog](CHANGELOG.md): what changed in how Data Noodler behaves, newest first, in plain language.
+
 ## How this repo keeps your data out of it
 
 Data Noodler is built by a small team today, but it's public, and issues and pull requests are welcome. Whoever contributes, nobody's credentials, report data or identifying details belong in this repository. Three checks keep them out:

@@ -41,10 +41,18 @@ def _read(path):
         return f.read()
 
 
+# The changelog is history: an entry may name a tool or a flag that has since
+# been removed, and a count that was true on its date. These gates check what
+# the docs say about the software as it is now, so the changelog is left out.
+# Its own gate is tests/test_public_surface.py.
+HISTORY = {"CHANGELOG.md"}
+
+
 def doc_paths():
-    """The 12 docs: the repo root's Markdown and everything under data-noodler/."""
-    paths = sorted(glob.glob(os.path.join(REPO, "*.md"))
-                   + glob.glob(os.path.join(ROOT, "**", "*.md"), recursive=True))
+    """The 12 docs: the repo root's Markdown and everything under data-noodler/, without the changelog."""
+    paths = sorted(p for p in glob.glob(os.path.join(REPO, "*.md"))
+                   + glob.glob(os.path.join(ROOT, "**", "*.md"), recursive=True)
+                   if os.path.basename(p) not in HISTORY)
     if len(paths) < 10:
         raise AssertionError(f"found only {len(paths)} docs; the doc set itself is not readable")
     return paths
