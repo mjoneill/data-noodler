@@ -27,7 +27,9 @@ jobs:
         with:
           # Full history, at the commits themselves rather than the synthetic
           # merge a pull_request run checks out: the identity guard reads
-          # every author and committer (#1996).
+          # every author and committer (#1996). Full history also fetches
+          # every tag as the object it is, so the guard can read the tagger
+          # of each annotated tag (#2003).
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
@@ -44,10 +46,14 @@ jobs:
         # traceback; this step prints the plain one, rule by rule.
         if: always()
         run: python -I tools/leak_guard.py
-      - name: Identity guard over the commits this push or pull request adds
+      - name: Identity guard over the commits this push or pull request adds, and every annotated tag
         # Only new commits: the merge commits GitHub makes on main carry the
         # merging account's email and are never re-checked. On a push to main
-        # itself there is nothing new to check.
+        # itself there is no new commit to check. Tags are not limited the
+        # same way: the tagger of every annotated tag in the repository is
+        # read on every run (#2003), and the pass line counts them. Exit code
+        # 1 is a refusal; 2 means git could not be read and nothing was
+        # verified.
         if: always()
         run: python -I tools/identity_guard.py --since origin/main
 
