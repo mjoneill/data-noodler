@@ -41,6 +41,32 @@ Installation and setup is agent driven, meaning you will point your Claude Code 
 
 Everything Data Noodler needs is in the [`data-noodler/`](data-noodler/) folder; the rest of this repository is project housekeeping. If you'd like to read before your agent starts, begin with [`START-HERE.md`](data-noodler/START-HERE.md). If you're the one creating your team's Google App, [`GOOGLE-CLOUD-SETUP.md`](data-noodler/GOOGLE-CLOUD-SETUP.md) walks through it.
 
+**If you are an AI agent** asked to evaluate, install or upgrade Data Noodler, start at [`data-noodler/START-HERE.md`](data-noodler/START-HERE.md) and follow it from there.
+
+## Documentation map
+
+Every document in this repository, grouped by what it's for. Each one has a breadcrumb under its title that leads back here.
+
+**Getting started**
+
+- [Start here](data-noodler/START-HERE.md): where an agent begins an install or an upgrade, and how a first-time setup is decided.
+  - [Setting up your own Google App](data-noodler/GOOGLE-CLOUD-SETUP.md): creating the OAuth client in Google Cloud, for whoever sets Data Noodler up for themselves or a team.
+  - [Setup skill](data-noodler/skills/data-noodler-setup/SKILL.md): the install and upgrade procedure, step by step. It's written for an agent, and a person can follow it too.
+    - [Installing on Windows](data-noodler/skills/data-noodler-setup/references/windows.md): what differs on Windows, and why.
+    - [Troubleshooting](data-noodler/skills/data-noodler-setup/references/troubleshooting.md): match the error text to its cause and its fix.
+    - [Install report template](data-noodler/skills/data-noodler-setup/references/install-report.md): what the agent writes at the end of every install or upgrade.
+
+**How it works**
+
+- [Package contents](data-noodler/README.md): what's in the `data-noodler/` folder.
+  - [Query skill](data-noodler/skills/data-noodler/SKILL.md): how an agent answers Google Analytics and Search Console questions.
+- [How this package works](data-noodler/ARCHITECTURE.md): the pieces, why the install is split the way it is, the security posture, and what's tested.
+  - [Build your own](data-noodler/BUILD-YOUR-OWN.md): a design brief for building a similar system yourself.
+
+**Security**
+
+- [Security](SECURITY.md): how to report a vulnerability, and what the package is designed to protect.
+
 ## How this repo keeps your data out of it
 
 Data Noodler is built by a small team today, but it's public, and issues and pull requests are welcome. Whoever contributes, nobody's credentials, report data or identifying details belong in this repository. Three checks keep them out:

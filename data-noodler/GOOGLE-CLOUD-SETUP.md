@@ -1,5 +1,7 @@
 # Setting up your own Google App (OAuth client)
 
+[Data Noodler](../README.md) › [Start here](START-HERE.md) › Setting up your own Google App
+
 To give your AI agent read-only access to your Google Analytics and Search Console data, Google requires an app of your own, which we call a "Google App". This page explains what that is, what you'll create, and walks you (or your agent) through it.
 
 ## What it's called

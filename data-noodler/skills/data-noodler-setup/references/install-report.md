@@ -1,5 +1,7 @@
 # Install report template
 
+[Data Noodler](../../../../README.md) › [Start here](../../../START-HERE.md) › [Setup skill](../SKILL.md) › Install report template
+
 Step 10 of SKILL.md. Fill this in at the end of every install and every upgrade, and save it as `~/.config/data-noodler/install-reports/<YYYY-MM-DD>-<fresh|upgrade>.md`. The user sends it to the maintainer named in `deployment.json`.
 
 The template follows the best report received so far (Windows, 2026-10-09). Every fix made after that install came out of it. This report is a chance to improve installing and upgrading Data Noodler for everyone. Keep that report's habits:

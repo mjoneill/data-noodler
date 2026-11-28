@@ -1,5 +1,5 @@
 {
-  "version": "0.9.7",
-  "sha256": "5effdf4db6ecc520149c9eef2cdea4b6ab8246d25b4a887284c8ed2c43c8c5d4",
+  "version": "0.9.8",
+  "sha256": "fe3c7622b056a67a6fe2716cc1798b4449aee61ade3ae67008dc44f478a0b3b8",
   "recorded_from": "the repo at #2093, 2026-11-27 (INSTALL.md retired; the query skill's setup pointers name only the setup skill)"
 }

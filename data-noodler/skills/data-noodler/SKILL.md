@@ -5,6 +5,8 @@ description: Data Noodler. Query Google Analytics 4 data through the analytics-m
 
 # Data Noodler: Google Analytics and Search Console
 
+[Data Noodler](../../../README.md) › [Package contents](../../README.md) › Query skill
+
 The `analytics-mcp` server exposes 10 read-only tools over the Google Analytics Admin and Data APIs: `get_account_summaries`, `get_property_details`, `list_property_annotations`, `list_google_ads_links`, `list_key_events`, `get_custom_dimensions_and_metrics`, `run_report`, `run_realtime_report`, `run_funnel_report`, `run_conversions_report`.
 
 Everything is read-only by construction. The credential holds only two read-only permissions, `analytics.readonly` and `webmasters.readonly`, so no query can change anything in GA or Search Console. Explore freely; the risk is a confusing answer, never a destructive one.

@@ -1,5 +1,7 @@
 # Troubleshooting Data Noodler installs
 
+[Data Noodler](../../../../README.md) › [Start here](../../../START-HERE.md) › [Setup skill](../SKILL.md) › Troubleshooting
+
 Match the error text first. Credentials are the most documented failure here, which makes them the default suspect for every breakage — and often the wrong one.
 
 **If you have to troubleshoot anything,** note each problem, the exact error and what you did about it, and put it in the install report ([install-report.md](install-report.md)). Those notes are how the next install avoids the same problem.
