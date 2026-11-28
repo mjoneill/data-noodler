@@ -457,6 +457,17 @@ class TestSecondWindowsInstallLessons(unittest.TestCase):
     def test_the_loose_client_file_copy_is_dealt_with(self):
         self.assertIn("Loose copies of the OAuth client file", self._step(9))
 
+    def test_the_client_file_search_has_one_depth_limit_in_both_steps(self):
+        # On a real upgrade the Step 9 search of a large Documents folder
+        # took over two minutes (#2034). Steps 3 and 9 search the same
+        # places, so both state the same limit.
+        limit = "two levels of subfolders"
+        self.assertIn(limit, self._step(3))
+        self.assertIn(limit, self._step(9))
+
+    def test_cleanup_says_the_search_may_run_in_the_background(self):
+        self.assertIn("in the background", self._step(9))
+
     # -- skills are installed by the flow that verifies them -------------
 
     def test_the_skill_installs_the_skill_its_verify_step_requires(self):
