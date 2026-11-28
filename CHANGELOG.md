@@ -6,6 +6,20 @@ What changed in how Data Noodler behaves, newest first, in plain language.
 
 An entry is added whenever something a user or an agent can see changes: a tool, one of its options, the instructions the server gives the agent, a file in either skill, an installer flag, or the version of Google's analytics-mcp that gets installed. Each entry names the documents that were checked against the change and says which of them changed. A test compares the "Surface" code on the newest entry with the software and fails when they differ, so a visible change can't ship without an entry.
 
+## 2026-11-28: An upgrade starts by getting the newest package
+
+When you ask your agent to help you upgrade, it now asks where you keep the Data Noodler folder, brings that folder up to date (or has you download it again), and follows the instructions that came with the new copy. Before this, the instructions never said to do any of that, so an agent could upgrade from an old copy it found on your disk and report success.
+
+The upgrade's read-only check now prints the version installed beside the version you're about to install, so you both see what will change. The same check now counts every running Data Noodler server. It used to miss Google's analytics server when an app started it through its shortcut, which could have let an upgrade begin while that app was still using it.
+
+Smaller changes in the same instructions: a blank maintainer field no longer sends a machine that already has Data Noodler back to first-time setup. The agent gives you the undo command before you quit your apps, and tells you what to say when you come back. The Windows note about fresh installs now sits with the fresh-install steps. Two results the skill copier can print now have a description.
+
+Also recorded here, because they merged before this changelog covered the skills: the install check lists entries registered under an older name of Data Noodler's server, which the upgrade removes, and the searches for the sign-in file look at most two folders deep.
+
+**Surface:** `a0301e00d22b`
+
+**Docs checked:** `data-noodler/skills/data-noodler-setup/SKILL.md` (changed), `data-noodler/skills/data-noodler-setup/references/windows.md` (changed), `README.md` (changed), `data-noodler/START-HERE.md` (changed), `data-noodler/skills/data-noodler-setup/references/troubleshooting.md`, `data-noodler/README.md`, `data-noodler/ARCHITECTURE.md`, `data-noodler/BUILD-YOUR-OWN.md`.
+
 ## 2026-11-28: A change to a skill now needs an entry here
 
 Nothing changes in how Data Noodler behaves. From this entry on, the check behind this changelog also covers the two skills: the instructions an agent follows to answer analytics questions and to install Data Noodler, with their reference pages and scripts. A change to any file in either skill now needs an entry here, the same as a change to a tool. A wording fix that leaves the meaning alone needs one too, and one line is enough for it.

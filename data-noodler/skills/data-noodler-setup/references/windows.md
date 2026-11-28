@@ -54,16 +54,6 @@ python -m venv "$env:USERPROFILE\.config\data-noodler\venv"
 
 **To check the hash yourself**, without trusting this document: open [pypi.org/project/pip/26.2.2/#files](https://pypi.org/project/pip/26.2.2/#files), find `pip-26.2.2-py3-none-any.whl`, view its hashes, and compare the SHA256 with the one above. PyPI never lets a released file be replaced, so a match means this is the file the pip project published.
 
-## Upgrading an existing install
-
-One command, run by the user from an ordinary PowerShell window with Claude Desktop, every Claude Code window, Codex and the ChatGPT app fully quit:
-
-```powershell
-& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" "<package>\data-noodler\installer\upgrade.py"
-```
-
-Run `upgrade.py --plan` first (read-only) and use the `base python` it prints if it differs. The run builds a fresh venv at the same path the same way as above, proves both servers, re-registers, verifies, and on any failure puts everything back; it never deletes the old venv (Step 9 offers that). Its pre-flight lists running processes with `Get-CimInstance Win32_Process` and refuses while any runs from the venv -- unmeasured on Windows until the first real upgrade, so if it misses one, the venv rename fails instead and nothing is changed. Afterwards the agent runs `copy_skills.py`. Details in SKILL.md Step 2, "On an upgrade".
-
 The `-c constraints.txt` is what stops the slow resolve described below. It is data: a set of versions observed working together. It only bounds packages that get installed, so Windows-only dependencies like pywin32 go unconstrained rather than conflicting.
 
 `venv` is in the standard library, so this needs no administrator rights and nothing from an app catalog.
@@ -71,6 +61,16 @@ The `-c constraints.txt` is what stops the slow resolve described below. It is d
 **Measured, and worth knowing before you worry:** every binary dependency resolved to a prebuilt `win_amd64` wheel — grpcio, cryptography, pydantic_core, rpds-py, cffi, pywin32. Nothing compiled from source, so **no MSVC Build Tools are required.** That would have been fatal given no admin rights.
 
 **Also measured, and the reason for the constraints file:** the install pulled 66 packages and pip backtracked through roughly 30 versions of `google-adk` before settling, taking several minutes and emitting "This is taking longer than usual". It succeeds. It is slow, and two people running the identical command can end up with different trees.
+
+## Upgrading an existing install
+
+One command, run by the user from an ordinary PowerShell window with Claude Desktop, every Claude Code window, Codex and the ChatGPT app fully quit:
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" "<repo>\data-noodler\installer\upgrade.py"
+```
+
+Run `upgrade.py --plan` first (read-only) and use the `base python` it prints if it differs. The run builds a fresh venv at the same path the same way as above, proves both servers, re-registers, verifies, and on any failure puts everything back; it never deletes the old venv (Step 9 offers that). Its pre-flight lists running processes with `Get-CimInstance Win32_Process` and refuses while any runs from the venv -- unmeasured on Windows until the first real upgrade, so if it misses one, the venv rename fails instead and nothing is changed. Afterwards the agent runs `copy_skills.py`. Details in SKILL.md Step 2, "On an upgrade".
 
 ## Why there is no launcher
 

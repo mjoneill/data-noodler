@@ -10,7 +10,7 @@ This document is written for an AI agent to facilitate installation of Data Nood
 
 ## Already installed?
 
-If `~/.config/data-noodler/config.json` exists on this machine, Data Noodler is already installed here, and this is likely an upgrade. Confirm with the user. If it is, go to `skills/data-noodler-setup/SKILL.md` and follow its upgrade path (Step 2), not the first-time setup below.
+If `~/.config/data-noodler/config.json` exists on this machine, Data Noodler is already installed here, and this is likely an upgrade. Confirm with the user. If it is, make sure this folder is the newest copy of the package first (in a git clone, `git pull --ff-only`; otherwise download it again). Then go to `skills/data-noodler-setup/SKILL.md` in this folder and follow its upgrade path. The first-time setup below is for a machine with no install.
 
 ## Which situation is this?
 
