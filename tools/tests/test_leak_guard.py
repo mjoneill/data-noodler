@@ -100,6 +100,47 @@ class AnalyticsOutput(unittest.TestCase):
         self.assertEqual(rules({"data-noodler/tests/fixtures/properties.csv": "a,b\n1,2\n"}), [])
 
 
+class ProjectNotebook(unittest.TestCase):
+    """The notebook the query skill keeps holds findings about one person's
+    analytics data. It belongs in their project, never in this repository."""
+
+    def test_a_notebook_is_refused_by_name_wherever_it_sits(self):
+        for path in ("data-noodler-notebook.md",
+                     "docs/data-noodler-notebook.md",
+                     "Data-Noodler-Notebook.MD",
+                     "data-noodler-notebook (1).md",
+                     "work/data-noodler-notebook-old.md",
+                     "Copy of data-noodler-notebook.md",
+                     "data-noodler-notebook.md.bak"):
+            with self.subTest(path=path):
+                self.assertIn("project-notebook", rules({path: "# Data Noodler notebook\n"}))
+
+    def test_a_folder_named_like_the_notebook_is_refused_too(self):
+        # The .gitignore pattern skips such a folder, so the guard must agree
+        # with it: whatever `git add .` leaves out, a forced add is refused.
+        for path in ("docs/data-noodler-notebooks/README.md",
+                     "Data-Noodler-Notebook/2026/notes.txt"):
+            with self.subTest(path=path):
+                self.assertIn("project-notebook", rules({path: "notes\n"}))
+
+    def test_a_fixture_notebook_passes(self):
+        self.assertEqual(rules({"data-noodler/tests/fixtures/data-noodler-notebook.md": "# Data Noodler notebook\n"}), [])
+
+    def test_a_document_that_names_the_notebook_passes(self):
+        self.assertEqual(rules({"data-noodler/skills/data-noodler/SKILL.md":
+                                "Keep the notebook in `data-noodler-notebook.md` at the top of the project.\n",
+                                "docs/notebook.md": "About notebooks.\n"}), [])
+
+    def test_the_finding_names_the_file_and_says_why(self):
+        found = [f for f in leak_guard.scan_tree({"x/data-noodler-notebook.md": "- 09:14 **Result:** 41,200 views\n"})
+                 if f.rule == "project-notebook"]
+        self.assertEqual(len(found), 1)
+        line = leak_guard.format_finding(found[0])
+        self.assertIn("x/data-noodler-notebook.md", line)
+        self.assertIn("project", line)
+        self.assertNotIn("41,200", line)
+
+
 class DeploymentProfile(unittest.TestCase):
     BLANK = '{"deployment_name": "", "maintainer": "", "maintainer_contact": "", "install_reports_to": ""}'
 
@@ -183,6 +224,25 @@ class CommandLine(unittest.TestCase):
             self.assertIn("credential-content", r.stdout)
             self.assertIn("settings-backup.json", r.stdout)
             self.assertNotIn(REFRESH, r.stdout + r.stderr)
+
+    def test_a_notebook_forced_past_the_ignore_file_fails_the_run(self):
+        with tempfile.TemporaryDirectory() as d:
+            git(d, "init", "-q")
+            with open(os.path.join(d, ".gitignore"), "w") as f:
+                f.write("*data-noodler-notebook*\n")
+            with open(os.path.join(d, "data-noodler-notebook.md"), "w") as f:
+                f.write("# Data Noodler notebook\n")
+            git(d, "add", "-f", ".")
+            r = self.run_guard(d)
+            self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+            self.assertIn("project-notebook", r.stdout)
+
+    def test_this_repository_ignores_a_notebook(self):
+        # The ordinary path: `git add .` in a checkout never stages one.
+        for name in ("data-noodler-notebook.md", "data-noodler/data-noodler-notebook (1).md"):
+            with self.subTest(name=name):
+                r = subprocess.run(["git", "check-ignore", "-q", name], cwd=REPO)
+                self.assertEqual(r.returncode, 0, "%s is not ignored by this repository's .gitignore" % name)
 
     def test_only_tracked_files_are_scanned(self):
         with tempfile.TemporaryDirectory() as d:

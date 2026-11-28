@@ -16,6 +16,12 @@ application_default_credentials.json
 !data-noodler/tests/fixtures/*.csv
 _outputs/
 
+# The notebook the agent keeps holds findings about your data. It belongs in
+# your own project folder. Any file or folder whose name contains this is
+# ignored, and CI refuses one that is added anyway: name a document about
+# notebooks some other way.
+*data-noodler-notebook*
+
 # Build output
 dist/
 
