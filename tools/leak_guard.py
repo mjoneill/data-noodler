@@ -65,7 +65,8 @@ REPORT_SUFFIXES = (".csv", ".xlsx", ".html", ".htm")
 # The notebook the query skill keeps in a user's project. It holds findings
 # about their data, so one that lands here is a leak whatever it says. The
 # pattern keeps the stem, so a renamed copy ("... (1).md", "Copy of ...") is
-# caught too.
+# caught too. It is tried on every part of the path, the way the same pattern
+# in .gitignore is, so a folder with that name counts as well.
 NOTEBOOK_NAME = "*data-noodler-notebook*"
 
 # --- rule: deployment-profile -------------------------------------------------
@@ -111,7 +112,7 @@ def scan_file(path, text):
             and not _in_fixtures(path):
         out.append(Finding("analytics-output", path, 0, "report output outside tests/fixtures/"))
 
-    if fnmatch.fnmatch(lowered, NOTEBOOK_NAME) and not _in_fixtures(path):
+    if any(fnmatch.fnmatch(part, NOTEBOOK_NAME) for part in path.lower().split("/")) and not _in_fixtures(path):
         out.append(Finding("project-notebook", path, 0,
                            "a project notebook holds findings about someone's data; it belongs in their project"))
 

@@ -115,6 +115,14 @@ class ProjectNotebook(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertIn("project-notebook", rules({path: "# Data Noodler notebook\n"}))
 
+    def test_a_folder_named_like_the_notebook_is_refused_too(self):
+        # The .gitignore pattern skips such a folder, so the guard must agree
+        # with it: whatever `git add .` leaves out, a forced add is refused.
+        for path in ("docs/data-noodler-notebooks/README.md",
+                     "Data-Noodler-Notebook/2026/notes.txt"):
+            with self.subTest(path=path):
+                self.assertIn("project-notebook", rules({path: "notes\n"}))
+
     def test_a_fixture_notebook_passes(self):
         self.assertEqual(rules({"data-noodler/tests/fixtures/data-noodler-notebook.md": "# Data Noodler notebook\n"}), [])
 
