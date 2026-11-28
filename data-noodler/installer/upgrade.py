@@ -251,6 +251,9 @@ def running_servers(venv_dir, ga_home, platform, run_ps=None, launchers=()):
     # of the line, never a separator. Like the roots, `analytics-mcp` must
     # not match `analytics-mcp-dev` (#2130).
     for path in launchers:
+        if not isinstance(path, str) or not path.strip():
+            continue                  # "" + " " would match nearly anything
+        path = path.strip()
         needles += [path + e for e in ('"', "'", " ")]
         bare.append(path)
     fold = (lambda x: x.casefold()) if platform.startswith("win") else str
@@ -267,22 +270,29 @@ def running_servers(venv_dir, ga_home, platform, run_ps=None, launchers=()):
 
 PLUGIN_JSON = ("marketplace", "plugins", "data-noodler", ".codex-plugin",
                "plugin.json")
+# An install from before 2026-11-19 has the plugin under its old name. Only
+# the INSTALLED side looks there: this package is always the new layout.
+LEGACY_PLUGIN_JSON = ("marketplace", "plugins", "ga-analytics",
+                      ".codex-plugin", "plugin.json")
 
 
-def _plugin_version(root):
-    """The version in <root>'s plugin.json, or None when it can't be read."""
-    try:
-        with open(os.path.join(root, *PLUGIN_JSON), encoding="utf-8") as f:
-            value = json.load(f).get("version")
-    except (OSError, ValueError, TypeError, AttributeError):
-        return None
-    return value.strip() if isinstance(value, str) and value.strip() else None
+def _plugin_version(root, *layouts):
+    """The version in the first readable plugin.json under <root>, or None."""
+    for layout in layouts or (PLUGIN_JSON,):
+        try:
+            with open(os.path.join(root, *layout), encoding="utf-8") as f:
+                value = json.load(f).get("version")
+        except (OSError, ValueError, TypeError, AttributeError):
+            continue
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
 
 
 def version_line(plan):
     """The installed version beside this package's (#2130). Never a guess:
     a version that can't be read is "unknown"."""
-    installed = _plugin_version(plan.ga_home)
+    installed = _plugin_version(plan.ga_home, PLUGIN_JSON, LEGACY_PLUGIN_JSON)
     package = _plugin_version(plan.dist)
     line = f"installed {installed or 'unknown'}, this package {package or 'unknown'}"
     if installed and installed == package:

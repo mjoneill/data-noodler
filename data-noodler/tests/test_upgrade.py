@@ -719,6 +719,22 @@ class TestAnalyticsMcpLauncher(unittest.TestCase):
                                   base_python=sys.executable)
         self.assertEqual(again.launchers, [])
 
+    def test_a_blank_launcher_in_the_config_gives_none(self):
+        # Wren's mutation in review: a blank analytics_mcp_bin must not become
+        # a launcher of "", whose needles (a space, a quote) match nearly
+        # every process.
+        for raw in ("", "   ", None, 7):
+            with self.subTest(raw=raw):
+                self.assertEqual(upgrade.launchers_from({"analytics_mcp_bin": raw}), [])
+
+    def test_a_blank_launcher_never_matches_an_unrelated_process(self):
+        # The same guard where the match is made, for a record or a caller
+        # that hands one in.
+        text = "/usr/bin/some tool --flag\n/Applications/Other.app/x 'quoted'"
+        for blank in ("", "  "):
+            with self.subTest(blank=blank):
+                self.assertEqual(self._hits(text, launchers=[blank]), [])
+
     def test_the_preflight_looks_for_the_launcher(self):
         plan, launcher, _ = self._install()
         seen = {}
@@ -793,6 +809,31 @@ class TestVersionLine(unittest.TestCase):
                 line = upgrade.version_line(plan)
                 self.assertIn("installed unknown", line)
                 self.assertIn("this package 0.9.12", line)
+
+    def test_an_install_from_before_the_rename_is_read_from_its_old_plugin(self):
+        # Before 2026-11-19 the plugin folder was plugins/ga-analytics/.
+        ga_home = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, ga_home, True)
+        p = os.path.join(ga_home, "marketplace", "plugins", "ga-analytics",
+                         ".codex-plugin")
+        os.makedirs(p)
+        with open(os.path.join(p, "plugin.json"), "w", encoding="utf-8") as f:
+            json.dump({"name": "ga-analytics", "version": "0.7.3"}, f)
+        plan = self._plan(package="0.9.12")
+        plan.ga_home = ga_home
+        self.assertIn("installed 0.7.3", upgrade.version_line(plan))
+
+    def test_the_old_plugin_never_stands_in_for_the_package(self):
+        dist = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, dist, True)
+        p = os.path.join(dist, "marketplace", "plugins", "ga-analytics",
+                         ".codex-plugin")
+        os.makedirs(p)
+        with open(os.path.join(p, "plugin.json"), "w", encoding="utf-8") as f:
+            json.dump({"version": "0.7.3"}, f)
+        plan = self._plan(installed="0.9.1")
+        plan.dist = dist
+        self.assertIn("this package unknown", upgrade.version_line(plan))
 
     def test_an_unreadable_package_version_is_unknown(self):
         line = upgrade.version_line(self._plan("0.9.1", None))
