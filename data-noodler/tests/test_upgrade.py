@@ -823,6 +823,26 @@ class TestVersionLine(unittest.TestCase):
         plan.ga_home = ga_home
         self.assertIn("installed 0.7.3", upgrade.version_line(plan))
 
+    def test_two_unknowns_are_never_the_same_version(self):
+        # Wren's mutation in review: `installed == package` alone would call
+        # two unreadable versions "the same".
+        line = upgrade.version_line(self._plan(None, None))
+        self.assertIn("installed unknown, this package unknown", line)
+        self.assertNotIn("same", line)
+
+    def test_the_new_plugin_folder_wins_when_both_exist(self):
+        # Wren's mutation in review: an install that has both folders (a
+        # left-over old one) reports the version it runs, the new one's.
+        plan = self._plan("0.9.1", "0.9.12")
+        p = os.path.join(plan.ga_home, "marketplace", "plugins", "ga-analytics",
+                         ".codex-plugin")
+        os.makedirs(p)
+        with open(os.path.join(p, "plugin.json"), "w", encoding="utf-8") as f:
+            json.dump({"version": "0.7.3"}, f)
+        line = upgrade.version_line(plan)
+        self.assertIn("installed 0.9.1", line)
+        self.assertNotIn("0.7.3", line)
+
     def test_the_old_plugin_never_stands_in_for_the_package(self):
         dist = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, dist, True)
