@@ -388,6 +388,47 @@ class TestTagsPrePush(unittest.TestCase):
         self.assertIn("IDENTITY-GUARD tag inner (%s), inside tag outer:"
                       % inner[:10], r.stderr)
 
+    def _wrapped_hand_made(self, inner_name):
+        """A tag object written by hand (git would refuse this name), with a
+        bad tagger, wrapped in a good tag that is then pushed. Returns the
+        hand-made object's id and the guard's answer."""
+        head = self.repo.rev("HEAD")
+        body = ("object %s\ntype commit\ntag %s\n"
+                "tagger Seat <%s> 0 +0000\n\nhand-made\n"
+                % (head, inner_name, MACHINE))
+        inner = subprocess.run(
+            ["git", "hash-object", "-t", "tag", "-w", "--literally", "--stdin"],
+            cwd=self.repo.work, input=body, capture_output=True, text=True,
+            check=True).stdout.strip()
+        self.repo.tag("outer", SEAT, target=inner)
+        r = self.repo.guard("origin", stdin=self.repo.pre_push_line("outer"))
+        return inner, r
+
+    def test_a_wrapped_tags_own_name_is_printed_only_when_it_is_plain(self):
+        # Wren's review of #2125: the name inside a tag object is free text,
+        # and CI logs are public. A name a ref could not hold (a control
+        # character, a space) or one holding an address is not printed.
+        inner, r = self._wrapped_hand_made(
+            "weird\x1b[31mRED jane@laptop.local")
+        self.assertEqual(r.returncode, REFUSED, r.stderr)
+        self.assertIn("IDENTITY-GUARD tag (unnamed) (%s), inside tag outer:"
+                      % inner[:10], r.stderr)
+        self.assertNotIn("\x1b", r.stderr)
+        self.assertNotIn("weird", r.stderr)
+        self.assertNotIn("laptop", r.stderr)
+
+    def test_a_wrapped_tag_named_like_an_address_is_not_printed(self):
+        inner, r = self._wrapped_hand_made("jane@laptop.local")
+        self.assertEqual(r.returncode, REFUSED, r.stderr)
+        self.assertIn("tag (unnamed) (%s)" % inner[:10], r.stderr)
+        self.assertNotIn("laptop", r.stderr)
+
+    def test_a_wrapped_tag_with_a_plain_name_is_still_named(self):
+        # The control for the two above: an ordinary name survives the rule.
+        inner, r = self._wrapped_hand_made("v-2.0_rc1/inner")
+        self.assertIn("IDENTITY-GUARD tag v-2.0_rc1/inner (%s), inside tag "
+                      "outer:" % inner[:10], r.stderr)
+
     def test_the_refusal_never_prints_the_tagger(self):
         self.repo.tag("v1.0", MAILBOX, tagger_name="Somebody Particular")
         r = self.repo.push_tag("v1.0")
@@ -448,6 +489,14 @@ class TestTagsCiMode(unittest.TestCase):
         self.assertIn("--since needs a revision", r.stderr)
         self.assertNotIn("Traceback", r.stderr)
         self.assertNotIn(CLEAN, r.stderr)
+
+    def test_since_followed_by_another_flag_checked_nothing(self):
+        # Wren's review: "--since --all" never reaches the check, because
+        # --all is read first, so this uses a flag the guard does not know.
+        r = self.repo.guard("--since", "--verbose")
+        self.assertEqual(r.returncode, FAILED, r.stderr)
+        self.assertIn("--since needs a revision", r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
 
     def test_since_passes_an_accepted_tag_and_counts_it(self):
         self.repo.tag("v1.0", SEAT)

@@ -125,6 +125,12 @@ def commits_to_push(lines, remote):
     return shas
 
 
+# The name written inside a tag object is free text: it can hold a space, a
+# control character or an address, and a refusal is printed to public CI
+# logs. It is printed only when it is plainly a tag name.
+PLAIN_TAG_NAME = re.compile(r"[A-Za-z0-9._/+-]{1,100}\Z")
+
+
 def tag_name(ref):
     return ref[len("refs/tags/"):] if ref.startswith("refs/tags/") else ref
 
@@ -135,7 +141,8 @@ def tag_chain(sha, name, into):
 
     The pushed tag is named by its ref, which is what `git tag -d` takes, and
     `outer` is None. A wrapped tag has no ref of its own on the push, so it
-    is named by the name written in its own object, and `outer` is the
+    is named by the name written in its own object when that name is plain
+    (PLAIN_TAG_NAME) and as "(unnamed)" otherwise, and `outer` is the
     pushed tag that led to it (#2125): the bad tagger may be on the wrapped
     tag, and that is the one to make again."""
     outer = None
@@ -144,7 +151,8 @@ def tag_chain(sha, name, into):
         if outer is not None:
             own = [line.split(" ", 1)[1] for line in headers
                    if line.startswith("tag ")]
-            name = own[0] if len(own) == 1 else "(unnamed)"
+            name = (own[0] if len(own) == 1 and PLAIN_TAG_NAME.match(own[0])
+                    else "(unnamed)")
         into[sha] = (name, outer)
         if outer is None:
             outer = name
