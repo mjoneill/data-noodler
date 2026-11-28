@@ -117,6 +117,35 @@ class TestProbeReportsRatherThanFails(unittest.TestCase):
         code = facts["harnesses"]["claude_code"]
         self.assertEqual(code["ga_servers_registered"], ["data-noodler"])
         self.assertEqual(code["other_servers"], ["some-other"])
+        self.assertEqual(code["legacy_servers"], [])
+
+    def test_an_entry_under_a_retired_name_is_reported_as_legacy(self):
+        # An install made before the rename still has its old entry. The
+        # install retires it, so listing it under other_servers, which the
+        # setup skill says to leave alone, sends the agent the wrong way
+        # (#2034). The names come from register.py, the code that retires
+        # them, so probe and register always agree on what counts as legacy.
+        import register
+        self.assertTrue(register.LEGACY_SERVERS)
+        home = tempfile.mkdtemp()
+        servers = {name: {} for name in register.LEGACY_SERVERS}
+        servers.update({"data-noodler": {}, "some-other": {}})
+        with open(os.path.join(home, ".claude.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump({"mcpServers": servers}, f)
+        facts = probe.collect(home=home, env={}, platform=DARWIN,
+                              check_imports=False)
+        code = facts["harnesses"]["claude_code"]
+        self.assertEqual(code["legacy_servers"],
+                         sorted(register.LEGACY_SERVERS))
+        self.assertEqual(code["other_servers"], ["some-other"])
+        self.assertEqual(code["ga_servers_registered"], ["data-noodler"])
+
+    def test_legacy_servers_is_reported_even_when_there_are_none(self):
+        facts = probe.collect(home=tempfile.mkdtemp(), env={},
+                              platform=DARWIN, check_imports=False)
+        for name, harness in facts["harnesses"].items():
+            self.assertEqual(harness["legacy_servers"], [], name)
 
 
 class TestProbeCommandLine(unittest.TestCase):
