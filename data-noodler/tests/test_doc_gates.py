@@ -1,7 +1,7 @@
-"""Doc gates 1, 2, 3 and 6 (decision ce112917, card #2123).
+"""Doc gates 1, 2, 3, 4 and 6 (decision ce112917, cards #2123 and #2117).
 
 A fact a program can look up gets a test that fails when a doc and the code
-disagree. These four cover the facts the docs state most often:
+disagree. Four of these cover the facts the docs state most often:
 
   1. a count of tools matches the server it describes;
   2. a version floor in prose equals the value the code enforces;
@@ -9,6 +9,11 @@ disagree. These four cover the facts the docs state most often:
      the query skill, and every tool, script, flag and config key the docs
      name exists;
   6. each SKILL.md stays under 500 lines.
+
+Gate 4 is for the disagreement these can't see. Each skill tells its reader
+that it can be older than the software, and to follow the software and say
+so when the two disagree about a fact. The test keeps that sentence in both
+skills. (Gate 5, the changelog, is tests/test_public_surface.py.)
 
 Each gate is a checker that returns its problems, and each has two tests:
 one runs it over the real docs and must find nothing, and one runs it over a
@@ -392,6 +397,43 @@ class TestGate6SkillSize(unittest.TestCase):
         at = "x\n" * SKILL_LINE_LIMIT
         self.assertEqual(size_problems([("ok.md", at)]), [])
         self.assertEqual(size_problems([("big.md", at + "x\n")]), [("big.md", SKILL_LINE_LIMIT + 1)])
+
+
+# ── gate 4: the software wins a disagreement, and the user hears about it ──
+
+# In one study of coding agents given an out-of-date instruction file, the
+# agents followed the file over the code in 90.1% of their choices; one
+# sentence giving the code precedence moved that to 91.4% following the code
+# (arXiv 2610.30571, a single preprint). A skill is exactly such a file: it is
+# installed once and can outlive the software it describes.
+PRECEDENCE = ("This skill can be older than the software it describes.",
+              "follow the software and tell the user what disagreed")
+
+
+def precedence_problems(docs, sentences=PRECEDENCE):
+    """[(doc, missing sentence)]. Line wrapping must not decide whether a sentence is present."""
+    problems = []
+    for path, text in docs:
+        flat = " ".join(text.split())
+        problems += [(path, sentence) for sentence in sentences if sentence not in flat]
+    return problems
+
+
+class TestGate4TheSoftwareWinsADisagreement(unittest.TestCase):
+
+    def test_both_skills_give_the_software_precedence(self):
+        skills = sorted(glob.glob(os.path.join(ROOT, "skills", "*", "SKILL.md")))
+        self.assertEqual(len(skills), 2, "expected the two skills")
+        self.assertEqual(precedence_problems([(rel(p), _read(p)) for p in skills]), [])
+
+    def test_control_a_skill_missing_either_sentence_is_caught(self):
+        good = "Intro. " + PRECEDENCE[0] + " If the two disagree about a fact,\n" + PRECEDENCE[1] + "."
+        self.assertEqual(precedence_problems([("ok.md", good)]), [])
+        for sentence in PRECEDENCE:
+            self.assertEqual(precedence_problems([("bad.md", good.replace(sentence, ""))]), [("bad.md", sentence)])
+        # The opposite instruction must not pass for the real one.
+        inverted = good.replace("follow the software", "follow this skill")
+        self.assertEqual(precedence_problems([("bad.md", inverted)]), [("bad.md", PRECEDENCE[1])])
 
 
 if __name__ == "__main__":

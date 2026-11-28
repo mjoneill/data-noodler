@@ -26,6 +26,16 @@ is TRUNCATED). Never analyze truncated data (row_limit_hit, sampled) unless
 the user specifically asks: narrow and re-export. Past 2,500
 rows, ask the user how to cut what you show; the file keeps every row.
 
+Compute with a script over the exported file (plain Python is enough; ask
+before installing anything). Check its row count against the receipt and
+show the script with the result. If no code can reach the file, say so, and
+say what you couldn't compute.
+
+Before reporting by page, check whether one page appears under several URLs
+(protocol, www, trailing slash, letter case, ?query, #fragment) and whether
+GA4's pagePath has added several hostnames together. Show what you found
+and ask how to treat each kind.
+
 With every GA number, state the property ID, exact metric name and exact date
 range.
 
@@ -104,6 +114,28 @@ If you can fetch web pages, look at what the page itself loads:
 A page can load tags that its consent banner or its Tag Manager rules never
 fire, so what the page carries is a strong hint, not proof. Confirm with a
 small report on the property you picked, filtered to the site's hostName.
+
+## One page under several URLs, and several sites in one row
+
+Before reporting by page, check whether one page appears under several URLs.
+GA4 keeps letter case and trailing slashes as recorded, so /About, /about
+and /about/ are three rows. What else the file can show depends on the page
+field that was exported:
+
+- pagePath is the path alone: it leaves out the hostname and the ?query. On
+  a property that receives several hostnames it adds different sites' pages
+  together wherever they share a path, and every site's "/" lands in one
+  row. Check the property's hostnames before a page-level export
+  (lookup_property with enrichment, or the receipt's host_scope). With more
+  than one, ask the user whether to break them out (hostName beside
+  pagePath), filter to one hostname, or leave them combined.
+- fullPageUrl is the hostname, the path and the ?query. In our exports it
+  came back without utm_ tags.
+- pageLocation is the whole URL as recorded, with its protocol and its tags.
+
+A ?query can spread one page over thousands of rows with a few views each.
+pagePath hides that inside one large row, so say which field a figure came
+from. The working rules below say how to run the check and what to ask.
 
 ## Sampled results: narrow before you report
 
@@ -273,8 +305,9 @@ GA4 reports `pagePath` (`/explore/law-school`). Search Console reports full
 URLs (`https://example.edu/explore/law-school`). Nothing reconciles them
 automatically. Search Console exports include a `page_path` column split from
 the URL so a comparison is a lookup rather than string surgery — but the
-comparison itself is analysis you do over the two files, and it is your job to
-decide whether a trailing slash or a query string counts as the same page."""
+comparison itself is analysis you do over the two files. Whether a trailing
+slash or a ?query counts as the same page is the user's choice: the working
+rules below say how to check and what to ask."""
 
 
 BEHAVIORAL_CONTRACT = """\
@@ -319,6 +352,56 @@ BEHAVIORAL_CONTRACT = """\
   the user named a site, the first move is to resolve it (a bare
   gsc_list_sites call, or contains= to narrow), not to enumerate everything.
 - **Analyze from the files**, not from what you remember of them.
+- **Compute with a script over the exported file.** Arithmetic done in your
+  head over many rows is slow, costs tokens and can be wrong with no sign of
+  it. A script reads every row. Before you start, look at what this computer
+  has, and use the first of these that works: the app's own analysis tool,
+  if it can open the exported file; Python with pandas, or R, if already
+  installed; plain Python, whose built-in csv module is always enough to
+  total, group and sort. Most computers have no data libraries, so plain
+  Python is the usual answer. If a library would really help, ask before
+  installing anything, and never install into Data Noodler's own Python
+  environment.
+- **Check the script before you trust its answer.** Have it print the number
+  of rows it read, and check that row count against the receipt: the two
+  must match. Have it print its intermediate totals as well as the final
+  number. For a metric that counts events (screenPageViews, eventCount),
+  compare the script's total with one figure fetched directly: run_report
+  with no dimensions, for the same property, metric, dates and filters.
+  Sessions and user counts don't add up across rows, because one session is
+  counted in every page row it touched, so leave those out of this check.
+  When a check fails, find out why before you report anything.
+- **Save the script and show it.** Save it in the same folder as the export
+  it reads, tell the user where it is, and show the script with the result,
+  so they can rerun it or question it.
+- **Small sums by hand are fine when you say so.** Working out one figure
+  from two or three others, such as the percentage change between two
+  totals, you may do yourself, saying that you did.
+- **Where no code can reach the file, say so.** Some chat apps run code on a
+  remote server that cannot open files on this computer, and some run no
+  code at all. There, keep to single figures and small sums, and for
+  anything larger say what you couldn't compute and what would let you: an
+  app that can run code on this computer.
+- **Before reporting by page, check whether one page appears under several
+  URLs.** The kinds: protocol (http beside https), www, a trailing slash,
+  letter case, a ?query, a #fragment. Run the check as a script over the
+  exported file, once per page-level export. Totals by date, country or
+  device don't need it. For each kind, count the pages that have variants
+  and the views or clicks the variants themselves carry: every URL in a
+  group except the one with the most. Counting every page that has a
+  variant makes a small effect look large. Where no code can reach the
+  file, say the check was not run.
+- **Show what you found and ask how to treat each kind.** Give the counts,
+  the variants' share and a few examples, then ask: merge, keep separate, or
+  flag as something to fix on the site. The choice is the user's. A
+  #fragment is the same page, ?page=2 may be a different one, and http
+  beside https may be a migration problem they care about. Name the pages
+  with the most ?query variants too: one page spread over thousands of URLs
+  deserves the user's attention. If the variants carry too little to change
+  the answer, say so and carry on.
+- **Record the choice so a rerun makes it again.** Restate it with the
+  result. Where you keep a project notebook, write it there as a
+  `Decision:` entry.
 - **State the property, the metric, and the date range** alongside every
   number you report."""
 
